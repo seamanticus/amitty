@@ -26,7 +26,6 @@ mv ./discordo /usr/local/bin
 - Run the built executable in a new Terminal.
 - Choose the preferred login method.
 - Log in using the chosen login method and click on "Login" button to continue.
-Note: bot accounts tokens must be prefixed with "Bot " (eg: "Bot <token>").
 
 ## Disclaimer
 
