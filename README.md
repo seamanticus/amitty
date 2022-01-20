@@ -38,7 +38,9 @@ sudo mv ./discordo /usr/local/bin
 
 - Run the `discordo` executable with no arguments.
 
-- Log in using the account email and password (first-time login) and click on the "Login" button to continue. If you are using a bot account to login, set the `DISCORDO_TOKEN` environment variable to the token of the bot and prefix it with `Bot ` (eg: `Bot <token>`).
+- Log in using the account email and password (first-time login) and click on the "Login" button to continue.
+
+  - If you are using a bot account to login, set the `DISCORDO_TOKEN` environment variable to the token of the bot and prefix it with `Bot ` (eg: `Bot <token>`).
 
   - By default, Discordo utilizes OS-specific keyring to store the authentication token. However, if you prefer not to use a keyring (not recommended), you may set the `DISCORDO_TOKEN` environment variable and Discordo will prioritize the usage of the provided token to login instead of keyring.
 
