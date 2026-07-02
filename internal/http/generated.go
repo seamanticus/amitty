@@ -2,4 +2,4 @@
 
 package http
 
-const ClientBuildNumber = 567923
+const ClientBuildNumber = 572764
