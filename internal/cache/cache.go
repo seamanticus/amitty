@@ -17,14 +17,12 @@ func (c *Cache) Create(query string, value uint) {
 	c.items.Store(query, value)
 }
 
-func (c *Cache) Exists(query string) (ok bool) {
-	_, ok = c.items.Load(query)
-	return
-}
-
-func (c *Cache) Get(query string) uint {
-	i, _ := c.items.Load(query)
-	return i.(uint)
+func (c *Cache) Get(query string) (uint, bool) {
+	i, ok := c.items.Load(query)
+	if !ok {
+		return 0, false
+	}
+	return i.(uint), true
 }
 
 // Invalidate is only needed when a member leaves and the search query reaches

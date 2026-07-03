@@ -620,15 +620,15 @@ func channelHasUser(state *ningen.State, channelID discord.ChannelID, userID dis
 // It emits a follow-up suggestion message once results are loaded.
 func (c *composer) searchMember(gID discord.GuildID, name string) tview.Cmd {
 	key := gID.String() + " " + name
-	if c.cache.Exists(key) {
+	if _, ok := c.cache.Get(key); ok {
 		return nil
 	}
 	// If searching for "ab" returns less than SearchLimit,
 	// then "abc" would not return anything new because we already searched
 	// everything starting with "ab". This will still be true even if a new
 	// member joins because arikawa loads new members into the state.
-	if k := key[:len(key)-1]; c.cache.Exists(k) {
-		if count := c.cache.Get(k); count < c.chat.state.MemberState.SearchLimit {
+	if count, ok := c.cache.Get(key[:len(key)-1]); ok {
+		if count < c.chat.state.MemberState.SearchLimit {
 			c.cache.Create(key, count)
 			return nil
 		}
