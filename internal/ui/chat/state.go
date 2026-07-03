@@ -167,8 +167,9 @@ func cursorAfterDelete(prevCursor, deletedIndex, remaining int) int {
 	}
 }
 
-func (m *Model) onGuildMembersChunk(event *gateway.GuildMembersChunkEvent) {
-	m.messagesList.setFetchingChunk(false, uint(len(event.Members)))
+func (m *Model) onGuildMembersChunk(event *gateway.GuildMembersChunkEvent) tview.Cmd {
+	m.messagesList.invalidateRenderedMessages()
+	return m.composer.onGuildMembersChunk(event)
 }
 
 func (m *Model) onGuildMemberRemove(event *gateway.GuildMemberRemoveEvent) {

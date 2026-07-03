@@ -2,6 +2,7 @@ package chat
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"log/slog"
 	"os"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/ayn2op/arikawa/v3/api"
 	"github.com/ayn2op/arikawa/v3/discord"
+	"github.com/ayn2op/arikawa/v3/gateway"
 	"github.com/ayn2op/arikawa/v3/state"
 	"github.com/ayn2op/arikawa/v3/utils/json/option"
 	"github.com/ayn2op/arikawa/v3/utils/sendpart"
@@ -37,6 +39,7 @@ import (
 const (
 	tmpFilePattern      = consts.Name + "_*.md"
 	imageAttachmentName = "clipboard.png"
+	memberSearchNonce   = "autocomplete:"
 )
 
 var mentionRegex = regexp.MustCompile("@[a-zA-Z0-9._]+")
@@ -619,6 +622,10 @@ func channelHasUser(state *ningen.State, channelID discord.ChannelID, userID dis
 // searchMember performs member discovery in a command goroutine.
 // It emits a follow-up suggestion message once results are loaded.
 func (c *composer) searchMember(gID discord.GuildID, name string) tview.Cmd {
+	if name == "" {
+		return nil
+	}
+
 	key := gID.String() + " " + name
 	if _, ok := c.cache.Get(key); ok {
 		return nil
@@ -634,17 +641,36 @@ func (c *composer) searchMember(gID discord.GuildID, name string) tview.Cmd {
 		}
 	}
 
+	now := time.Now()
 	// Rate limit on our side because we can't distinguish between a successful search and SearchMember not doing anything because of its internal rate limit that we can't detect
-	if c.lastSearch.Add(c.chat.state.MemberState.SearchFrequency).After(time.Now()) {
+	if c.lastSearch.Add(c.chat.state.MemberState.SearchFrequency).After(now) {
 		return nil
 	}
 
-	c.lastSearch = time.Now()
+	c.lastSearch = now
+	nonce := memberSearchNonce + key
 	return func() tview.Msg {
-		c.chat.messagesList.waitForChunkEvent()
-		c.chat.messagesList.setFetchingChunk(true, 0)
-		c.chat.state.MemberState.SearchMember(gID, name)
-		c.cache.Create(key, c.chat.messagesList.waitForChunkEvent())
+		if err := c.chat.state.SendGateway(context.Background(), &gateway.RequestGuildMembersCommand{
+			GuildIDs:  []discord.GuildID{gID},
+			Query:     option.NewString(name),
+			Presences: c.chat.state.MemberState.RequestPresences,
+			Limit:     c.chat.state.MemberState.SearchLimit,
+			Nonce:     nonce,
+		}); err != nil {
+			slog.Error("failed to search guild members", "err", err, "guild_id", gID, "query", name)
+		}
+		return nil
+	}
+}
+
+func (c *composer) onGuildMembersChunk(event *gateway.GuildMembersChunkEvent) tview.Cmd {
+	key, ok := strings.CutPrefix(event.Nonce, memberSearchNonce)
+	if !ok {
+		return nil
+	}
+
+	c.cache.Create(key, uint(len(event.Members)))
+	return func() tview.Msg {
 		return tabSuggestMsg{}
 	}
 }

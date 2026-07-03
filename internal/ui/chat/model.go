@@ -267,7 +267,7 @@ func (m *Model) Update(msg tview.Msg) tview.Cmd {
 			m.onMessageDelete(eventMsg)
 
 		case *gateway.GuildMembersChunkEvent:
-			m.onGuildMembersChunk(eventMsg)
+			return tview.Batch(m.onGuildMembersChunk(eventMsg), m.listen())
 		case *gateway.GuildMemberRemoveEvent:
 			m.onGuildMemberRemove(eventMsg)
 
@@ -312,6 +312,9 @@ func (m *Model) Update(msg tview.Msg) tview.Cmd {
 			focusCmd = m.focusComposer()
 		}
 		m.composer.SetPlaceholder(tview.NewLine(tview.NewSegment(text, tcell.StyleDefault.Dim(true))))
+		if msg.Channel.GuildID.IsValid() {
+			return tview.Batch(focusCmd, m.messagesList.requestGuildMembers(msg.Channel.GuildID, msg.Messages))
+		}
 		return focusCmd
 	case QuitMsg:
 		return m.closeState()

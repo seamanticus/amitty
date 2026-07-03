@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-	"sync"
 	"time"
 	"unicode/utf8"
 
@@ -55,13 +54,6 @@ type messagesList struct {
 	itemByID map[discord.MessageID]*tview.TextView
 
 	attachmentsPicker *attachmentsPicker
-
-	fetchingMembers struct {
-		mu    sync.Mutex
-		value bool
-		count uint
-		done  chan struct{}
-	}
 }
 
 var _ help.KeyMap = (*messagesList)(nil)
@@ -920,6 +912,9 @@ func (ml *messagesList) Update(msg tview.Msg) tview.Cmd {
 		default:
 			ml.SetCursor(prevCursor)
 		}
+		if selectedChannel.GuildID.IsValid() {
+			return ml.requestGuildMembers(selectedChannel.GuildID, msg.Older)
+		}
 		return nil
 	}
 	return ml.Model.Update(msg)
@@ -1014,10 +1009,6 @@ func (ml *messagesList) fetchOlderMessages() tview.Cmd {
 		}
 		if len(messages) == 0 {
 			return nil
-		}
-
-		if guildID := selectedChannel.GuildID; guildID.IsValid() {
-			ml.requestGuildMembers(guildID, messages)
 		}
 
 		older := slices.Clone(messages)
@@ -1327,7 +1318,7 @@ func (ml *messagesList) deleteSelectedMessage() tview.Cmd {
 	}
 }
 
-func (ml *messagesList) requestGuildMembers(guildID discord.GuildID, messages []discord.Message) {
+func (ml *messagesList) requestGuildMembers(guildID discord.GuildID, messages []discord.Message) tview.Cmd {
 	usersToFetch := make([]discord.UserID, 0, len(messages))
 	seen := make(map[discord.UserID]struct{}, len(messages))
 
@@ -1346,49 +1337,23 @@ func (ml *messagesList) requestGuildMembers(guildID discord.GuildID, messages []
 		}
 	}
 
-	if len(usersToFetch) > 0 {
-		err := ml.chat.state.SendGateway(context.Background(), &gateway.RequestGuildMembersCommand{
+	if len(usersToFetch) == 0 {
+		return nil
+	}
+
+	return func() tview.Msg {
+		if err := ml.chat.state.SendGateway(context.Background(), &gateway.RequestGuildMembersCommand{
 			GuildIDs: []discord.GuildID{guildID},
 			UserIDs:  usersToFetch,
-		})
-		if err != nil {
+		}); err != nil {
 			slog.Error("failed to request guild members", "guild_id", guildID, "err", err)
-			return
 		}
-
-		ml.setFetchingChunk(true, 0)
-		ml.waitForChunkEvent()
+		return nil
 	}
 }
 
-func (ml *messagesList) setFetchingChunk(value bool, count uint) {
-	ml.fetchingMembers.mu.Lock()
-	defer ml.fetchingMembers.mu.Unlock()
-
-	if ml.fetchingMembers.value == value {
-		return
-	}
-
-	ml.fetchingMembers.value = value
-
-	if value {
-		ml.fetchingMembers.done = make(chan struct{})
-	} else {
-		ml.fetchingMembers.count = count
-		close(ml.fetchingMembers.done)
-	}
-}
-
-func (ml *messagesList) waitForChunkEvent() uint {
-	ml.fetchingMembers.mu.Lock()
-	if !ml.fetchingMembers.value {
-		ml.fetchingMembers.mu.Unlock()
-		return 0
-	}
-	ml.fetchingMembers.mu.Unlock()
-
-	<-ml.fetchingMembers.done
-	return ml.fetchingMembers.count
+func (ml *messagesList) invalidateRenderedMessages() {
+	clear(ml.itemByID)
 }
 
 func (ml *messagesList) ShortHelp() []keybind.Keybind {

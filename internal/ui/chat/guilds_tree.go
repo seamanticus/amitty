@@ -309,9 +309,6 @@ func (gt *guildsTree) loadChannel(channel discord.Channel) tview.Cmd {
 
 		go gt.chat.state.ReadState.MarkRead(channel.ID, channel.LastMessageID)
 
-		if guildID := channel.GuildID; guildID.IsValid() {
-			gt.chat.messagesList.requestGuildMembers(guildID, messages)
-		}
 		return channelLoadedMsg{Channel: channel, Messages: messages}
 	}
 }
