@@ -7,17 +7,17 @@ go 1.26.0
 require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/alecthomas/chroma/v2 v2.27.0
-	github.com/andybalholm/brotli v1.2.1
+	github.com/andybalholm/brotli v1.2.2
 	github.com/ayn2op/arikawa/v3 v3.0.0-20260619211231-9a7da0c518de
 	github.com/ayn2op/ningen/v3 v3.0.1-0.20260619214224-6a89f2062a83
-	github.com/ayn2op/tview v0.0.0-20260629024449-7e4be8158020
+	github.com/ayn2op/tview v0.0.0-20260703004135-684c7bd3e9af
 	github.com/deckarep/gosx-notifier v0.0.0-20180201035817-e127226297fb
 	github.com/gdamore/tcell/v3 v3.4.1-0.20260629051246-fe2979ab8bd1
 	github.com/gen2brain/beeep v0.11.2
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
-	github.com/klauspost/compress v1.18.6
+	github.com/klauspost/compress v1.19.0
 	github.com/ncruces/zenity v0.10.14
 	github.com/rivo/uniseg v0.4.7
 	github.com/sahilm/fuzzy v0.1.3
