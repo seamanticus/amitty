@@ -10,9 +10,9 @@ require (
 	github.com/andybalholm/brotli v1.2.2
 	github.com/ayn2op/arikawa/v3 v3.0.0-20260619211231-9a7da0c518de
 	github.com/ayn2op/ningen/v3 v3.0.1-0.20260619214224-6a89f2062a83
-	github.com/ayn2op/tview v0.0.0-20260703004135-684c7bd3e9af
+	github.com/ayn2op/tview v0.0.0-20260708025551-16f85f97975e
 	github.com/deckarep/gosx-notifier v0.0.0-20180201035817-e127226297fb
-	github.com/gdamore/tcell/v3 v3.4.1-0.20260629051246-fe2979ab8bd1
+	github.com/gdamore/tcell/v3 v3.4.1-0.20260703160154-d85b1fbd48b8
 	github.com/gen2brain/beeep v0.11.2
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
@@ -59,6 +59,6 @@ require (
 	golang.org/x/mobile v0.0.0-20260611195102-4dd8f1dbf5d2 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/term v0.44.0 // indirect
-	golang.org/x/text v0.38.0 // indirect
+	golang.org/x/text v0.39.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 )
