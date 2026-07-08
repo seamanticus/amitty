@@ -8,8 +8,8 @@ require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/alecthomas/chroma/v2 v2.27.0
 	github.com/andybalholm/brotli v1.2.2
-	github.com/ayn2op/arikawa/v3 v3.0.0-20260619211231-9a7da0c518de
-	github.com/ayn2op/ningen/v3 v3.0.1-0.20260619214224-6a89f2062a83
+	github.com/ayn2op/arikawa/v3 v3.0.0-20260708075022-9cc760fe507e
+	github.com/ayn2op/ningen/v3 v3.0.1-0.20260708075321-0ba1ffc70bd6
 	github.com/ayn2op/tview v0.0.0-20260708025551-16f85f97975e
 	github.com/deckarep/gosx-notifier v0.0.0-20180201035817-e127226297fb
 	github.com/gdamore/tcell/v3 v3.4.1-0.20260703160154-d85b1fbd48b8
