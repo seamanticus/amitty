@@ -51,7 +51,7 @@ func (m *Model) Update(msg tview.Msg) tview.Cmd {
 		return m.showErrorDialog(msg.err)
 	case tview.FormSubmitMsg:
 		if !m.HasLayer(errorLayerName) {
-			return nil
+			break
 		}
 		if msg.ButtonIndex == 0 {
 			return setClipboard(m.errorDialogText)
