@@ -1278,7 +1278,7 @@ func (ml *messagesList) confirmDelete() {
 		}
 	}
 
-	ml.chat.showConfirmModal(
+	ml.chat.showConfirmDialog(
 		"Are you sure you want to delete this message?",
 		[]string{"Yes", "No"},
 		onChoice,
