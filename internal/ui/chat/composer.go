@@ -79,7 +79,7 @@ func newComposer(cfg *config.Config, chat *Model) *composer {
 		SetPlaceholder(tview.NewLine(tview.NewSegment("Select a channel to start chatting", tcell.StyleDefault.Dim(true)))).
 		SetClipboard(
 			func(s string) {
-			_ = clipboard.Write(clipboard.FmtText, []byte(s))
+				_ = clipboard.Write(clipboard.FmtText, []byte(s))
 			},
 			func() string {
 				return string(clipboard.Read(clipboard.FmtText))
@@ -839,7 +839,7 @@ func (c *composer) ShortHelp() []keybind.Keybind {
 	if c.chat.GetVisible(mentionsListLayerName) {
 		cfg := c.cfg.Keybinds.MentionsList
 		ccfg := c.cfg.Keybinds.Composer
-		short := []keybind.Keybind{cfg.SelectUp.Keybind, cfg.SelectDown.Keybind, ccfg.Cancel.Keybind}
+		short := []keybind.Keybind{cfg.SelectUp.Keybind, cfg.SelectDown.Keybind, ccfg.TabComplete.Keybind, ccfg.Cancel.Keybind}
 		if c.canAttachFiles() {
 			short = append(short, ccfg.OpenFilePicker.Keybind)
 		}
@@ -872,7 +872,7 @@ func (c *composer) FullHelp() [][]keybind.Keybind {
 	}
 
 	return [][]keybind.Keybind{
-		{cfg.Send.Keybind, cfg.Newline.Keybind, cfg.Cancel.Keybind, cfg.TabComplete.Keybind, cfg.Undo.Keybind},
+		{cfg.Send.Keybind, cfg.Newline.Keybind, cfg.Cancel.Keybind, cfg.Undo.Keybind},
 		openEditor,
 	}
 }
