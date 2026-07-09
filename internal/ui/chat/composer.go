@@ -78,12 +78,8 @@ func newComposer(cfg *config.Config, chat *Model) *composer {
 	c.
 		SetPlaceholder(tview.NewLine(tview.NewSegment("Select a channel to start chatting", tcell.StyleDefault.Dim(true)))).
 		SetClipboard(
-			func(s string) {
-				_ = clipboard.Write(clipboard.FmtText, []byte(s))
-			},
-			func() string {
-				return string(clipboard.Read(clipboard.FmtText))
-			},
+			func(s string) { _ = clipboard.Write(clipboard.FmtText, []byte(s)) },
+			func() string { return string(clipboard.Read(clipboard.FmtText)) },
 		).
 		SetDisabled(true)
 
