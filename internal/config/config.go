@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"sync"
 	"unicode/utf8"
 
 	"github.com/BurntSushi/toml"
@@ -135,14 +136,17 @@ type (
 //go:embed config.toml
 var defaultCfg []byte
 
-func DefaultPath() string {
+var dir = sync.OnceValue(func() string {
 	path, err := os.UserConfigDir()
 	if err != nil {
 		slog.Info("user config dir cannot be determined; falling back to the current dir", "err", err)
 		path = "."
 	}
+	return filepath.Join(path, consts.Name)
+})
 
-	return filepath.Join(path, consts.Name, fileName)
+func DefaultPath() string {
+	return filepath.Join(dir(), fileName)
 }
 
 // Load reads the configuration file and parses it.
