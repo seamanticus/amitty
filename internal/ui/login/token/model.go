@@ -29,7 +29,7 @@ func (m *Model) Update(msg tview.Msg) tview.Cmd {
 		if token == "" {
 			return nil
 		}
-		return tokenCommand(token)
+		return tokenCmd(token)
 	}
 	return m.Form.Update(msg)
 }
