@@ -1,19 +1,12 @@
-# amitty &middot; [![license](https://img.shields.io/github/license/seamanticus/amitty?logo=github)](https://github.com/seamanticus/amitty/blob/master/LICENSE)
+<div align="center">
+  <img src=".github/logo_512.png" />
+</div>
 
-amitty is a lightweight and secure Discord terminal client for Linux, for chat and direct messages. It is a fork of [discordo](https://github.com/ayn2op/discordo).
-
-![Preview](.github/preview.png)
-![Picker](.github/picker.png)
-
-## Installation
-
-### Prebuilt binaries
-
-You can download and install a [prebuilt binary here](https://nightly.link/seamanticus/amitty/workflows/ci/master) for Linux.
+A minimalistically focused terminal client for Linux for DM's and chatting with friends on Discord servers. Written in Go.
 
 ### Building from source
 
-Requires [Go](https://go.dev/dl).
+Requires [Go 1.28](https://go.dev/dl).
 
 ```sh
 git clone https://github.com/seamanticus/amitty
@@ -72,7 +65,9 @@ The log file is replaced on each run. It is at `$XDG_CACHE_HOME/amitty/logs.txt`
 
 Use `-log-path` to change the path, and `-log-level` (`debug`, `info`, `warn`, or `error`) to set the verbosity of what is logged.
 
-## License
+## License and credits
+
+This is a fork of ayn2op/discordo
 
 Copyright (C) 2025-present ayn2op
 Copyright (C) 2026-present seamanticus
@@ -81,8 +76,3 @@ This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
 See the [LICENSE](./LICENSE) file for the full license text.
 
 `internal/dmwire` (from [arikawa](https://github.com/diamondburned/arikawa)) and `internal/ningen` (from [ningen](https://github.com/diamondburned/ningen)) are ISC licensed, Copyright 2020 diamondburned; see the `LICENSE` file in each.
-
-# Disclaimer
-
-> [!IMPORTANT]
-> Automated user accounts or "self-bots" are against Discord's Terms of Service. I am not responsible for any loss caused by using "self-bots" or amitty.
