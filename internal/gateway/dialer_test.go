@@ -39,7 +39,9 @@ func TestHandshakeHeaders(t *testing.T) {
 	seen := make(chan stdhttp.Header, 1)
 	server := httptest.NewServer(stdhttp.HandlerFunc(func(w stdhttp.ResponseWriter, r *stdhttp.Request) {
 		seen <- r.Header.Clone()
-		conn, err := (&websocket.Upgrader{}).Upgrade(w, r, nil)
+		// The fake server is not discord.com, so it must take discord.com's origin, which gorilla's upgrader refuses by default.
+		upgrader := websocket.Upgrader{CheckOrigin: func(*stdhttp.Request) bool { return true }}
+		conn, err := upgrader.Upgrade(w, r, nil)
 		if err == nil {
 			_ = conn.Close()
 		}
