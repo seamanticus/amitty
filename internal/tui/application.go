@@ -1,10 +1,6 @@
 package tui
 
 import (
-	"errors"
-	"fmt"
-	"os"
-	"runtime/debug"
 	"slices"
 	"strings"
 	"sync"
@@ -41,9 +37,8 @@ const (
 )
 
 type applicationOptions struct {
-	screen             Screen
-	disableCatchPanics bool
-	queueSize          int
+	screen    Screen
+	queueSize int
 }
 
 type ApplicationOption func(*applicationOptions)
@@ -51,12 +46,6 @@ type ApplicationOption func(*applicationOptions)
 func WithScreen(screen Screen) ApplicationOption {
 	return func(c *applicationOptions) {
 		c.screen = screen
-	}
-}
-
-func WithoutCatchPanics() ApplicationOption {
-	return func(c *applicationOptions) {
-		c.disableCatchPanics = true
 	}
 }
 
@@ -80,8 +69,7 @@ type Application[M Model[M]] struct {
 	mouseDownX, mouseDownY int              // The position of the mouse when a button was last pressed.
 	lastMouseButtons       tcell.ButtonMask // The last mouse button state.
 
-	screen             Screen
-	disableCatchPanics bool
+	screen Screen
 }
 
 // NewApplication creates an application that runs model.
@@ -91,12 +79,10 @@ func NewApplication[M Model[M]](model M, options ...ApplicationOption) *Applicat
 		option(&opts)
 	}
 	return &Application[M]{
-		msgs:  make(chan Msg, opts.queueSize),
-		done:  make(chan struct{}),
-		model: model,
-
-		screen:             opts.screen,
-		disableCatchPanics: opts.disableCatchPanics,
+		msgs:   make(chan Msg, opts.queueSize),
+		done:   make(chan struct{}),
+		model:  model,
+		screen: opts.screen,
 	}
 }
 
@@ -279,11 +265,10 @@ func (a *Application[M]) fireMouseActions(event *tcell.EventMouse) (updated, qui
 	return updated, quit
 }
 
-// stop finalizes the active screen and leaves terminal UI mode.
+// stop finalizes the screen and leaves terminal UI mode. The screen stays set: a finalized screen ignores further drawing, so stop is safe from any goroutine.
 func (a *Application[M]) stop() {
 	a.doneOnce.Do(func() {
 		a.screen.Fini()
-		a.screen = nil
 		close(a.done)
 	})
 }
@@ -376,14 +361,14 @@ func (a *Application[M]) handleCmd(c Cmd) (quit bool) {
 }
 
 func (a *Application[M]) runTask(task cmd.Task) {
-	if !a.disableCatchPanics {
-		defer func() {
-			if r := recover(); r != nil {
-				text := fmt.Sprintf("goroutine panicked: %v", r)
-				fmt.Fprintf(os.Stderr, "%s\nstack trace:\n%s\n", text, debug.Stack())
-				a.queueMsg(tcell.NewEventError(errors.New(text)))
-			}
-		}()
-	}
-	a.queueMsg(task())
+	returned := false
+	// A panic still crashes the program, but its trace prints on a restored terminal.
+	defer func() {
+		if !returned {
+			a.stop()
+		}
+	}()
+	msg := task()
+	returned = true
+	a.queueMsg(msg)
 }
