@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"runtime/debug"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -364,10 +365,8 @@ func (a *Application[M]) handleCmd(c Cmd) (quit bool) {
 	case cmd.Task:
 		go a.runTask(c)
 	case cmd.Batch:
-		for _, c := range c {
-			if a.handleCmd(c) {
-				return true
-			}
+		if slices.ContainsFunc(c, a.handleCmd) {
+			return true
 		}
 	}
 	return false
