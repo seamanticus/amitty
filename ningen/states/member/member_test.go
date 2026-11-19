@@ -8,9 +8,9 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/gateway"
-	"github.com/ayn2op/arikawa/v3/state"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/gateway"
+	"github.com/seamanticus/dmwire/state"
 )
 
 type mockNingen struct {

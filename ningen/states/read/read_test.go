@@ -6,15 +6,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/api"
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/gateway"
-	"github.com/ayn2op/arikawa/v3/session"
-	"github.com/ayn2op/arikawa/v3/state"
-	"github.com/ayn2op/arikawa/v3/state/store/defaultstore"
-	"github.com/ayn2op/arikawa/v3/utils/handler"
-	"github.com/ayn2op/arikawa/v3/utils/httputil"
-	"github.com/ayn2op/arikawa/v3/utils/httputil/httpdriver"
+	"github.com/seamanticus/dmwire/api"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/gateway"
+	"github.com/seamanticus/dmwire/session"
+	"github.com/seamanticus/dmwire/state"
+	"github.com/seamanticus/dmwire/state/store/defaultstore"
+	"github.com/seamanticus/dmwire/utils/handler"
+	"github.com/seamanticus/dmwire/utils/httputil"
+	"github.com/seamanticus/dmwire/utils/httputil/httpdriver"
 )
 
 type ackDriver struct {

@@ -4,8 +4,8 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/state/store"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/state/store"
 )
 
 // PresenceStore is a presence store that allows searching for a user presence

@@ -1,7 +1,7 @@
 package handlerrepo
 
 import (
-	"github.com/ayn2op/arikawa/v3/utils/handler"
+	"github.com/seamanticus/dmwire/utils/handler"
 )
 
 // Unbinder is an interface for separate states to remove their handlers.

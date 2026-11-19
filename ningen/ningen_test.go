@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/gateway"
-	"github.com/ayn2op/arikawa/v3/state"
-	"github.com/ayn2op/arikawa/v3/state/store"
-	"github.com/ayn2op/arikawa/v3/state/store/defaultstore"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/gateway"
+	"github.com/seamanticus/dmwire/state"
+	"github.com/seamanticus/dmwire/state/store"
+	"github.com/seamanticus/dmwire/state/store/defaultstore"
 )
 
 var lastMessageSink discord.MessageID

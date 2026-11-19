@@ -6,10 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/gateway"
-	"github.com/ayn2op/arikawa/v3/state/store"
-	"github.com/ayn2op/arikawa/v3/utils/handler"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/gateway"
+	"github.com/seamanticus/dmwire/state/store"
+	"github.com/seamanticus/dmwire/utils/handler"
 )
 
 // State implements a queryable channel and guild mute state.

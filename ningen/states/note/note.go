@@ -3,10 +3,10 @@ package note
 import (
 	"sync"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/gateway"
-	"github.com/ayn2op/arikawa/v3/state"
-	"github.com/ayn2op/arikawa/v3/utils/handler"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/gateway"
+	"github.com/seamanticus/dmwire/state"
+	"github.com/seamanticus/dmwire/utils/handler"
 )
 
 type State struct {
