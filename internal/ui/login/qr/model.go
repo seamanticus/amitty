@@ -18,6 +18,7 @@ import (
 	"github.com/ayn2op/tview/layout"
 	"github.com/ayn2op/tview/text"
 	"github.com/gdamore/tcell/v3/color"
+	"github.com/seamanticus/amitty/internal/captcha"
 	"github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/ui/login/keys"
 )
@@ -43,6 +44,14 @@ type Model struct {
 	expiresIn int
 	// ended is set once the login stopped without a token; Renew then starts a new one.
 	ended bool
+
+	// captchaTries counts the challenges answered for the ticket exchange.
+	captchaTries int
+	// captcha is the page waiting for an answer, or nil; captchaOpenErr is why no browser opened it.
+	captcha        *captcha.Page
+	captchaOpenErr string
+	// solution is the last answer, sent with the exchange until Discord takes or challenges it again.
+	solution captcha.Solution
 
 	// qrCode is the code at one pixel per module, made once as it arrives.
 	qrCode stdimage.Image
@@ -83,7 +92,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 	case startMsg:
 		next := NewModel(m.build)
 		next.status = "Connecting to Remote Auth Gateway..."
-		return next, cmd.Batch{closeConn(m.conn), connect(m.build)}
+		return next, cmd.Batch{closeConn(m.conn), closeCaptcha(m.captcha), connect(m.build)}
 	case tview.KeyMsg:
 		switch {
 		case m.ended && keybind.Matches(msg, keys.Renew()):
@@ -144,17 +153,19 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 	case pendingLoginMsg:
 		m.status = "Authenticating..."
 		m.expiresIn = 0
-		return m, cmd.Batch{closeConn(m.conn), exchangeTicket(m.build, m.fingerprint, m.privateKey, msg.ticket, false)}
+		return m, cmd.Batch{closeConn(m.conn), exchangeTicket(m.build, m.fingerprint, m.solution, m.privateKey, msg.ticket, false)}
 	case retryMsg:
 		if m.ended {
 			return m, nil
 		}
 		if msg.left <= 0 {
 			m.status = "Authenticating..."
-			return m, exchangeTicket(m.build, m.fingerprint, m.privateKey, msg.ticket, true)
+			return m, exchangeTicket(m.build, m.fingerprint, m.solution, m.privateKey, msg.ticket, true)
 		}
 		m.status = fmt.Sprintf("Connection failed, retrying once in %d s: %v", msg.left, msg.err)
 		return m, tickRetry(msg)
+	case captchaMsg, captchaPageMsg, captchaOpenFailedMsg, captchaSolvedMsg:
+		return m.updateCaptcha(msg)
 	case ignoredMsg:
 		return m, listen(m.conn)
 	case cancelMsg:
@@ -187,13 +198,15 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 	return m, nil
 }
 
-// end stops the login with status, hiding the code and closing the connection.
+// end stops the login with status, hiding the code and closing the connection and any captcha page.
 func (m Model) end(status string) (Model, tview.Cmd) {
+	page := m.captcha
 	m.status = status
 	m.ended = true
 	m.qrCode = nil
 	m.expiresIn = 0
-	return m, closeConn(m.conn)
+	m.captcha, m.captchaOpenErr = nil, ""
+	return m, cmd.Batch{closeConn(m.conn), closeCaptcha(page)}
 }
 
 // View centers the code above the status.

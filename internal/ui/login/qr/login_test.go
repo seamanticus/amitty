@@ -331,7 +331,11 @@ func TestModelUpdate(t *testing.T) {
 			if m.status != tt.want {
 				t.Fatalf("status = %q, want %q", m.status, tt.want)
 			}
-			if msg := run(t, command); msg != (connCloseMsg{}) {
+			batch, ok := command.(cmd.Batch)
+			if !ok || len(batch) == 0 {
+				t.Fatalf("command = %#v, want a batch that closes", command)
+			}
+			if msg := run(t, batch[0]); msg != (connCloseMsg{}) {
 				t.Fatalf("close sent %#v", msg)
 			}
 		})

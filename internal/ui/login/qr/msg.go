@@ -20,6 +20,7 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/gorilla/websocket"
+	"github.com/seamanticus/amitty/internal/captcha"
 	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	"github.com/seamanticus/amitty/internal/gateway"
@@ -339,12 +340,14 @@ type retryMsg struct {
 	err    error
 }
 
-// exchangeTicket redeems ticket once. A first attempt whose connection failed starts the countdown to a retry; a final one fails.
-func exchangeTicket(build http.Build, fingerprint string, privateKey *rsa.PrivateKey, ticket string, final bool) tview.Cmd {
+// exchangeTicket redeems ticket once, with the captcha solution if set. A first attempt whose connection failed starts the countdown to a retry; a final one fails.
+func exchangeTicket(build http.Build, fingerprint string, solution captcha.Solution, privateKey *rsa.PrivateKey, ticket string, final bool) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), http.AuthTimeout)
 		defer cancel()
-		return retryOr(redeemTicket(ctx, ticketClient(http.NewClient(""), build, fingerprint), privateKey, ticket), ticket, final)
+		client := ticketClient(http.NewClient(""), build, fingerprint)
+		client.OnRequest = append(client.OnRequest, solution.Option())
+		return retryOr(redeemTicket(ctx, client, privateKey, ticket), ticket, final)
 	})
 }
 
@@ -377,9 +380,12 @@ func ticketClient(client *api.Client, build http.Build, fingerprint string) *api
 	return client
 }
 
-// redeemTicket exchanges ticket for the token encrypted to privateKey and returns a TokenMsg or an error.
+// redeemTicket exchanges ticket for the token encrypted to privateKey and returns a TokenMsg, a captchaMsg or an error.
 func redeemTicket(ctx context.Context, client *api.Client, privateKey *rsa.PrivateKey, ticket string) tview.Msg {
 	encryptedToken, err := client.WithContext(ctx).ExchangeRemoteAuthTicket(ticket)
+	if challenge, ok := captcha.FromError(err); ok {
+		return captchaMsg{ticket: ticket, challenge: challenge}
+	}
 	if err != nil {
 		return err
 	}
