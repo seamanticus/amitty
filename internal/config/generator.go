@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -64,26 +65,55 @@ func isTable(value reflect.Value) bool {
 	return value.Kind() == reflect.Struct
 }
 
-// write writes a section for each option of the table at path: its doc comment, then its default value or, for a table, its own options.
-func write(buffer *bytes.Buffer, path string, table reflect.Value) {
+// write writes the table at path as a heading, its doc comment, and a table of its options with their defaults and meanings, then each of its subtables the same way.
+func write(buffer *bytes.Buffer, path, doc string, table reflect.Value) {
+	title := "Top level"
 	if path != "" {
-		path += "."
+		title = "`[" + path + "]`"
+	}
+	fmt.Fprintf(buffer, "## %s\n\n", title)
+	if doc = strings.TrimSpace(doc); doc != "" {
+		fmt.Fprintf(buffer, "%s\n\n", doc)
 	}
 
-	for _, field := range structFields(table) {
-		name := path + field.key
-		fmt.Fprintf(buffer, "%s %s\n\n", strings.Repeat("#", strings.Count(name, ".")+2), name)
-		if field.doc != "" {
-			fmt.Fprintf(buffer, "%s\n", field.doc)
+	fields := structFields(table)
+	if slices.ContainsFunc(fields, func(f field) bool { return !isTable(f.value) }) {
+		buffer.WriteString("| Option | Default | Meaning |\n|--------|---------|---------|\n")
+		for _, field := range fields {
+			if !isTable(field.value) {
+				fmt.Fprintf(buffer, "| `%s` | %s | %s |\n", field.key, codeCell(encodeValue(field)), tableCell(field.doc))
+			}
 		}
+		buffer.WriteString("\n")
+	}
 
+	for _, field := range fields {
 		if isTable(field.value) {
-			write(buffer, name, field.value)
-			continue
+			name := field.key
+			if path != "" {
+				name = path + "." + field.key
+			}
+			write(buffer, name, field.doc, field.value)
 		}
-
-		fmt.Fprintf(buffer, "Default: `%s`\n\n", encodeValue(field))
 	}
+}
+
+// tableCell returns doc on one line, with the pipes that would end a cell escaped.
+func tableCell(doc string) string {
+	return strings.ReplaceAll(strings.Join(strings.Fields(doc), " "), "|", `\|`)
+}
+
+// codeCell returns value as inline code in a table cell: fenced by more backticks than it holds, with its pipes escaped, as GitHub reads a pipe in code as the end of the cell.
+func codeCell(value string) string {
+	fence := "`"
+	for strings.Contains(value, fence) {
+		fence += "`"
+	}
+	pad := ""
+	if strings.HasPrefix(value, "`") || strings.HasSuffix(value, "`") {
+		pad = " "
+	}
+	return fence + pad + strings.ReplaceAll(value, "|", `\|`) + pad + fence
 }
 
 // writeTOML writes the options of the table at path, values before subtables as TOML requires, each commented out under its doc comment.
@@ -174,7 +204,7 @@ func main() {
 	}
 
 	buffer := bytes.NewBufferString(header)
-	write(buffer, "", reflect.ValueOf(config.Default()))
+	write(buffer, "", "", reflect.ValueOf(config.Default()))
 	if err := os.WriteFile("../../docs/config.md", append(bytes.TrimSpace(buffer.Bytes()), "\n"+footer...), 0o644); err != nil {
 		log.Fatal(err)
 	}

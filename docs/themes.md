@@ -28,7 +28,7 @@ The schemes are terminal palettes from
 follows:
 
 | Role | From the palette | Styles |
-|------|------------------|--------|
+| ------ | ------------------ | -------- |
 | primary | blue (color 4) | mentions, focused titles and borders, embed titles |
 | secondary | green (color 2) | emoji |
 | accent | magenta (color 5) | your own reactions |
@@ -46,105 +46,105 @@ same on every build. `internal/config/genprofiles` regenerates them.
 ## Profiles
 
 | Name |
-|------|
-| `Dracula` |
-| `Nord` |
-| `Zenburn` |
+| ------ |
+| `Andromeda` |
 | `Argonaut` |
+| `Atom One Dark` |
+| `Atom One Light` |
+| `Aura` |
+| `Ayu Light` |
+| `Ayu Mirage` |
+| `Ayu` |
+| `Belafonte Night` |
+| `Breeze` |
+| `Carbonfox` |
+| `Catppuccin Frappe` |
+| `Catppuccin Latte` |
+| `Catppuccin Macchiato` |
+| `Catppuccin Mocha` |
 | `Chalk` |
 | `Cobalt2` |
-| `Homebrew` |
-| `Ocean` |
-| `Oceanic Next` |
-| `Seti` |
-| `Snazzy` |
-| `Spacedust` |
-| `Spacegray` |
-| `Spacegray Eighties` |
-| `Tomorrow` |
-| `Tomorrow Night` |
-| `Tomorrow Night Eighties` |
-| `Wez` |
-| `iTerm2 Solarized Dark` |
-| `iTerm2 Solarized Light` |
-| `Solarized Dark Higher Contrast` |
-| `Solarized Darcula` |
-| `Gruvbox Dark` |
+| `Dawnfox` |
+| `Dayfox` |
+| `Dracula` |
+| `Duskfox` |
+| `Everforest Dark Hard` |
+| `Everforest Light Med` |
+| `Firewatch` |
+| `Flexoki Dark` |
+| `Flexoki Light` |
+| `GitHub Dark Dimmed` |
+| `GitHub Dark` |
+| `GitHub` |
 | `Gruvbox Dark Hard` |
+| `Gruvbox Dark` |
 | `Gruvbox Light` |
 | `Gruvbox Material Dark` |
 | `Gruvbox Material Light` |
-| `TokyoNight` |
-| `TokyoNight Day` |
-| `TokyoNight Moon` |
-| `TokyoNight Storm` |
-| `Catppuccin Mocha` |
-| `Catppuccin Latte` |
-| `Catppuccin Frappe` |
-| `Catppuccin Macchiato` |
-| `Nightfox` |
-| `Duskfox` |
-| `Nordfox` |
-| `Terafox` |
-| `Carbonfox` |
-| `Dayfox` |
-| `Dawnfox` |
-| `Atom One Dark` |
-| `Atom One Light` |
-| `One Half Dark` |
-| `One Half Light` |
-| `Rose Pine` |
-| `Rose Pine Dawn` |
-| `Rose Pine Moon` |
-| `Kanagawa Wave` |
+| `Homebrew` |
+| `Hopscotch` |
+| `Horizon` |
+| `Jellybeans` |
 | `Kanagawa Dragon` |
 | `Kanagawa Lotus` |
-| `Everforest Dark Hard` |
-| `Everforest Light Med` |
-| `Ayu` |
-| `Ayu Light` |
-| `Ayu Mirage` |
-| `GitHub` |
-| `GitHub Dark` |
-| `GitHub Dark Dimmed` |
-| `Material` |
+| `Kanagawa Wave` |
+| `Man Page` |
 | `Material Dark` |
 | `Material Darker` |
 | `Material Ocean` |
+| `Material` |
+| `Misterioso` |
+| `Molokai` |
 | `Monokai Classic` |
-| `Monokai Pro` |
 | `Monokai Pro Light` |
+| `Monokai Pro` |
 | `Monokai Remastered` |
 | `Monokai Soda` |
-| `Xcode Dark` |
-| `Xcode Light` |
-| `Flexoki Dark` |
-| `Flexoki Light` |
-| `Zenwritten Dark` |
-| `Zenwritten Light` |
+| `Moonfly` |
+| `Neutron` |
+| `Night Owl` |
+| `Nightfox` |
+| `Nord` |
+| `Nordfox` |
+| `Novel` |
+| `Obsidian` |
+| `Ocean` |
+| `Oceanic Next` |
+| `One Half Dark` |
+| `One Half Light` |
 | `Pencil Dark` |
 | `Pencil Light` |
-| `Vesper` |
-| `Poimandres` |
-| `Aura` |
-| `Andromeda` |
-| `Horizon` |
-| `Night Owl` |
-| `Moonfly` |
-| `Firewatch` |
-| `Hopscotch` |
-| `Neutron` |
-| `Jellybeans` |
-| `Misterioso` |
-| `Obsidian` |
-| `Twilight` |
-| `Wombat` |
-| `Molokai` |
-| `Belafonte Night` |
-| `Novel` |
-| `Man Page` |
 | `Piatto Light` |
-| `Breeze` |
+| `Poimandres` |
+| `Rose Pine Dawn` |
+| `Rose Pine Moon` |
+| `Rose Pine` |
+| `Seti` |
+| `Snazzy` |
+| `Solarized Darcula` |
+| `Solarized Dark Higher Contrast` |
+| `Spacedust` |
+| `Spacegray Eighties` |
+| `Spacegray` |
+| `Terafox` |
+| `TokyoNight Day` |
+| `TokyoNight Moon` |
+| `TokyoNight Storm` |
+| `TokyoNight` |
+| `Tomorrow Night Eighties` |
+| `Tomorrow Night` |
+| `Tomorrow` |
+| `Twilight` |
+| `Vesper` |
+| `Wez` |
+| `Wombat` |
+| `Xcode Dark` |
+| `Xcode Light` |
+| `Zenburn` |
+| `Zenwritten Dark` |
+| `Zenwritten Light` |
+| `iTerm2 Solarized Dark` |
+| `iTerm2 Solarized Light` |
 
 <!-- nav -->
 

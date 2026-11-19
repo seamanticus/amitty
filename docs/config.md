@@ -4,1382 +4,546 @@
 
 Every option of `~/.config/amitty/config.toml`, by its TOML key, with its default. The first run writes the file with every option commented out; uncomment one to change it (see [Install and run](install.md)).
 
-## auto_focus
-
-Whether to focus the composer automatically when a channel is selected.
-Set to false to preview channels without moving focus.
-
-Default: `true`
-
-## mouse
-
-Whether to enable the mouse.
-
-Default: `true`
-
-## editor
-
-The program opened by the `composer.open_editor` keybind. "default" uses `$EDITOR`.
-
-Default: `"default"`
-
-## file_picker
-
-The program the `composer.open_file_picker` keybind runs in place of amitty's path prompt, such as "fzf --multi" or "yazi --chooser-file={file}"; "" uses the prompt.
-It runs in the terminal while amitty is suspended. It writes the chosen paths, one per line, to stdout, or to the file named where `{file}` is written.
-
-Default: `""`
-
-## openers
-
-Programs that open attachments by MIME type, and links by the key "url", in place of `xdg-open`, such as
-`{ "video/*" = { command = "mpv {}" }, "text/plain" = { command = "nvim {}", terminal = true }, url = { command = "firefox {}" } }`.
-`{}` is replaced by the file or link, which is appended when there is no `{}`. An exact type wins over a wildcard.
-A command runs in the background unless `terminal = true`, which suspends amitty while it runs.
-
-Default: `{}`
-
-## token-encrypt-cmd
-
-The command that encrypts the token: it reads the token on stdin and writes what is stored in `$XDG_STATE_HOME/amitty/token.gpg` to stdout.
-
-Default: `"gpg --encrypt --default-recipient-self"`
-
-## token-decrypt-cmd
-
-The command that decrypts the stored token: it reads the file on stdin and writes the token to stdout. It runs before the screen starts, so a terminal pinentry works.
-
-Default: `"gpg --decrypt --quiet"`
-
-## proxy
-
-The proxy every connection to Discord goes through, such as "socks5h://127.0.0.1:9050" or "http://user:pass@host:3128"; "" connects directly. Schemes: http, https, socks5, socks5h (both SOCKS5 schemes resolve names at the proxy). The environment is not read, and nothing bypasses a set proxy.
-
-Default: `""`
-
-## status
-
-"default" (unknown), "online", "dnd", "idle", "invisible" or "offline".
-
-Default: `"default"`
-
-## hide_blocked_users
-
-Default: `true`
-
-## messages_limit
-
-The number of messages to fetch when a text-based channel is selected, from 1 to 100.
-
-Default: `50`
-
-## markdown
-
-### markdown.enabled
-
-Whether to parse and render markdown in messages.
-
-Default: `true`
-
-### markdown.mask_spoilers
-
-Replace spoiler contents with a placeholder.
-
-Default: `false`
-
-### markdown.theme
-
-Theme for fenced code blocks. Available themes: https://xyproto.github.io/splash/docs
-
-Default: `"monokai"`
-
-### markdown.detect_code_language
-
-Guess the language of a fenced code block that names none, to highlight it.
-
-Default: `false`
-
-## help
-
-### help.enabled
-
-Whether to show keybind help.
-
-Default: `true`
-
-### help.compact_modifiers
-
-Show compact key modifiers in help, e.g. "^x" instead of "ctrl+x".
-
-Default: `true`
-
-### help.padding
-
-[left, right]
-
-Default: `[1, 1]`
-
-### help.separator
-
-Default: `" • "`
-
-## picker
-
-### picker.width
-
-Default: `80`
-
-### picker.height
-
-Default: `25`
-
-## timestamps
-
-### timestamps.enabled
-
-Default: `true`
-
-### timestamps.format
-
-https://pkg.go.dev/time#Layout
-
-Default: `"3:04PM"`
-
-## date_separator
-
-### date_separator.enabled
-
-Default: `true`
-
-### date_separator.format
-
-https://pkg.go.dev/time#Layout
-
-Default: `"January 2, 2006"`
-
-### date_separator.character
-
-The fill character used on both sides of the date label.
-
-Default: `"─"`
-
-## notifications
-
-### notifications.enabled
-
-Default: `true`
-
-### notifications.when_unfocused
-
-Whether to also notify about messages in the open channel while the terminal window is unfocused.
-Requires a terminal that reports focus.
-
-Default: `true`
-
-## typing_indicator
-
-### typing_indicator.send
-
-Whether to send typing status.
-
-Default: `true`
-
-### typing_indicator.receive
-
-Whether to receive typing status.
-
-Default: `true`
-
-## sidebar
+## Top level
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `auto_focus` | `true` | Whether to focus the composer automatically when a channel is selected. Set to false to preview channels without moving focus. |
+| `mouse` | `true` | Whether to enable the mouse. |
+| `editor` | `"default"` | The program opened by the `composer.open_editor` keybind. "default" uses `$EDITOR`. |
+| `file_picker` | `""` | The program the `composer.open_file_picker` keybind runs in place of amitty's path prompt, such as "fzf --multi" or "yazi --chooser-file={file}"; "" uses the prompt. It runs in the terminal while amitty is suspended. It writes the chosen paths, one per line, to stdout, or to the file named where `{file}` is written. |
+| `openers` | `{}` | Programs that open attachments by MIME type, and links by the key "url", in place of `xdg-open`, such as `{ "video/*" = { command = "mpv {}" }, "text/plain" = { command = "nvim {}", terminal = true }, url = { command = "firefox {}" } }`. `{}` is replaced by the file or link, which is appended when there is no `{}`. An exact type wins over a wildcard. A command runs in the background unless `terminal = true`, which suspends amitty while it runs. |
+| `token-encrypt-cmd` | `"gpg --encrypt --default-recipient-self"` | The command that encrypts the token: it reads the token on stdin and writes what is stored in `$XDG_STATE_HOME/amitty/token.gpg` to stdout. |
+| `token-decrypt-cmd` | `"gpg --decrypt --quiet"` | The command that decrypts the stored token: it reads the file on stdin and writes the token to stdout. It runs before the screen starts, so a terminal pinentry works. |
+| `proxy` | `""` | The proxy every connection to Discord goes through, such as "socks5h://127.0.0.1:9050" or "http://user:pass@host:3128"; "" connects directly. Schemes: http, https, socks5, socks5h (both SOCKS5 schemes resolve names at the proxy). The environment is not read, and nothing bypasses a set proxy. |
+| `status` | `"default"` | "default" (unknown), "online", "dnd", "idle", "invisible" or "offline". |
+| `hide_blocked_users` | `true` |  |
+| `messages_limit` | `50` | The number of messages to fetch when a text-based channel is selected, from 1 to 100. |
+| `theme_profile` | `""` | A color scheme every style of [theme] starts from, such as "Catppuccin Mocha"; "" keeps the terminal's own colors. Styles set under [theme] override it. The profiles are listed in docs/themes.md. Text is colored; the background stays the terminal's. |
+
+## `[markdown]`
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `enabled` | `true` | Whether to parse and render markdown in messages. |
+| `mask_spoilers` | `false` | Replace spoiler contents with a placeholder. |
+| `theme` | `"monokai"` | Theme for fenced code blocks. Available themes: https://xyproto.github.io/splash/docs |
+| `detect_code_language` | `false` | Guess the language of a fenced code block that names none, to highlight it. |
+
+## `[help]`
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `enabled` | `true` | Whether to show keybind help. |
+| `compact_modifiers` | `true` | Show compact key modifiers in help, e.g. "^x" instead of "ctrl+x". |
+| `padding` | `[1, 1]` | [left, right] |
+| `separator` | `" • "` |  |
+
+## `[picker]`
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `width` | `80` |  |
+| `height` | `25` |  |
+
+## `[timestamps]`
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `enabled` | `true` |  |
+| `format` | `"3:04PM"` | https://pkg.go.dev/time#Layout |
+
+## `[date_separator]`
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `enabled` | `true` |  |
+| `format` | `"January 2, 2006"` | https://pkg.go.dev/time#Layout |
+| `character` | `"─"` | The fill character used on both sides of the date label. |
+
+## `[notifications]`
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `enabled` | `true` |  |
+| `when_unfocused` | `true` | Whether to also notify about messages in the open channel while the terminal window is unfocused. Requires a terminal that reports focus. |
+
+## `[typing_indicator]`
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `send` | `true` | Whether to send typing status. |
+| `receive` | `true` | Whether to receive typing status. |
+
+## `[sidebar]`
 
 The guilds tree pane.
 
-### sidebar.visible
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `visible` | `true` | Whether the pane is visible at start-up. It can still be toggled at runtime with its toggle keybind. |
+| `width_percent` | `20` | Percentage (%) of the available width used by the pane. Valid values are 1-99. Invalid values fall back to 20. |
 
-Whether the pane is visible at start-up. It can still be toggled at runtime with its toggle keybind.
+## `[sidebar.markers]`
 
-Default: `true`
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `expanded` | `"▾ "` |  |
+| `collapsed` | `"▸ "` |  |
+| `leaf` | `""` |  |
 
-### sidebar.width_percent
-
-Percentage (%) of the available width used by the pane.
-Valid values are 1-99. Invalid values fall back to 20.
-
-Default: `20`
-
-### sidebar.markers
-
-#### sidebar.markers.expanded
-
-Default: `"▾ "`
-
-#### sidebar.markers.collapsed
-
-Default: `"▸ "`
-
-#### sidebar.markers.leaf
-
-Default: `""`
-
-### sidebar.indents
+## `[sidebar.indents]`
 
 Indentation for different item types.
 
-#### sidebar.indents.guild
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `guild` | `2` |  |
+| `category` | `1` |  |
+| `channel` | `2` |  |
+| `forum` | `2` |  |
+| `group_dm` | `1` |  |
+| `dm` | `2` |  |
 
-Default: `2`
-
-#### sidebar.indents.category
-
-Default: `1`
-
-#### sidebar.indents.channel
-
-Default: `2`
-
-#### sidebar.indents.forum
-
-Default: `2`
-
-#### sidebar.indents.group_dm
-
-Default: `1`
-
-#### sidebar.indents.dm
-
-Default: `2`
-
-## members_tree
+## `[members_tree]`
 
 The members tree pane, sized from the width right of the guilds tree.
 
-### members_tree.visible
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `visible` | `true` | Whether the pane is visible at start-up. It can still be toggled at runtime with its toggle keybind. |
+| `width_percent` | `20` | Percentage (%) of the available width used by the pane. Valid values are 1-99. Invalid values fall back to 20. |
 
-Whether the pane is visible at start-up. It can still be toggled at runtime with its toggle keybind.
+## `[composer]`
 
-Default: `true`
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `max_height` | `10` | Maximum height (in newline-separated rows) the composer grows to before it starts scrolling internally. Set to 1 for a fixed single-line input. Values below 1 fall back to 10. |
 
-### members_tree.width_percent
-
-Percentage (%) of the available width used by the pane.
-Valid values are 1-99. Invalid values fall back to 20.
-
-Default: `20`
-
-## composer
-
-### composer.max_height
-
-Maximum height (in newline-separated rows) the composer grows to before it starts scrolling internally.
-Set to 1 for a fixed single-line input. Values below 1 fall back to 10.
-
-Default: `10`
-
-## ui
+## `[ui]`
 
 Layout and behavior of the widgets.
 
-### ui.tabs
+## `[ui.tabs]`
 
 The tabs of the login screen.
 
-#### ui.tabs.alignment
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `alignment` | `"center"` | Where tabs that fit are placed: "left", "center" or "right". |
+| `wrap` | `false` | Whether moving past the last tab selects the first, and past the first selects the last. |
+| `separator` | `"│"` | Text between tabs. |
+| `padding` | `[" ", " "]` | Text on either side of each tab: [left, right] |
+| `arrows` | `["◀", "▶"]` | Arrows shown while tabs are hidden past an end: [start, end]. An empty string turns that arrow off. |
+| `clickable_arrows` | `true` | Whether clicking an arrow selects the tab next to the active one. |
 
-Where tabs that fit are placed: "left", "center" or "right".
+## `[ui.title]`
 
-Default: `"center"`
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `alignment` | `"left"` | "left", "center" or "right". |
 
-#### ui.tabs.wrap
+## `[ui.footer]`
 
-Whether moving past the last tab selects the first, and past the first selects the last.
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `alignment` | `"left"` | "left", "center" or "right". |
 
-Default: `false`
+## `[ui.border]`
 
-#### ui.tabs.separator
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `enabled` | `true` |  |
+| `padding` | `[0, 0, 1, 1]` | [top, bottom, left, right] |
+| `normal_set` | `"round"` | "hidden", "plain", "round", "thick" or "double". |
+| `active_set` | `"round"` | The set used while the widget is focused. |
 
-Text between tabs.
+## `[ui.guilds_tree]`
 
-Default: `"│"`
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `graphics` | `true` | Whether to draw lines that give the tree its shape. |
+| `auto_expand_folders` | `true` |  |
 
-#### ui.tabs.padding
+## `[ui.members_tree]`
 
-Text on either side of each tab: [left, right]
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `graphics` | `true` | Whether to draw lines that give the tree its shape. |
 
-Default: `[" ", " "]`
+## `[ui.scroll_bar]`
 
-#### ui.tabs.arrows
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `visibility` | `"auto"` | "auto", "always" or "never". |
+| `symbol_set` | `"box_drawing"` | "minimal", "box_drawing", "vertical" or "double_vertical". |
 
-Arrows shown while tabs are hidden past an end: [start, end]. An empty string turns that arrow off.
+## `[ui.messages_list]`
 
-Default: `["◀", "▶"]`
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `compact` | `false` |  |
+| `spacing` | `1` | The number of empty rows between messages, except those of a group. |
+| `reply_indicator` | `">"` |  |
+| `forwarded_indicator` | `"<"` |  |
+| `alternate_every` | `2` | Every how many messages one takes theme.messages_list.alternate_style, counted from the oldest loaded; a group of messages counts as one. 0 turns it off. |
+| `image_protocol` | `"auto"` | How avatars and attachment previews are drawn: "auto" (by terminal: kitty placeholders in kitty, ghostty and Rio, sixels in foot, half blocks elsewhere), "kitty", "sixel" or "halfblocks". |
 
-#### ui.tabs.clickable_arrows
+## `[ui.messages_list.attachments]`
 
-Whether clicking an arrow selects the tab next to the active one.
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `show_links` | `true` |  |
+| `allowed_mime_types` | `["image/*", "video/*", "audio/*"]` | Attachment MIME types that can be opened or downloaded without confirmation. Exact types and wildcards such as "image/*" are supported. |
+| `preview` | `true` | Whether to draw image attachments and embedded images below their messages. |
 
-Default: `true`
+## `[ui.messages_list.avatars]`
 
-### ui.title
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `preview` | `true` |  |
+| `height` | `2` | The number of rows an avatar takes. It is recommended to use `1` with compact. |
+| `shape` | `"square"` | "square", "rounded" or "circle". Half blocks have too few pixels to show the shape clearly. |
 
-#### ui.title.alignment
+## `[ui.messages_list.embeds]`
 
-"left", "center" or "right".
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `enabled` | `true` | Whether to show embeds (link previews, rich cards) attached to messages. |
 
-Default: `"left"`
+## `[ui.messages_list.grouping]`
 
-### ui.footer
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `enabled` | `true` |  |
+| `interval` | `"10m0s"` | The longest time between two messages by the same author for them to share a header. |
 
-#### ui.footer.alignment
+## `[ui.messages_list.emojis]`
 
-"left", "center" or "right".
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `show_emoji_name` | `false` | Whether the name is shown after the image. Without an image, it always is. |
+| `colons_around_name` | `false` | Whether the names of custom emoji are shown between colons, as in `:name:`. |
 
-Default: `"left"`
+## `[ui.messages_list.reactions]`
 
-### ui.border
-
-#### ui.border.enabled
-
-Default: `true`
-
-#### ui.border.padding
-
-[top, bottom, left, right]
-
-Default: `[0, 0, 1, 1]`
-
-#### ui.border.normal_set
-
-"hidden", "plain", "round", "thick" or "double".
-
-Default: `"round"`
-
-#### ui.border.active_set
-
-The set used while the widget is focused.
-
-Default: `"round"`
-
-### ui.guilds_tree
-
-#### ui.guilds_tree.graphics
-
-Whether to draw lines that give the tree its shape.
-
-Default: `true`
-
-#### ui.guilds_tree.auto_expand_folders
-
-Default: `true`
-
-### ui.members_tree
-
-#### ui.members_tree.graphics
-
-Whether to draw lines that give the tree its shape.
-
-Default: `true`
-
-### ui.scroll_bar
-
-#### ui.scroll_bar.visibility
-
-"auto", "always" or "never".
-
-Default: `"auto"`
-
-#### ui.scroll_bar.symbol_set
-
-"minimal", "box_drawing", "vertical" or "double_vertical".
-
-Default: `"box_drawing"`
-
-### ui.messages_list
-
-#### ui.messages_list.compact
-
-Default: `false`
-
-#### ui.messages_list.spacing
-
-The number of empty rows between messages, except those of a group.
-
-Default: `1`
-
-#### ui.messages_list.reply_indicator
-
-Default: `">"`
-
-#### ui.messages_list.forwarded_indicator
-
-Default: `"<"`
-
-#### ui.messages_list.alternate_every
-
-Every how many messages one takes theme.messages_list.alternate_style, counted from the oldest loaded; a group of messages counts as one. 0 turns it off.
-
-Default: `2`
-
-#### ui.messages_list.image_protocol
-
-How avatars and attachment previews are drawn: "auto" (by terminal: kitty placeholders in kitty, ghostty and Rio, sixels in foot, half blocks elsewhere), "kitty", "sixel" or "halfblocks".
-
-Default: `"auto"`
-
-#### ui.messages_list.attachments
-
-##### ui.messages_list.attachments.show_links
-
-Default: `true`
-
-##### ui.messages_list.attachments.allowed_mime_types
-
-Attachment MIME types that can be opened or downloaded without confirmation.
-Exact types and wildcards such as "image/*" are supported.
-
-Default: `["image/*", "video/*", "audio/*"]`
-
-##### ui.messages_list.attachments.preview
-
-Whether to draw image attachments and embedded images below their messages.
-
-Default: `true`
-
-#### ui.messages_list.avatars
-
-##### ui.messages_list.avatars.preview
-
-Default: `true`
-
-##### ui.messages_list.avatars.height
-
-The number of rows an avatar takes. It is recommended to use `1` with compact.
-
-Default: `2`
-
-##### ui.messages_list.avatars.shape
-
-"square", "rounded" or "circle". Half blocks have too few pixels to show the shape clearly.
-
-Default: `"square"`
-
-#### ui.messages_list.embeds
-
-##### ui.messages_list.embeds.enabled
-
-Whether to show embeds (link previews, rich cards) attached to messages.
-
-Default: `true`
-
-#### ui.messages_list.grouping
-
-##### ui.messages_list.grouping.enabled
-
-Default: `true`
-
-##### ui.messages_list.grouping.interval
-
-The longest time between two messages by the same author for them to share a header.
-
-Default: `"10m0s"`
-
-#### ui.messages_list.emojis
-
-##### ui.messages_list.emojis.show_emoji_name
-
-Whether the name is shown after the image. Without an image, it always is.
-
-Default: `false`
-
-##### ui.messages_list.emojis.colons_around_name
-
-Whether the names of custom emoji are shown between colons, as in `:name:`.
-
-Default: `false`
-
-#### ui.messages_list.reactions
-
-##### ui.messages_list.reactions.show_emoji_name
-
-Whether the name is shown after the image. Without an image, it always is.
-
-Default: `false`
-
-##### ui.messages_list.reactions.colons_around_name
-
-Whether the names of custom emoji are shown between colons, as in `:name:`.
-
-Default: `false`
-
-##### ui.messages_list.reactions.enabled
-
-Whether to show reactions below messages.
-
-Default: `true`
-
-##### ui.messages_list.reactions.separator
-
-The text between reactions.
-
-Default: `" • "`
-
-### ui.autocomplete
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `show_emoji_name` | `false` | Whether the name is shown after the image. Without an image, it always is. |
+| `colons_around_name` | `false` | Whether the names of custom emoji are shown between colons, as in `:name:`. |
+| `enabled` | `true` | Whether to show reactions below messages. |
+| `separator` | `" • "` | The text between reactions. |
+
+## `[ui.autocomplete]`
 
 The list of mention and emoji suggestions above the composer. Its width and height are capped to the available space.
 
-#### ui.autocomplete.mentions
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `limit` | `20` | The maximum number of suggestions. |
+| `min_width` | `20` | Minimum width. 0 makes the list as wide as possible. |
+| `max_height` | `0` | Maximum height. 0 makes the list as tall as needed. |
+
+## `[ui.autocomplete.mentions]`
 
 Members suggested after `@`.
 
-##### ui.autocomplete.mentions.enabled
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `enabled` | `true` | Whether to show these suggestions. |
+| `preview` | `true` | Whether to draw avatars and custom emoji images before the names. |
 
-Whether to show these suggestions.
-
-Default: `true`
-
-##### ui.autocomplete.mentions.preview
-
-Whether to draw avatars and custom emoji images before the names.
-
-Default: `true`
-
-#### ui.autocomplete.emojis
+## `[ui.autocomplete.emojis]`
 
 Emojis suggested after `:`.
 
-##### ui.autocomplete.emojis.enabled
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `enabled` | `true` | Whether to show these suggestions. |
+| `preview` | `true` | Whether to draw avatars and custom emoji images before the names. |
 
-Whether to show these suggestions.
+## `[icons]`
 
-Default: `true`
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `guild_category` | `""` |  |
+| `guild_text` | `"#"` |  |
+| `guild_voice` | `"♪ "` |  |
+| `guild_stage_voice` | `"♪ "` |  |
+| `guild_announcement_thread` | `"a-"` |  |
+| `guild_public_thread` | `"› "` |  |
+| `guild_private_thread` | `"› "` |  |
+| `guild_announcement` | `"a-"` |  |
+| `guild_forum` | `"≡ "` |  |
+| `guild_store` | `"s-"` |  |
 
-##### ui.autocomplete.emojis.preview
-
-Whether to draw avatars and custom emoji images before the names.
-
-Default: `true`
-
-#### ui.autocomplete.limit
-
-The maximum number of suggestions.
-
-Default: `20`
-
-#### ui.autocomplete.min_width
-
-Minimum width. 0 makes the list as wide as possible.
-
-Default: `20`
-
-#### ui.autocomplete.max_height
-
-Maximum height. 0 makes the list as tall as needed.
-
-Default: `0`
-
-## icons
-
-### icons.guild_category
-
-Default: `""`
-
-### icons.guild_text
-
-Default: `"#"`
-
-### icons.guild_voice
-
-Default: `"♪ "`
-
-### icons.guild_stage_voice
-
-Default: `"♪ "`
-
-### icons.guild_announcement_thread
-
-Default: `"a-"`
-
-### icons.guild_public_thread
-
-Default: `"› "`
-
-### icons.guild_private_thread
-
-Default: `"› "`
-
-### icons.guild_announcement
-
-Default: `"a-"`
-
-### icons.guild_forum
-
-Default: `"≡ "`
-
-### icons.guild_store
-
-Default: `"s-"`
-
-## keybinds
+## `[keybinds]`
 
 Global shortcuts. A keybind is a key such as "ctrl+k", or a list of keys.
 
-### keybinds.toggle_guilds_tree
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `toggle_guilds_tree` | `"alt+g"` | Hide/show the guilds tree. |
+| `toggle_members_tree` | `"alt+m"` | Hide/show the members tree. |
+| `toggle_channels_picker` | `"ctrl+k"` |  |
+| `toggle_help` | `"alt+."` | Hide/show keybind help. |
+| `toggle_full_help` | `"ctrl+."` | Switch between compact and full keybind help. |
+| `suspend` | `"ctrl+z"` |  |
+| `focus_guilds_tree` | `"ctrl+g"` |  |
+| `focus_members_tree` | `"ctrl+y"` |  |
+| `focus_messages_list` | `"ctrl+t"` |  |
+| `focus_composer` | `"ctrl+i"` |  |
+| `focus_previous` | `"ctrl+h"` | Cycle focus between the widgets. |
+| `focus_next` | `"ctrl+l"` |  |
+| `logout` | `"ctrl+d"` | Log out and delete the stored token. Requires re-login upon restart. |
+| `quit` | `"ctrl+c"` |  |
 
-Hide/show the guilds tree.
+## `[keybinds.picker]`
 
-Default: `"alt+g"`
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `select_up` | `"ctrl+p"` |  |
+| `select_down` | `"ctrl+n"` |  |
+| `select_top` | `"home"` |  |
+| `select_bottom` | `"end"` |  |
+| `select` | `"enter"` |  |
+| `cancel` | `"esc"` |  |
 
-### keybinds.toggle_members_tree
-
-Hide/show the members tree.
-
-Default: `"alt+m"`
-
-### keybinds.toggle_channels_picker
-
-Default: `"ctrl+k"`
-
-### keybinds.toggle_help
-
-Hide/show keybind help.
-
-Default: `"alt+."`
-
-### keybinds.toggle_full_help
-
-Switch between compact and full keybind help.
-
-Default: `"ctrl+."`
-
-### keybinds.suspend
-
-Default: `"ctrl+z"`
-
-### keybinds.focus_guilds_tree
-
-Default: `"ctrl+g"`
-
-### keybinds.focus_members_tree
-
-Default: `"ctrl+y"`
-
-### keybinds.focus_messages_list
-
-Default: `"ctrl+t"`
-
-### keybinds.focus_composer
-
-Default: `"ctrl+i"`
-
-### keybinds.focus_previous
-
-Cycle focus between the widgets.
-
-Default: `"ctrl+h"`
-
-### keybinds.focus_next
-
-Default: `"ctrl+l"`
-
-### keybinds.picker
-
-#### keybinds.picker.select_up
-
-Default: `"ctrl+p"`
-
-#### keybinds.picker.select_down
-
-Default: `"ctrl+n"`
-
-#### keybinds.picker.select_top
-
-Default: `"home"`
-
-#### keybinds.picker.select_bottom
-
-Default: `"end"`
-
-#### keybinds.picker.select
-
-Default: `"enter"`
-
-#### keybinds.picker.cancel
-
-Default: `"esc"`
-
-### keybinds.path_prompt
+## `[keybinds.path_prompt]`
 
 Only while asked for a file path, to attach or to save to.
 
-#### keybinds.path_prompt.complete
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `complete` | `"tab"` | Extend the name typed by what every matching entry shares. |
+| `submit` | `"enter"` |  |
+| `cancel` | `"esc"` |  |
 
-Extend the name typed by what every matching entry shares.
-
-Default: `"tab"`
-
-#### keybinds.path_prompt.submit
-
-Default: `"enter"`
-
-#### keybinds.path_prompt.cancel
-
-Default: `"esc"`
-
-### keybinds.guilds_tree
+## `[keybinds.guilds_tree]`
 
 Only while focusing on the guilds tree.
 
-#### keybinds.guilds_tree.scroll_up
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `scroll_up` | `"pgup"` | Scroll without changing the selection. |
+| `scroll_down` | `"pgdn"` |  |
+| `scroll_top` | `"home"` |  |
+| `scroll_bottom` | `"end"` |  |
+| `scroll_left` | `"h"` | Scroll sideways to read names that are cut off. |
+| `scroll_right` | `"l"` |  |
+| `select_up` | `["k", "up"]` |  |
+| `select_down` | `["j", "down"]` |  |
+| `select_top` | `"g"` |  |
+| `select_bottom` | `"G"` |  |
+| `select_current` | `"enter"` | Select the highlighted text-based channel, or expand or collapse the highlighted node. |
+| `yank_id` | `"i"` |  |
+| `collapse_all` | `"_"` |  |
+| `collapse_parent_node` | `"-"` |  |
+| `move_to_parent_node` | `"p"` |  |
+| `select_previous_unread` | `"K"` | Highlight the previous or next unread guild or channel, wrapping around. |
+| `select_next_unread` | `"J"` |  |
 
-Scroll without changing the selection.
-
-Default: `"pgup"`
-
-#### keybinds.guilds_tree.scroll_down
-
-Default: `"pgdn"`
-
-#### keybinds.guilds_tree.scroll_top
-
-Default: `"home"`
-
-#### keybinds.guilds_tree.scroll_bottom
-
-Default: `"end"`
-
-#### keybinds.guilds_tree.scroll_left
-
-Scroll sideways to read names that are cut off.
-
-Default: `"h"`
-
-#### keybinds.guilds_tree.scroll_right
-
-Default: `"l"`
-
-#### keybinds.guilds_tree.select_up
-
-Default: `["k", "up"]`
-
-#### keybinds.guilds_tree.select_down
-
-Default: `["j", "down"]`
-
-#### keybinds.guilds_tree.select_top
-
-Default: `"g"`
-
-#### keybinds.guilds_tree.select_bottom
-
-Default: `"G"`
-
-#### keybinds.guilds_tree.select_current
-
-Select the highlighted text-based channel, or expand or collapse the highlighted node.
-
-Default: `"enter"`
-
-#### keybinds.guilds_tree.yank_id
-
-Default: `"i"`
-
-#### keybinds.guilds_tree.collapse_all
-
-Default: `"_"`
-
-#### keybinds.guilds_tree.collapse_parent_node
-
-Default: `"-"`
-
-#### keybinds.guilds_tree.move_to_parent_node
-
-Default: `"p"`
-
-#### keybinds.guilds_tree.select_previous_unread
-
-Highlight the previous or next unread guild or channel, wrapping around.
-
-Default: `"K"`
-
-#### keybinds.guilds_tree.select_next_unread
-
-Default: `"J"`
-
-### keybinds.members_tree
+## `[keybinds.members_tree]`
 
 Only while focusing on the members tree.
 
-#### keybinds.members_tree.scroll_up
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `scroll_up` | `"pgup"` | Scroll without changing the selection. |
+| `scroll_down` | `"pgdn"` |  |
+| `scroll_top` | `"home"` |  |
+| `scroll_bottom` | `"end"` |  |
+| `scroll_left` | `"h"` | Scroll sideways to read names that are cut off. |
+| `scroll_right` | `"l"` |  |
+| `select_up` | `["k", "up"]` |  |
+| `select_down` | `["j", "down"]` |  |
+| `select_top` | `"g"` |  |
+| `select_bottom` | `"G"` |  |
+| `select_current` | `"enter"` | Select the highlighted text-based channel, or expand or collapse the highlighted node. |
+| `yank_id` | `"i"` |  |
+| `collapse_all` | `"_"` |  |
+| `collapse_parent_node` | `"-"` |  |
+| `move_to_parent_node` | `"p"` |  |
 
-Scroll without changing the selection.
-
-Default: `"pgup"`
-
-#### keybinds.members_tree.scroll_down
-
-Default: `"pgdn"`
-
-#### keybinds.members_tree.scroll_top
-
-Default: `"home"`
-
-#### keybinds.members_tree.scroll_bottom
-
-Default: `"end"`
-
-#### keybinds.members_tree.scroll_left
-
-Scroll sideways to read names that are cut off.
-
-Default: `"h"`
-
-#### keybinds.members_tree.scroll_right
-
-Default: `"l"`
-
-#### keybinds.members_tree.select_up
-
-Default: `["k", "up"]`
-
-#### keybinds.members_tree.select_down
-
-Default: `["j", "down"]`
-
-#### keybinds.members_tree.select_top
-
-Default: `"g"`
-
-#### keybinds.members_tree.select_bottom
-
-Default: `"G"`
-
-#### keybinds.members_tree.select_current
-
-Select the highlighted text-based channel, or expand or collapse the highlighted node.
-
-Default: `"enter"`
-
-#### keybinds.members_tree.yank_id
-
-Default: `"i"`
-
-#### keybinds.members_tree.collapse_all
-
-Default: `"_"`
-
-#### keybinds.members_tree.collapse_parent_node
-
-Default: `"-"`
-
-#### keybinds.members_tree.move_to_parent_node
-
-Default: `"p"`
-
-### keybinds.messages_list
+## `[keybinds.messages_list]`
 
 Only while focusing on sent messages.
 
-#### keybinds.messages_list.select_up
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `select_up` | `["k", "up"]` |  |
+| `select_down` | `["j", "down"]` |  |
+| `select_top` | `"g"` |  |
+| `select_bottom` | `"G"` |  |
+| `scroll_up` | `"K"` | Scroll without changing the selection. |
+| `scroll_down` | `"J"` |  |
+| `scroll_top` | `"home"` |  |
+| `scroll_bottom` | `"end"` |  |
+| `select_reply` | `"s"` | Select the message that the selected message replies to. |
+| `reply` | `"R"` | Reply to the selected message. |
+| `reply_mention` | `"r"` | Reply (with mention) to the selected message. |
+| `cancel` | `"esc"` |  |
+| `edit` | `"e"` |  |
+| `delete` | `""` | Delete without confirmation. Unbound by default. |
+| `delete_confirm` | `"d"` |  |
+| `open` | `"o"` | Open attachments with their associated application. MIME types outside the allowlist require confirmation. Hyperlinks still use the browser. |
+| `open_in_browser` | `"O"` | Open attachments or hyperlinks in the browser. |
+| `react` | `"a"` | React to the selected message with an emoji picked from a list. |
+| `download` | `"D"` | Download one of the selected message's attachments. |
+| `yank_content` | `"y"` | Yank (copy) the selected message's content/url/id. |
+| `yank_url` | `"u"` |  |
+| `yank_id` | `"i"` |  |
 
-Default: `["k", "up"]`
-
-#### keybinds.messages_list.select_down
-
-Default: `["j", "down"]`
-
-#### keybinds.messages_list.select_top
-
-Default: `"g"`
-
-#### keybinds.messages_list.select_bottom
-
-Default: `"G"`
-
-#### keybinds.messages_list.scroll_up
-
-Scroll without changing the selection.
-
-Default: `"K"`
-
-#### keybinds.messages_list.scroll_down
-
-Default: `"J"`
-
-#### keybinds.messages_list.scroll_top
-
-Default: `"home"`
-
-#### keybinds.messages_list.scroll_bottom
-
-Default: `"end"`
-
-#### keybinds.messages_list.select_reply
-
-Select the message that the selected message replies to.
-
-Default: `"s"`
-
-#### keybinds.messages_list.reply
-
-Reply to the selected message.
-
-Default: `"R"`
-
-#### keybinds.messages_list.reply_mention
-
-Reply (with mention) to the selected message.
-
-Default: `"r"`
-
-#### keybinds.messages_list.cancel
-
-Default: `"esc"`
-
-#### keybinds.messages_list.edit
-
-Default: `"e"`
-
-#### keybinds.messages_list.delete
-
-Delete without confirmation. Unbound by default.
-
-Default: `""`
-
-#### keybinds.messages_list.delete_confirm
-
-Default: `"d"`
-
-#### keybinds.messages_list.open
-
-Open attachments with their associated application. MIME types outside the
-allowlist require confirmation. Hyperlinks still use the browser.
-
-Default: `"o"`
-
-#### keybinds.messages_list.open_in_browser
-
-Open attachments or hyperlinks in the browser.
-
-Default: `"O"`
-
-#### keybinds.messages_list.react
-
-React to the selected message with an emoji picked from a list.
-
-Default: `"a"`
-
-#### keybinds.messages_list.download
-
-Download one of the selected message's attachments.
-
-Default: `"D"`
-
-#### keybinds.messages_list.yank_content
-
-Yank (copy) the selected message's content/url/id.
-
-Default: `"y"`
-
-#### keybinds.messages_list.yank_url
-
-Default: `"u"`
-
-#### keybinds.messages_list.yank_id
-
-Default: `"i"`
-
-### keybinds.composer
+## `[keybinds.composer]`
 
 Only while typing a message.
 
-#### keybinds.composer.edit_last
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `edit_last` | `"up"` | Edit your newest editable message loaded in the current channel, with no age limit. Only when the composer is empty, with no reply, attachments, or edit in progress. |
+| `paste` | `"ctrl+v"` | Paste from clipboard (supports both text and images). |
+| `send` | `"enter"` |  |
+| `newline` | `"shift+enter"` | Insert a new line at the cursor. |
+| `cancel` | `"esc"` | Remove existing text or cancel reply. |
+| `tab_complete` | `"tab"` | Complete usernames when mentioning. |
+| `toggle_reply_mention` | `"shift+tab"` | Toggle whether a reply mentions its author. |
+| `undo` | `"ctrl+u"` |  |
+| `open_editor` | `"ctrl+e"` |  |
+| `open_file_picker` | `"ctrl+\\"` |  |
+| `cursor_left` | `"ctrl+b"` | Move the cursor. Readline's keys, with shift added to those other keybinds take. Shift with ctrl is told apart from ctrl alone only in terminals with an enhanced keyboard protocol, such as kitty's. |
+| `cursor_right` | `"ctrl+f"` |  |
+| `cursor_up` | `"ctrl+p"` |  |
+| `cursor_down` | `"ctrl+n"` |  |
+| `line_start` | `"ctrl+a"` |  |
+| `line_end` | `"ctrl+shift+e"` |  |
+| `word_left` | `"alt+b"` | Move over a word, a run of letters and digits, and what is before it. |
+| `word_right` | `"alt+f"` |  |
+| `delete_backward` | `"ctrl+shift+h"` | Delete text. Readline's keys, with shift added to those other keybinds take. |
+| `delete_forward` | `"ctrl+shift+d"` |  |
+| `delete_word_backward` | `"alt+backspace"` | Delete what word_left and word_right move over. |
+| `delete_word_forward` | `"alt+shift+d"` |  |
+| `delete_to_space_backward` | `"ctrl+w"` | Delete back to the whitespace before the cursor. |
+| `delete_to_line_start` | `"ctrl+j"` | Delete to the start or end of the line, or the newline there if the cursor is at it. Readline deletes to the start of the line with ctrl+u, which is undo here, so it is on ctrl+j. |
+| `delete_to_line_end` | `"ctrl+shift+k"` |  |
 
-Edit your newest editable message loaded in the current channel, with no age limit.
-Only when the composer is empty, with no reply, attachments, or edit in progress.
-
-Default: `"up"`
-
-#### keybinds.composer.paste
-
-Paste from clipboard (supports both text and images).
-
-Default: `"ctrl+v"`
-
-#### keybinds.composer.send
-
-Default: `"enter"`
-
-#### keybinds.composer.newline
-
-Insert a new line at the cursor.
-
-Default: `"shift+enter"`
-
-#### keybinds.composer.cancel
-
-Remove existing text or cancel reply.
-
-Default: `"esc"`
-
-#### keybinds.composer.tab_complete
-
-Complete usernames when mentioning.
-
-Default: `"tab"`
-
-#### keybinds.composer.toggle_reply_mention
-
-Toggle whether a reply mentions its author.
-
-Default: `"shift+tab"`
-
-#### keybinds.composer.undo
-
-Default: `"ctrl+u"`
-
-#### keybinds.composer.open_editor
-
-Default: `"ctrl+e"`
-
-#### keybinds.composer.open_file_picker
-
-Default: `"ctrl+\\"`
-
-#### keybinds.composer.cursor_left
-
-Move the cursor. Readline's keys, with shift added to those other keybinds take.
-Shift with ctrl is told apart from ctrl alone only in terminals with an enhanced keyboard protocol, such as kitty's.
-
-Default: `"ctrl+b"`
-
-#### keybinds.composer.cursor_right
-
-Default: `"ctrl+f"`
-
-#### keybinds.composer.cursor_up
-
-Default: `"ctrl+p"`
-
-#### keybinds.composer.cursor_down
-
-Default: `"ctrl+n"`
-
-#### keybinds.composer.line_start
-
-Default: `"ctrl+a"`
-
-#### keybinds.composer.line_end
-
-Default: `"ctrl+shift+e"`
-
-#### keybinds.composer.word_left
-
-Move over a word, a run of letters and digits, and what is before it.
-
-Default: `"alt+b"`
-
-#### keybinds.composer.word_right
-
-Default: `"alt+f"`
-
-#### keybinds.composer.delete_backward
-
-Delete text. Readline's keys, with shift added to those other keybinds take.
-
-Default: `"ctrl+shift+h"`
-
-#### keybinds.composer.delete_forward
-
-Default: `"ctrl+shift+d"`
-
-#### keybinds.composer.delete_word_backward
-
-Delete what word_left and word_right move over.
-
-Default: `"alt+backspace"`
-
-#### keybinds.composer.delete_word_forward
-
-Default: `"alt+shift+d"`
-
-#### keybinds.composer.delete_to_space_backward
-
-Delete back to the whitespace before the cursor.
-
-Default: `"ctrl+w"`
-
-#### keybinds.composer.delete_to_line_start
-
-Delete to the start or end of the line, or the newline there if the cursor is at it.
-Readline deletes to the start of the line with ctrl+u, which is undo here, so it is on ctrl+j.
-
-Default: `"ctrl+j"`
-
-#### keybinds.composer.delete_to_line_end
-
-Default: `"ctrl+shift+k"`
-
-### keybinds.autocomplete
+## `[keybinds.autocomplete]`
 
 Only while the autocomplete is shown.
 
-#### keybinds.autocomplete.select_up
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `select_up` | `"ctrl+p"` |  |
+| `select_down` | `"ctrl+n"` |  |
+| `select_top` | `"home"` |  |
+| `select_bottom` | `"end"` |  |
 
-Default: `"ctrl+p"`
-
-#### keybinds.autocomplete.select_down
-
-Default: `"ctrl+n"`
-
-#### keybinds.autocomplete.select_top
-
-Default: `"home"`
-
-#### keybinds.autocomplete.select_bottom
-
-Default: `"end"`
-
-### keybinds.logout
-
-Log out and delete the stored token.
-Requires re-login upon restart.
-
-Default: `"ctrl+d"`
-
-### keybinds.quit
-
-Default: `"ctrl+c"`
-
-## theme_profile
-
-A color scheme every style of [theme] starts from, such as "Catppuccin Mocha"; "" keeps the terminal's own colors. Styles set under [theme] override it.
-The profiles are listed in docs/themes.md. Text is colored; the background stays the terminal's.
-
-Default: `""`
-
-## theme
+## `[theme]`
 
 Styles of the widgets, each written as
 `{ foreground = "", background = "", attributes = "" or ["", ""], underline = "", underline_color = "" }`.
 
-### theme.title
+## `[theme.title]`
 
-#### theme.title.normal_style
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `normal_style` | `{ attributes = "dim" }` |  |
+| `active_style` | `{ foreground = "green", attributes = "bold" }` | The style used while the widget is focused. |
 
-Default: `{ attributes = "dim" }`
+## `[theme.footer]`
 
-#### theme.title.active_style
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `normal_style` | `{ attributes = "dim" }` |  |
+| `active_style` | `{ foreground = "green", attributes = "bold" }` | The style used while the widget is focused. |
 
-The style used while the widget is focused.
+## `[theme.border]`
 
-Default: `{ foreground = "green", attributes = "bold" }`
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `normal_style` | `{ attributes = "dim" }` |  |
+| `active_style` | `{ foreground = "green", attributes = "bold" }` | The style used while the widget is focused. |
 
-### theme.footer
-
-#### theme.footer.normal_style
-
-Default: `{ attributes = "dim" }`
-
-#### theme.footer.active_style
-
-The style used while the widget is focused.
-
-Default: `{ foreground = "green", attributes = "bold" }`
-
-### theme.border
-
-#### theme.border.normal_style
-
-Default: `{ attributes = "dim" }`
-
-#### theme.border.active_style
-
-The style used while the widget is focused.
-
-Default: `{ foreground = "green", attributes = "bold" }`
-
-### theme.guilds_tree
+## `[theme.guilds_tree]`
 
 The status styles are those of direct-message recipients.
 
-#### theme.guilds_tree.graphics_color
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `graphics_color` | `"default"` | The color of the lines that give the tree its shape. |
+| `online_style` | `{ foreground = "green" }` |  |
+| `idle_style` | `{ foreground = "yellow" }` |  |
+| `dnd_style` | `{ foreground = "red" }` |  |
+| `offline_style` | `{ foreground = "gray" }` |  |
 
-The color of the lines that give the tree its shape.
-
-Default: `"default"`
-
-#### theme.guilds_tree.online_style
-
-Default: `{ foreground = "green" }`
-
-#### theme.guilds_tree.idle_style
-
-Default: `{ foreground = "yellow" }`
-
-#### theme.guilds_tree.dnd_style
-
-Default: `{ foreground = "red" }`
-
-#### theme.guilds_tree.offline_style
-
-Default: `{ foreground = "gray" }`
-
-### theme.members_tree
+## `[theme.members_tree]`
 
 The status styles are those of the dot before each member.
 
-#### theme.members_tree.graphics_color
-
-The color of the lines that give the tree its shape.
-
-Default: `"default"`
-
-#### theme.members_tree.online_style
-
-Default: `{ foreground = "green" }`
-
-#### theme.members_tree.idle_style
-
-Default: `{ foreground = "yellow" }`
-
-#### theme.members_tree.dnd_style
-
-Default: `{ foreground = "red" }`
-
-#### theme.members_tree.offline_style
-
-Default: `{ foreground = "gray" }`
-
-### theme.scroll_bar
-
-#### theme.scroll_bar.track_style
-
-Default: `{ attributes = "dim" }`
-
-#### theme.scroll_bar.thumb_style
-
-Default: `{}`
-
-### theme.messages_list
-
-#### theme.messages_list.author_style
-
-The style of an author's name, such as `{ attributes = "bold" }`, `"dim"` or none for regular.
-
-Default: `{ attributes = "bold" }`
-
-#### theme.messages_list.author_color
-
-The color of an author's name: "role" takes the color of their highest colored role, falling back to author_style's foreground; "style" always takes author_style's foreground.
-
-Default: `"role"`
-
-#### theme.messages_list.mention_style
-
-Default: `{ foreground = "blue", attributes = "bold" }`
-
-#### theme.messages_list.emoji_style
-
-Default: `{ foreground = "green" }`
-
-#### theme.messages_list.url_style
-
-Default: `{ foreground = "blue" }`
-
-#### theme.messages_list.attachment_style
-
-Default: `{ foreground = "yellow" }`
-
-#### theme.messages_list.reaction_style
-
-Default: `{ attributes = "dim" }`
-
-#### theme.messages_list.own_reaction_style
-
-Default: `{ attributes = "bold" }`
-
-#### theme.messages_list.message_style
-
-Default: `{}`
-
-#### theme.messages_list.selected_message_style
-
-Default: `{ attributes = "reverse" }`
-
-#### theme.messages_list.alternate_style
-
-The style merged under every ui.messages_list.alternate_every-th message, such as `{ background = "#24273a" }`, to tell messages apart. A theme profile tints it from its background.
-
-Default: `{}`
-
-#### theme.messages_list.embeds
-
-##### theme.messages_list.embeds.provider_style
-
-Default: `{ attributes = ["dim","italic"] }`
-
-##### theme.messages_list.embeds.author_style
-
-Default: `{ attributes = "italic" }`
-
-##### theme.messages_list.embeds.title_style
-
-Default: `{ foreground = "blue", attributes = "bold" }`
-
-##### theme.messages_list.embeds.description_style
-
-Default: `{ attributes = "dim" }`
-
-##### theme.messages_list.embeds.field_name_style
-
-Default: `{ attributes = "bold", underline = "solid" }`
-
-##### theme.messages_list.embeds.field_value_style
-
-Default: `{}`
-
-##### theme.messages_list.embeds.footer_style
-
-Default: `{ attributes = ["dim","italic"] }`
-
-##### theme.messages_list.embeds.url_style
-
-Default: `{ foreground = "blue", underline = "solid" }`
-
-### theme.autocomplete
-
-#### theme.autocomplete.selected_style
-
-Default: `{ attributes = "reverse" }`
-
-### theme.dialog
-
-#### theme.dialog.style
-
-Default: `{}`
-
-#### theme.dialog.background_style
-
-The style of everything behind the dialog.
-
-Default: `{ attributes = "dim" }`
-
-### theme.help
-
-#### theme.help.short_key_style
-
-Default: `{ attributes = "dim" }`
-
-#### theme.help.short_desc_style
-
-Default: `{}`
-
-#### theme.help.full_key_style
-
-Default: `{ attributes = "dim" }`
-
-#### theme.help.full_desc_style
-
-Default: `{}`
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `graphics_color` | `"default"` | The color of the lines that give the tree its shape. |
+| `online_style` | `{ foreground = "green" }` |  |
+| `idle_style` | `{ foreground = "yellow" }` |  |
+| `dnd_style` | `{ foreground = "red" }` |  |
+| `offline_style` | `{ foreground = "gray" }` |  |
+
+## `[theme.scroll_bar]`
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `track_style` | `{ attributes = "dim" }` |  |
+| `thumb_style` | `{}` |  |
+
+## `[theme.messages_list]`
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `author_style` | `{ attributes = "bold" }` | The style of an author's name, such as `{ attributes = "bold" }`, `"dim"` or none for regular. |
+| `author_color` | `"role"` | The color of an author's name: "role" takes the color of their highest colored role, falling back to author_style's foreground; "style" always takes author_style's foreground. |
+| `mention_style` | `{ foreground = "blue", attributes = "bold" }` |  |
+| `emoji_style` | `{ foreground = "green" }` |  |
+| `url_style` | `{ foreground = "blue" }` |  |
+| `attachment_style` | `{ foreground = "yellow" }` |  |
+| `reaction_style` | `{ attributes = "dim" }` |  |
+| `own_reaction_style` | `{ attributes = "bold" }` |  |
+| `message_style` | `{}` |  |
+| `selected_message_style` | `{ attributes = "reverse" }` |  |
+| `alternate_style` | `{}` | The style merged under every ui.messages_list.alternate_every-th message, such as `{ background = "#24273a" }`, to tell messages apart. A theme profile tints it from its background. |
+
+## `[theme.messages_list.embeds]`
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `provider_style` | `{ attributes = ["dim","italic"] }` |  |
+| `author_style` | `{ attributes = "italic" }` |  |
+| `title_style` | `{ foreground = "blue", attributes = "bold" }` |  |
+| `description_style` | `{ attributes = "dim" }` |  |
+| `field_name_style` | `{ attributes = "bold", underline = "solid" }` |  |
+| `field_value_style` | `{}` |  |
+| `footer_style` | `{ attributes = ["dim","italic"] }` |  |
+| `url_style` | `{ foreground = "blue", underline = "solid" }` |  |
+
+## `[theme.autocomplete]`
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `selected_style` | `{ attributes = "reverse" }` |  |
+
+## `[theme.dialog]`
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `style` | `{}` |  |
+| `background_style` | `{ attributes = "dim" }` | The style of everything behind the dialog. |
+
+## `[theme.help]`
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `short_key_style` | `{ attributes = "dim" }` |  |
+| `short_desc_style` | `{}` |  |
+| `full_key_style` | `{ attributes = "dim" }` |  |
+| `full_desc_style` | `{}` |  |
 
 <!-- nav -->
 
