@@ -14,6 +14,7 @@ import (
 	"github.com/gdamore/tcell/v3/color"
 	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/seamanticus/amitty/internal/tui/cmd"
+	"github.com/seamanticus/amitty/internal/tui/internal/graphics"
 	"github.com/seamanticus/amitty/internal/tui/internal/screentest"
 )
 
@@ -23,8 +24,8 @@ func TestWidgetKitty(t *testing.T) {
 		New(column(red, red)).Kitty(257).Draw(screen, tui.Rectangle{Width: 2, Height: 1})
 		// Image 257 is palette color 16 with a most significant byte of 1.
 		str, style, _ := screen.Get(0, 0)
-		if want := string([]rune{placeholder, diacritics[0], diacritics[0], diacritics[1]}); str != want || style.GetForeground() != color.PaletteColor(16) {
-			t.Fatalf("cell = %q %v, want %q in palette color 16", str, style.GetForeground(), want)
+		if want, fg := graphics.Cell(257, 0, 0, false); str != want || style.GetForeground() != fg || fg != color.PaletteColor(16) {
+			t.Fatalf("cell = %q %v, want the first placeholder of image 257 in palette color 16", str, style.GetForeground())
 		}
 	})
 	t.Run("deletes the image", func(t *testing.T) {
@@ -36,6 +37,34 @@ func TestWidgetKitty(t *testing.T) {
 	t.Run("deletes nothing without kitty", func(t *testing.T) {
 		if New(column(red)).Delete() != nil {
 			t.Fatal("Delete is not nil")
+		}
+	})
+	t.Run("sixel draws its own placeholders", func(t *testing.T) {
+		screen := screentest.New(t, 2, 1)
+		New(column(red, red)).Sixel(257).Draw(screen, tui.Rectangle{Width: 2, Height: 1})
+		str, style, _ := screen.Get(1, 0)
+		if id, row, col, ok := graphics.ParseSixelCell(str, style.GetForeground()); !ok || id != 257 || row != 0 || col != 1 {
+			t.Fatalf("cell = %q, want the second sixel placeholder of image 257", str)
+		}
+	})
+	t.Run("sixel transmits to the application and deletes from it", func(t *testing.T) {
+		src := image.NewGray(image.Rect(0, 0, 20, 10))
+		w := New(src).Width(2).CellSize(10, 20).Sixel(3)
+		task, ok := w.Transmit().(cmd.Task)
+		if !ok {
+			t.Fatal("Transmit is not a task")
+		}
+		got, ok := task().(cmd.SixelImage)
+		if !ok || got.ID != 3 || got.Image == nil || got.Image.Bounds() != image.Rect(0, 0, 20, 10) || got.Cell != image.Pt(10, 20) {
+			t.Fatalf("Transmit = %+v, want image 3 at 20x10 pixels in 10x20 cells", got)
+		}
+		if got := w.Delete(); got != (cmd.SixelImage{ID: 3}) {
+			t.Fatalf("Delete = %+v, want the image forgotten", got)
+		}
+	})
+	t.Run("half blocks transmit nothing", func(t *testing.T) {
+		if New(column(red)).Transmit() != nil {
+			t.Fatal("Transmit is not nil")
 		}
 	})
 	t.Run("transmits in chunks", func(t *testing.T) {

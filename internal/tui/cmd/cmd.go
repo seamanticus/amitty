@@ -1,5 +1,7 @@
 package cmd
 
+import "image"
+
 type Msg any
 
 // Cmd is work done outside Update, such as I/O, whose result comes back as a message.
@@ -9,6 +11,15 @@ type Cmd interface{ isCmd() }
 type WriteRaw string
 
 func (WriteRaw) isCmd() {}
+
+// SixelImage sets the image that the sixel placeholders of image ID show, already at the size it is drawn, with Cell pixels to a cell. A nil Image forgets it.
+type SixelImage struct {
+	ID    int
+	Image *image.Paletted
+	Cell  image.Point
+}
+
+func (SixelImage) isCmd() {}
 
 type Quit struct{}
 

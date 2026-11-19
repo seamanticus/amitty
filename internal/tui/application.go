@@ -70,6 +70,8 @@ type Application[M Model[M]] struct {
 	lastMouseButtons       tcell.ButtonMask // The last mouse button state.
 
 	screen Screen
+	// sixels are drawn over their placeholders after each frame.
+	sixels sixels
 }
 
 // NewApplication creates an application that runs model.
@@ -83,6 +85,7 @@ func NewApplication[M Model[M]](model M, options ...ApplicationOption) *Applicat
 		done:   make(chan struct{}),
 		model:  model,
 		screen: opts.screen,
+		sixels: newSixels(),
 	}
 }
 
@@ -132,6 +135,8 @@ func (a *Application[M]) Run() error {
 			return msg
 		case Cmd:
 			quit = a.handleCmd(msg)
+			// An image arrives after the frames that hold its placeholders.
+			_, updated = msg.(cmd.SixelImage)
 
 		case KeyMsg:
 			// If we are pasting, collect runes, nothing else.
@@ -160,6 +165,8 @@ func (a *Application[M]) Run() error {
 				})
 			}
 			lastRedraw = time.Now()
+			// The terminal may drop sixels on a resize, so they are all written again.
+			a.sixels.forget(a.screen)
 			updated, quit = true, a.updateModel(msg)
 		case *tcell.EventMouse:
 			updated, quit = a.fireMouseActions(msg)
@@ -279,6 +286,8 @@ func (a *Application[M]) suspend(f func()) {
 		return
 	}
 	f()
+	// Another program had the terminal, so the sixels are written again.
+	a.sixels.forget(screen)
 	screen.Resume()
 }
 
@@ -293,7 +302,7 @@ func (a *Application[M]) draw() {
 	if view := a.model.View(); view != nil {
 		view.Draw(screen, Rectangle{Width: drawWidth, Height: drawHeight})
 	}
-	screen.Show()
+	a.sixels.show(screen)
 }
 
 // handle passes a message through the model's widget before updating the model with what it makes of it.
@@ -334,6 +343,8 @@ func (a *Application[M]) handleCmd(c Cmd) (quit bool) {
 		if tty, ok := a.screen.Tty(); ok {
 			_, _ = tty.Write([]byte(c))
 		}
+	case cmd.SixelImage:
+		a.sixels.set(a.screen, c)
 	case cmd.Suspend:
 		var next Msg
 		a.suspend(func() { next = c() })

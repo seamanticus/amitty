@@ -1,4 +1,4 @@
-// Package image draws images with half-block characters or kitty's graphics protocol.
+// Package image draws images with half-block characters, or with placeholders that kitty's graphics protocol or the application's sixel images fill.
 package image
 
 import (
@@ -8,17 +8,18 @@ import (
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
 	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/internal/graphics"
 	"github.com/seamanticus/amitty/internal/tui/layout"
 	"github.com/seamanticus/amitty/internal/tui/text"
 )
 
-// Pixels less opaque than minAlpha are drawn as transparent, so antialiased edges do not show as dark cells.
 const (
 	upperHalfBlock = "▀"
 	lowerHalfBlock = "▄"
 )
 
-const minAlpha = 50
+// Pixels less opaque than minAlpha are drawn as transparent, so antialiased edges do not show as dark cells.
+const minAlpha = graphics.MinAlpha
 
 // The cell size assumed when the terminal's is unknown: twice as tall as wide.
 const (
@@ -31,8 +32,10 @@ type Widget struct {
 	src                   image.Image
 	width                 int
 	cellWidth, cellHeight int
-	kitty                 int
-	compressor            Compressor
+	// id names the image in its placeholders; zero draws half blocks.
+	id         int
+	sixel      bool
+	compressor Compressor
 }
 
 var _ tui.Widget = Widget{}
@@ -123,9 +126,9 @@ func (w Widget) Lines() [][]text.Span {
 
 // fit returns the columns and rows the image takes within width by height cells.
 func (w Widget) fit(width, height int) (cols, rows int) {
-	if w.kitty != 0 {
+	if w.id != 0 {
 		cols, rows = w.cells()
-		return min(cols, width, len(diacritics)), min(rows, height, len(diacritics))
+		return min(cols, width, graphics.MaxCells), min(rows, height, graphics.MaxCells)
 	}
 
 	b := w.src.Bounds()
@@ -147,9 +150,9 @@ func (w Widget) pixelHeight(cols int) int {
 
 // at returns the cell at x, y of the image drawn cols wide, or false if it is transparent.
 func (w Widget) at(x, y, cols int) (string, tui.Style, bool) {
-	if w.kitty != 0 {
-		fg, msb := w.id()
-		return string([]rune{placeholder, diacritics[y], diacritics[x], diacritics[msb]}), tcell.StyleDefault.Foreground(color.PaletteColor(fg)), true
+	if w.id != 0 {
+		str, fg := graphics.Cell(w.id, y, x, w.sixel)
+		return str, tcell.StyleDefault.Foreground(fg), true
 	}
 
 	b := w.src.Bounds()

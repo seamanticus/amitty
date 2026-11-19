@@ -11,6 +11,7 @@ import (
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
 	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/internal/graphics"
 	"github.com/seamanticus/amitty/internal/tui/internal/screentest"
 )
 
@@ -96,7 +97,7 @@ func TestWidgetLines(t *testing.T) {
 	})
 	t.Run("kitty", func(t *testing.T) {
 		lines := New(column(red)).Width(2).Kitty(257).Lines()
-		want := string([]rune{placeholder, diacritics[0], diacritics[1], diacritics[1]})
+		want, _ := graphics.Cell(257, 0, 1, false)
 		if len(lines) != 1 || len(lines[0]) != 2 || lines[0][1].Text != want || lines[0][1].Style.GetForeground() != color.PaletteColor(16) {
 			t.Fatalf("lines = %+v, want the placeholders of image 257", lines)
 		}
