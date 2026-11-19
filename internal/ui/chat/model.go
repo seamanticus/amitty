@@ -69,6 +69,8 @@ type Model struct {
 
 	state  *ningen.State
 	events chan gateway.Event
+	// token is the one the session uses, so a different one in READY is a refresh to store.
+	token string
 
 	// typers maps the users typing in the selected channel to when their typing indicator expires.
 	typers map[discord.UserID]time.Time
@@ -90,7 +92,8 @@ func NewModel(cfg *config.Config, build http.Build, token string) Model {
 		typers: make(map[discord.UserID]time.Time),
 		images: make(map[discord.URL]tviewimage.Widget),
 
-		cfg: cfg,
+		token: token,
+		cfg:   cfg,
 	}
 
 	id := gateway.NewIdentifier(gateway.IdentifyCommand{

@@ -118,7 +118,7 @@ func (m *Model) applyEvent(event gateway.Event) tview.Cmd {
 		slog.Debug("new raw event", "code", event.OriginalCode, "type", event.OriginalType)
 
 	case *gateway.ReadyEvent:
-		return cmd.Batch{m.loadGuildsTree(event), m.updatePane(paneMembersTree, event)}
+		return cmd.Batch{m.loadGuildsTree(event), m.updatePane(paneMembersTree, event), m.refreshToken(event.AuthToken)}
 
 	case *gateway.MessageCreateEvent:
 		return m.addMessageOrNotify(event)

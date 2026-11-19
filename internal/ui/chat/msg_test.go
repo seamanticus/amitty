@@ -38,6 +38,22 @@ func TestIsAuthenticationFailed(t *testing.T) {
 	}
 }
 
+func TestRefreshToken(t *testing.T) {
+	m := Model{token: "old"}
+	for _, same := range []string{"", "old"} {
+		if command := m.refreshToken(same); command != nil {
+			t.Fatalf("token %q asked to be stored", same)
+		}
+	}
+	task, ok := m.refreshToken("new").(cmd.Task)
+	if !ok || task() != TokenRefreshedMsg("new") || m.token != "new" {
+		t.Fatalf("ok = %v, token = %q", ok, m.token)
+	}
+	if m.refreshToken("new") != nil {
+		t.Fatal("the same refresh asked to be stored twice")
+	}
+}
+
 func TestCloseState(t *testing.T) {
 	next := LogoutMsg{Err: errors.New("x")}
 	task, ok := closeState(nil, next).(cmd.Task)

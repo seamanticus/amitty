@@ -29,7 +29,6 @@ require (
 	github.com/thomas-vilte/dave-go v0.5.1
 	github.com/tphakala/go-opus v1.4.0
 	github.com/yuin/goldmark/v2 v2.1.16
-	github.com/zalando/go-keyring v0.2.8
 	golang.design/x/clipboard v0.11.0
 	golang.org/x/image v0.48.0
 	golang.org/x/sys v0.50.0
@@ -45,13 +44,11 @@ require (
 	github.com/bogdanfinn/websocket v1.5.9-barnius // indirect
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
-	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/dchest/jsmin v1.0.0 // indirect
 	github.com/disgoorg/godave v0.3.0 // indirect
 	github.com/dlclark/regexp2/v2 v2.13.0 // indirect
 	github.com/ebitengine/purego v0.11.3 // indirect
 	github.com/gdamore/encoding v1.0.1 // indirect
-	github.com/godbus/dbus/v5 v5.2.4 // indirect
 	github.com/gorilla/schema v1.4.1 // indirect
 	github.com/josephspurrier/goversioninfo v1.7.0 // indirect
 	github.com/klauspost/compress v1.20.4 // indirect

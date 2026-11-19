@@ -8,6 +8,7 @@ import (
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/discordo/internal/config"
 	"github.com/seamanticus/discordo/internal/http"
+	"github.com/seamanticus/discordo/internal/tokenstore"
 )
 
 func TestNewModel(t *testing.T) {
@@ -19,7 +20,7 @@ func TestNewModel(t *testing.T) {
 	t.Run("help enabled", func(t *testing.T) {
 		cfg := *cfg
 		cfg.Help.Enabled = true
-		m := NewModel(&cfg, http.Build{})
+		m := NewModel(&cfg, http.Build{}, tokenstore.Store{}, "")
 		t.Run("shown", func(t *testing.T) {
 			if !m.helpVisible {
 				t.Fatal("help is hidden")
@@ -45,7 +46,7 @@ func TestNewModel(t *testing.T) {
 	t.Run("help disabled", func(t *testing.T) {
 		cfg := *cfg
 		cfg.Help.Enabled = false
-		m := NewModel(&cfg, http.Build{})
+		m := NewModel(&cfg, http.Build{}, tokenstore.Store{}, "")
 		t.Run("hidden", func(t *testing.T) {
 			if m.helpVisible {
 				t.Fatal("help is visible")
@@ -69,7 +70,7 @@ func TestModelQuit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m := NewModel(cfg, http.Build{})
+	m := NewModel(cfg, http.Build{}, tokenstore.Store{}, "")
 
 	m, command := m.Update(tcell.NewEventKey(tcell.KeyCtrlC, "", tcell.ModCtrl))
 	t.Run("asks", func(t *testing.T) {

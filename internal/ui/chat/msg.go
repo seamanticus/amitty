@@ -21,6 +21,18 @@ import (
 // closeCodeAuthenticationFailed is the close code of the gateway for a token it rejects.
 const closeCodeAuthenticationFailed = 4004
 
+// TokenRefreshedMsg is a new token the gateway sent in READY to replace the one the session started with.
+type TokenRefreshedMsg string
+
+// refreshToken records token as the session's and asks for it to be stored, if it is new.
+func (m *Model) refreshToken(token string) tview.Cmd {
+	if token == "" || token == m.token {
+		return nil
+	}
+	m.token = token
+	return cmd.Task(func() tview.Msg { return TokenRefreshedMsg(token) })
+}
+
 // openTimeout bounds the wait for READY; the session keeps reconnecting on its own afterwards.
 const openTimeout = time.Minute
 

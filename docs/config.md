@@ -19,6 +19,18 @@ The program opened by the `composer.open_editor` keybind. "default" uses `$EDITO
 
 Default: `"default"`
 
+# token-encrypt-cmd
+
+The command that encrypts the token: it reads the token on stdin and writes what is stored in `$XDG_STATE_HOME/discordo/token.gpg` to stdout.
+
+Default: `"gpg --encrypt --default-recipient-self"`
+
+# token-decrypt-cmd
+
+The command that decrypts the stored token: it reads the file on stdin and writes the token to stdout. It runs before the screen starts, so a terminal pinentry works.
+
+Default: `"gpg --decrypt --quiet"`
+
 # status
 
 "default" (unknown), "online", "dnd", "idle", "invisible" or "offline".
@@ -1156,7 +1168,7 @@ Default: `"end"`
 
 ## keybinds.logout
 
-Log out and remove the authentication token from keyring.
+Log out and delete the stored token.
 Requires re-login upon restart.
 
 Default: `"ctrl+d"`

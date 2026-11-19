@@ -2,7 +2,6 @@ package root
 
 import (
 	"github.com/ayn2op/tview/layout"
-	"os"
 
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/backdrop"
@@ -18,6 +17,7 @@ import (
 	"github.com/seamanticus/discordo/internal/config"
 	"github.com/seamanticus/discordo/internal/consts"
 	"github.com/seamanticus/discordo/internal/http"
+	"github.com/seamanticus/discordo/internal/tokenstore"
 	"github.com/seamanticus/discordo/internal/ui"
 	"github.com/seamanticus/discordo/internal/ui/chat"
 	"github.com/seamanticus/discordo/internal/ui/login"
@@ -25,8 +25,6 @@ import (
 	"github.com/seamanticus/discordo/internal/ui/login/qr"
 	"github.com/seamanticus/discordo/internal/ui/login/token"
 )
-
-const tokenEnvVarKey = "DISCORDO_TOKEN"
 
 // screen is what is shown above help.
 type screen int
@@ -53,10 +51,14 @@ type Model struct {
 	cfg *config.Config
 	// build is what every request and the gateway identify as, fetched once at startup.
 	build http.Build
+	// store keeps the token between runs, and token is the one it held at startup, or "" to log in.
+	store tokenstore.Store
+	token string
 }
 
-func NewModel(cfg *config.Config, build http.Build) Model {
-	return Model{cfg: cfg, build: build, helpVisible: cfg.Help.Enabled}
+// NewModel returns the application, opening the chat with token if set and the login otherwise.
+func NewModel(cfg *config.Config, build http.Build, store tokenstore.Store, token string) Model {
+	return Model{cfg: cfg, build: build, store: store, token: token, helpVisible: cfg.Help.Enabled}
 }
 
 // updateScreen updates the model shown above help with msg.
@@ -127,16 +129,18 @@ func (m Model) Init() tview.Cmd {
 	return cmd.Batch{
 		cmd.SetTitle(consts.Name),
 		initClipboard(),
-		loadToken(),
+		m.start(),
 	}
 }
 
-// loadToken uses the token in the environment if set, or else the stored one.
-func loadToken() tview.Cmd {
-	if token := os.Getenv(tokenEnvVarKey); token != "" {
-		return useToken(token)
-	}
-	return getToken()
+// start opens the chat with the stored token, or the login when there is none.
+func (m Model) start() tview.Cmd {
+	return cmd.Task(func() tview.Msg {
+		if m.token == "" {
+			return loginMsg{}
+		}
+		return tokenMsg(m.token)
+	})
 }
 
 // Update returns m changed in response to msg and a command to run, or nil.
@@ -146,18 +150,29 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 		return m, m.showLogin()
 	case tokenMsg:
 		return m, m.showChat(string(msg))
+	case storedMsg:
+		command := m.showChat(msg.token)
+		// Shown after the chat, as showing it closes any dialog.
+		if msg.err != nil {
+			dialog := ui.ErrorDialog("store the token", msg.err)
+			m.dialog, m.dialogFocus = &dialog, 0
+		}
+		return m, command
 
 	case password.TokenMsg:
-		return m, storeToken(string(msg))
+		return m, storeToken(m.store, string(msg))
 	case qr.TokenMsg:
-		return m, storeToken(string(msg))
+		return m, storeToken(m.store, string(msg))
 	case token.TokenMsg:
-		return m, storeToken(string(msg))
+		return m, storeToken(m.store, string(msg))
+	case chat.TokenRefreshedMsg:
+		return m, saveRefreshed(m.store, string(msg))
 
 	case chat.StateClosedMsg:
 		return m, cmd.Quit{}
 	case chat.LogoutMsg:
-		command := cmd.Batch{m.showLogin(), deleteToken()}
+		// Both a logout and a rejected token (4004) end the token for good.
+		command := cmd.Batch{m.showLogin(), deleteToken(m.store)}
 		// Shown after the login, as showing it closes any dialog.
 		if msg.Err != nil {
 			dialog := ui.ErrorDialog("open chat state", msg.Err)

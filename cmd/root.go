@@ -6,19 +6,25 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/ayn2op/arikawa/v3/utils/ws"
 	"github.com/ayn2op/tview"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/discordo/internal/consts"
 	"github.com/seamanticus/discordo/internal/http"
 	"github.com/seamanticus/discordo/internal/logger"
+	"github.com/seamanticus/discordo/internal/tokenstore"
 	"github.com/seamanticus/discordo/internal/ui/root"
 )
 
 // buildTimeout bounds the startup fetch of the build number.
 const buildTimeout = 10 * time.Second
+
+// decryptTimeout bounds the startup decrypt of the token, which may wait for a passphrase.
+const decryptTimeout = 2 * time.Minute
 
 func Run() error {
 	configPath := flag.String("config-path", config.DefaultPath(), "path of the configuration file")
@@ -51,6 +57,11 @@ func Run() error {
 
 	build := fetchBuild()
 
+	store, token, err := loadToken(cfg)
+	if err != nil {
+		return err
+	}
+
 	screen, err := tcell.NewScreen()
 	if err != nil {
 		return fmt.Errorf("failed to create screen: %w", err)
@@ -68,7 +79,31 @@ func Run() error {
 		screen.EnableFocus()
 	}
 
-	return tview.NewApplication(root.NewModel(cfg, build), tview.WithScreen(screen)).Run()
+	return tview.NewApplication(root.NewModel(cfg, build, store, token), tview.WithScreen(screen)).Run()
+}
+
+// loadToken opens the token store of cfg and decrypts its token before the screen starts, so a passphrase prompt owns the terminal. An empty token means none is stored.
+func loadToken(cfg *config.Config) (tokenstore.Store, string, error) {
+	dir, err := consts.StateDir()
+	if err != nil {
+		return tokenstore.Store{}, "", err
+	}
+	store, err := tokenstore.New(filepath.Join(dir, tokenstore.FileName), cfg.TokenEncryptCmd, cfg.TokenDecryptCmd)
+	if err != nil {
+		return tokenstore.Store{}, "", fmt.Errorf("token store: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), decryptTimeout)
+	defer cancel()
+	token, ok, err := store.Load(ctx)
+	if err != nil {
+		// A token that exists but does not decrypt is not deleted: the passphrase or key may come back.
+		return tokenstore.Store{}, "", fmt.Errorf("%w (delete %s to log in again)", err, store.Path())
+	}
+	if !ok {
+		slog.Info("no stored token; showing the login", "path", store.Path())
+	}
+	return store, token, nil
 }
 
 // fetchBuild fetches the current build number before the screen starts, falling back to the generated one with a warning on stderr and in the log.

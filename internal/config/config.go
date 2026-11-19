@@ -183,6 +183,11 @@ type (
 		// The program opened by the `composer.open_editor` keybind. "default" uses `$EDITOR`.
 		Editor string `toml:"editor"`
 
+		// The command that encrypts the token: it reads the token on stdin and writes what is stored in `$XDG_STATE_HOME/discordo/token.gpg` to stdout.
+		TokenEncryptCmd string `toml:"token-encrypt-cmd"`
+		// The command that decrypts the stored token: it reads the file on stdin and writes the token to stdout. It runs before the screen starts, so a terminal pinentry works.
+		TokenDecryptCmd string `toml:"token-decrypt-cmd"`
+
 		// "default" (unknown), "online", "dnd", "idle", "invisible" or "offline".
 		Status           discord.Status `toml:"status"`
 		HideBlockedUsers bool           `toml:"hide_blocked_users"`
@@ -225,6 +230,9 @@ func Default() Config {
 		AutoFocus: true,
 		Mouse:     true,
 		Editor:    "default",
+
+		TokenEncryptCmd: "gpg --encrypt --default-recipient-self",
+		TokenDecryptCmd: "gpg --decrypt --quiet",
 
 		Status:           "default",
 		HideBlockedUsers: true,

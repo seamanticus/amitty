@@ -63,21 +63,20 @@ go build ./cmd/discordo
 
 2. Enter your token and click on the "Login" button to save it.
 
-### Token (environment variable)
+### Stored token
 
-Set the value of the `DISCORDO_TOKEN` environment variable to the authentication token to log in with.
+A token from any login is encrypted with `token-encrypt-cmd` and stored in `$XDG_STATE_HOME/discordo/token.gpg` (`~/.local/state/discordo/token.gpg` when unset). At startup, before the screen opens, `token-decrypt-cmd` decrypts it, so gpg can ask for the passphrase in the terminal. The defaults are:
 
-```sh
-DISCORDO_TOKEN="<token>" discordo
+```toml
+token-encrypt-cmd = "gpg --encrypt --default-recipient-self"
+token-decrypt-cmd = "gpg --decrypt --quiet"
 ```
+
+Both commands read stdin and write stdout, so any tool that does works, such as `age`. Logging out, or Discord rejecting the token, deletes the file; a token Discord refreshes is written back.
 
 ## Configuration
 
-The configuration file allows you to configure and customize the behavior, keybindings, and theme of the application.
-
-- Unix: `$XDG_CONFIG_HOME/discordo/config.toml` or `$HOME/.config/discordo/config.toml`
-- Darwin: `$HOME/Library/Application Support/discordo/config.toml`
-- Windows: `%AppData%/discordo/config.toml`
+The configuration file allows you to configure and customize the behavior, keybindings, and theme of the application. It is at `$XDG_CONFIG_HOME/discordo/config.toml`, or `$HOME/.config/discordo/config.toml`.
 
 Use `-config-path` to change the path.
 

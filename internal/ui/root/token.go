@@ -1,54 +1,63 @@
 package root
 
 import (
+	"context"
 	"log/slog"
+	"time"
 
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
-	"github.com/seamanticus/discordo/internal/consts"
-	"github.com/zalando/go-keyring"
+	"github.com/seamanticus/discordo/internal/tokenstore"
+	"github.com/seamanticus/discordo/internal/ui"
 )
 
-const (
-	keyringService = consts.Name
-	keyringUser    = "token"
-)
-
+// tokenMsg opens the chat with a token.
 type tokenMsg string
 
-func useToken(token string) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
-		return tokenMsg(token)
-	})
-}
-
+// loginMsg shows the login, as no token is stored.
 type loginMsg struct{}
 
-func getToken() tview.Cmd {
+// storeTimeout bounds one run of the encrypt command.
+const storeTimeout = time.Minute
+
+// storeToken saves token, then sends it on to open the chat. A failed save is shown over the chat, which opens anyway: the session needs no stored copy.
+func storeToken(store tokenstore.Store, token string) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
-		token, err := keyring.Get(keyringService, keyringUser)
-		if err != nil {
-			slog.Info("failed to retrieve token from keyring", "err", err)
-			return loginMsg{}
+		if err := saveToken(store, token); err != nil {
+			return storedMsg{token: token, err: err}
 		}
-		return tokenMsg(token)
+		return storedMsg{token: token}
 	})
 }
 
-// storeToken stores a token from a login, then sends it on to open the chat; a failure to store is logged and the chat opens anyway.
-func storeToken(token string) tview.Cmd {
+// storedMsg is a token after its save, with err set if the save failed.
+type storedMsg struct {
+	token string
+	err   error
+}
+
+// saveRefreshed saves a token the gateway sent to replace the stored one, reporting only a failure.
+func saveRefreshed(store tokenstore.Store, token string) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
-		if err := keyring.Set(keyringService, keyringUser, token); err != nil {
-			slog.Error("failed to set token to keyring", "err", err)
+		if err := saveToken(store, token); err != nil {
+			return ui.ErrorDialog("store the refreshed token", err)
 		}
-		return tokenMsg(token)
+		slog.Info("stored the refreshed token")
+		return nil
 	})
 }
 
-func deleteToken() tview.Cmd {
+func saveToken(store tokenstore.Store, token string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), storeTimeout)
+	defer cancel()
+	return store.Save(ctx, token)
+}
+
+// deleteToken removes the stored token, reporting only a failure.
+func deleteToken(store tokenstore.Store) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
-		if err := keyring.Delete(keyringService, keyringUser); err != nil {
-			slog.Error("failed to delete token from keyring", "err", err)
+		if err := store.Delete(); err != nil {
+			return ui.ErrorDialog("delete the stored token", err)
 		}
 		return nil
 	})

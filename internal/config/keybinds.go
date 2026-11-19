@@ -258,7 +258,7 @@ type Keybinds struct {
 	// Only while the autocomplete is shown.
 	Autocomplete AutocompleteKeybinds `toml:"autocomplete"`
 
-	// Log out and remove the authentication token from keyring.
+	// Log out and delete the stored token.
 	// Requires re-login upon restart.
 	Logout Keybind `toml:"logout"`
 	Quit   Keybind `toml:"quit"`
