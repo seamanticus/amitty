@@ -101,7 +101,8 @@ func TestRequestLogin(t *testing.T) {
 		body   string
 	}{
 		{"invalid credentials", http.StatusBadRequest, `{"code":50035,"message":"Invalid Form Body","errors":{"login":{"_errors":[{"code":"INVALID_LOGIN"}]}}}`},
-		{"captcha", http.StatusBadRequest, `{"captcha_key":["captcha-required"],"captcha_sitekey":"k","captcha_service":"hcaptcha"}`},
+		// An hCaptcha challenge is answered instead (TestRequestLoginCaptcha); another service is not.
+		{"captcha of another service", http.StatusBadRequest, `{"captcha_key":["captcha-required"],"captcha_sitekey":"k","captcha_service":"recaptcha"}`},
 		{"unauthorized", http.StatusUnauthorized, `{"message":"401: Unauthorized","code":0}`},
 		{"forbidden", http.StatusForbidden, `{"message":"forbidden"}`},
 		{"not JSON", http.StatusOK, `<html>`},
