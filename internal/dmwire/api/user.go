@@ -68,17 +68,6 @@ func (c *Client) PrivateChannels() ([]discord.Channel, error) {
 	return c.RequestJSON[[]discord.Channel]("GET", EndpointMe+"/channels")
 }
 
-// CreatePrivateChannel creates a new DM channel with a user.
-func (c *Client) CreatePrivateChannel(recipientID discord.UserID) (*discord.Channel, error) {
-	var param struct {
-		RecipientID discord.UserID `json:"recipient_id"`
-	}
-
-	param.RecipientID = recipientID
-
-	return c.RequestJSON[*discord.Channel]("POST", EndpointMe+"/channels", httputil.WithJSONBody(param))
-}
-
 // UserConnections returns a list of connection objects. Requires the
 // connections OAuth2 scope.
 func (c *Client) UserConnections() ([]discord.Connection, error) {

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -89,6 +90,28 @@ func TestLoad(t *testing.T) {
 			t.Fatalf("got = %+v, want = %+v", *cfg, defCfg)
 		}
 	})
+}
+
+// proof: exhaustive
+func TestMessagesLimit(t *testing.T) {
+	// Every value TOML can give a uint8, so no fetch takes a whole history or several pages.
+	for limit := range 256 {
+		path := filepath.Join(t.TempDir(), "config.toml")
+		if err := os.WriteFile(path, []byte(fmt.Sprintf("messages_limit = %d", limit)), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		cfg, err := Load(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := uint8(limit)
+		if limit < 1 || limit > 100 {
+			want = 50
+		}
+		if cfg.MessagesLimit != want {
+			t.Fatalf("messages_limit = %d loads as %d, want %d", limit, cfg.MessagesLimit, want)
+		}
+	}
 }
 
 // The generated docs show defaults as they are marshaled, so those must parse back to the same defaults.

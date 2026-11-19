@@ -404,22 +404,6 @@ func (s *State) Channels(guildID discord.GuildID) (cs []discord.Channel, err err
 	return
 }
 
-func (s *State) CreatePrivateChannel(recipient discord.UserID) (*discord.Channel, error) {
-	c, err := s.Cabinet.CreatePrivateChannel(recipient)
-	if err == nil {
-		return c, nil
-	}
-
-	c, err = s.Session.CreatePrivateChannel(recipient)
-	if err != nil {
-		return nil, err
-	}
-
-	s.Cabinet.ChannelSet(c, false)
-
-	return c, nil
-}
-
 // PrivateChannels gets the direct messages of the user.
 // This is not supported for bots.
 func (s *State) PrivateChannels() ([]discord.Channel, error) {

@@ -305,6 +305,11 @@ func (cfg *Config) applyDefaults() {
 		cfg.Status = discord.UnknownStatus
 	}
 
+	// 0 would fetch a channel's whole history, and more than 100 several pages per fetch.
+	if cfg.MessagesLimit < 1 || cfg.MessagesLimit > 100 {
+		cfg.MessagesLimit = 50
+	}
+
 	if cfg.Composer.MaxHeight <= 0 {
 		cfg.Composer.MaxHeight = 10
 	}
