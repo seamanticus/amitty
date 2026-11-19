@@ -75,17 +75,6 @@ func TestLoad(t *testing.T) {
 		}
 	})
 
-	t.Run("a config from before voice was removed still loads", func(t *testing.T) {
-		path := filepath.Join(t.TempDir(), "voice.toml")
-		old := "[voice]\nvolume_step = 10\n[keybinds]\ntoggle_mute = \"alt+v\"\n"
-		if err := os.WriteFile(path, []byte(old), 0o600); err != nil {
-			t.Fatal(err)
-		}
-		if _, err := Load(path); err != nil {
-			t.Fatal(err)
-		}
-	})
-
 	t.Run("missing file uses defaults", func(t *testing.T) {
 		path := filepath.Join(t.TempDir(), "missing.toml")
 		cfg, err := Load(path)

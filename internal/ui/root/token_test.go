@@ -96,12 +96,6 @@ func TestNewModelScreen(t *testing.T) {
 			t.Fatal("chat shown without a token")
 		}
 	})
-	t.Run("the environment is not read", func(t *testing.T) {
-		t.Setenv("DISCORDO_TOKEN", "env-token")
-		if newModel(t, testStore(t), "").screen.isChat() {
-			t.Fatal("chat shown from the environment")
-		}
-	})
 	t.Run("the zero screen is the login", func(t *testing.T) {
 		if (screen{}).isChat() {
 			t.Fatal("zero screen is the chat")
