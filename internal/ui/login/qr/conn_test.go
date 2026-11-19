@@ -11,11 +11,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/vt"
 	"github.com/gorilla/websocket"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 )
 
 // gatewayModel runs Model on an open connection and quits once the login is canceled.
@@ -24,12 +24,12 @@ type gatewayModel struct {
 	conn *websocket.Conn
 }
 
-func (m gatewayModel) Init() tview.Cmd {
-	return cmd.Task(func() tview.Msg { return connCreateMsg{conn: &gatewayConn{ws: m.conn}} })
+func (m gatewayModel) Init() tui.Cmd {
+	return cmd.Task(func() tui.Msg { return connCreateMsg{conn: &gatewayConn{ws: m.conn}} })
 }
 
-func (m gatewayModel) Update(msg tview.Msg) (gatewayModel, tview.Cmd) {
-	var command tview.Cmd
+func (m gatewayModel) Update(msg tui.Msg) (gatewayModel, tui.Cmd) {
+	var command tui.Cmd
 	m.Model, command = m.Model.Update(msg)
 	if m.status == "Login canceled on mobile" {
 		return m, cmd.Quit{}
@@ -105,7 +105,7 @@ func TestListen(t *testing.T) {
 
 		done := make(chan error, 1)
 		go func() {
-			done <- tview.NewApplication(gatewayModel{Model: NewModel(dhttp.Build{}, dhttp.Network{}), conn: conn}, tview.WithScreen(screen)).Run()
+			done <- tui.NewApplication(gatewayModel{Model: NewModel(dhttp.Build{}, dhttp.Network{}), conn: conn}, tui.WithScreen(screen)).Run()
 		}()
 		select {
 		case err := <-done:

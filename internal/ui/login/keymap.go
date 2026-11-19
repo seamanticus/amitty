@@ -1,14 +1,14 @@
 package login
 
 import (
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/help"
-	"github.com/ayn2op/tview/keybind"
-	"github.com/ayn2op/tview/tabs"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/help"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
+	"github.com/seamanticus/amitty/internal/tui/tabs"
 	"github.com/seamanticus/amitty/internal/ui/login/keys"
 )
 
-func tabsKeybind(key tview.KeyMsg) tabs.Action {
+func tabsKeybind(key tui.KeyMsg) tabs.Action {
 	switch {
 	case keybind.Matches(key, keys.PreviousTab()):
 		return tabs.ActionPrevious

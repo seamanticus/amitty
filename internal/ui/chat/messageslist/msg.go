@@ -5,11 +5,11 @@ import (
 	"log/slog"
 	"slices"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
-	"github.com/ayn2op/tview/viewport"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
+	"github.com/seamanticus/amitty/internal/tui/viewport"
 	"github.com/seamanticus/amitty/internal/ui"
 )
 
@@ -37,13 +37,13 @@ type ShowReactionsMsg struct {
 	MessageID discord.MessageID
 }
 
-func (m Model) showReactions() tview.Cmd {
+func (m Model) showReactions() tui.Cmd {
 	message, ok := m.selectedMessage()
 	if !ok || !m.canReact() {
 		return nil
 	}
 	msg := ShowReactionsMsg{m.channel.GuildID, message.ChannelID, message.ID}
-	return cmd.Task(func() tview.Msg { return msg })
+	return cmd.Task(func() tui.Msg { return msg })
 }
 
 // EditMsg asks to edit a message.
@@ -55,7 +55,7 @@ type listMsg int
 // scrollMsg scrolls the messages list.
 type scrollMsg viewport.ScrollState
 
-func (m *Model) selectUp() tview.Cmd {
+func (m *Model) selectUp() tui.Cmd {
 	if m.cursor == -1 {
 		m.selectBottom()
 		return nil
@@ -75,7 +75,7 @@ func (m *Model) selectUp() tview.Cmd {
 	return m.fetchOlderMessages()
 }
 
-func (m Model) fetchOlderMessages() tview.Cmd {
+func (m Model) fetchOlderMessages() tui.Cmd {
 	selectedChannel := m.channel
 	if selectedChannel == nil {
 		return nil
@@ -88,7 +88,7 @@ func (m Model) fetchOlderMessages() tview.Cmd {
 	}
 	before := m.items[first].message.ID
 	limit := uint(m.cfg.MessagesLimit)
-	return cmd.Task(func() tview.Msg {
+	return cmd.Task(func() tui.Msg {
 		messages, err := m.state.MessagesBefore(channelID, before, limit)
 		if err != nil {
 			slog.Error("failed to fetch older messages", "err", err)
@@ -104,7 +104,7 @@ func (m Model) fetchOlderMessages() tview.Cmd {
 	})
 }
 
-func (m Model) yankMessageID() tview.Cmd {
+func (m Model) yankMessageID() tui.Cmd {
 	selectedMessage, ok := m.selectedMessage()
 	if !ok {
 		return nil
@@ -113,7 +113,7 @@ func (m Model) yankMessageID() tview.Cmd {
 	return ui.WriteClipboard(selectedMessage.ID.String())
 }
 
-func (m Model) yankContent() tview.Cmd {
+func (m Model) yankContent() tui.Cmd {
 	selectedMessage, ok := m.selectedMessage()
 	if !ok {
 		return nil
@@ -122,7 +122,7 @@ func (m Model) yankContent() tview.Cmd {
 	return ui.WriteClipboard(selectedMessage.Content)
 }
 
-func (m Model) yankURL() tview.Cmd {
+func (m Model) yankURL() tui.Cmd {
 	selectedMessage, ok := m.selectedMessage()
 	if !ok {
 		return nil
@@ -131,7 +131,7 @@ func (m Model) yankURL() tview.Cmd {
 	return ui.WriteClipboard(selectedMessage.URL())
 }
 
-func (m Model) reply(mention bool) tview.Cmd {
+func (m Model) reply(mention bool) tui.Cmd {
 	selectedMessage, ok := m.selectedMessage()
 	if !ok {
 		return nil
@@ -143,10 +143,10 @@ func (m Model) reply(mention bool) tview.Cmd {
 	}
 
 	message := *selectedMessage
-	return cmd.Task(func() tview.Msg { return ReplyMsg{Message: message, Name: name, Mention: mention} })
+	return cmd.Task(func() tui.Msg { return ReplyMsg{Message: message, Name: name, Mention: mention} })
 }
 
-func (m Model) editSelectedMessage() tview.Cmd {
+func (m Model) editSelectedMessage() tui.Cmd {
 	selectedMessage, ok := m.selectedMessage()
 	if !ok {
 		return nil
@@ -158,10 +158,10 @@ func (m Model) editSelectedMessage() tview.Cmd {
 	}
 
 	message := *selectedMessage
-	return cmd.Task(func() tview.Msg { return EditMsg(message) })
+	return cmd.Task(func() tui.Msg { return EditMsg(message) })
 }
 
-func (m Model) confirmDelete() tview.Cmd {
+func (m Model) confirmDelete() tui.Cmd {
 	selectedMessage, ok := m.selectedMessage()
 	if !ok || !m.canDeleteMessage(*selectedMessage) {
 		return nil
@@ -174,7 +174,7 @@ func (m Model) confirmDelete() tview.Cmd {
 	)
 }
 
-func (m Model) deleteSelectedMessage() tview.Cmd {
+func (m Model) deleteSelectedMessage() tui.Cmd {
 	selectedMessage, ok := m.selectedMessage()
 	if !ok {
 		return nil
@@ -182,8 +182,8 @@ func (m Model) deleteSelectedMessage() tview.Cmd {
 	return m.requestDelete(*selectedMessage)
 }
 
-func (m Model) requestDelete(message discord.Message) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func (m Model) requestDelete(message discord.Message) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		if !m.canDeleteMessage(message) {
 			slog.Error("failed to delete message; missing relevant permissions", "channel_id", message.ChannelID, "message_id", message.ID)
 			return nil
@@ -201,7 +201,7 @@ func (m Model) requestDelete(message discord.Message) tview.Cmd {
 	})
 }
 
-func (m Model) requestGuildMembers(guildID discord.GuildID, messages []discord.Message) tview.Cmd {
+func (m Model) requestGuildMembers(guildID discord.GuildID, messages []discord.Message) tui.Cmd {
 	usersToFetch := make([]discord.UserID, 0, len(messages))
 	seen := make(map[discord.UserID]struct{}, len(messages))
 
@@ -228,7 +228,7 @@ func (m Model) requestGuildMembers(guildID discord.GuildID, messages []discord.M
 		return nil
 	}
 
-	return cmd.Task(func() tview.Msg {
+	return cmd.Task(func() tui.Msg {
 		if err := m.state.SendGateway(context.Background(), &gateway.RequestGuildMembersCommand{
 			GuildIDs: []discord.GuildID{guildID},
 			UserIDs:  usersToFetch,

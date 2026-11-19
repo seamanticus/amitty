@@ -4,11 +4,11 @@ import (
 	"image"
 	"slices"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
-	"github.com/ayn2op/tview/text"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	md "github.com/seamanticus/amitty/internal/dmwire/markdown"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
+	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/seamanticus/amitty/internal/ui/emojis"
 	"github.com/seamanticus/amitty/internal/ui/images"
 	"github.com/yuin/goldmark/v2/ast"
@@ -44,7 +44,7 @@ func (m Model) previewSources(message discord.Message) []previewSource {
 }
 
 // LoadImages returns the command that loads the images of the shown messages, or nil.
-func (m Model) LoadImages() tview.Cmd {
+func (m Model) LoadImages() tui.Cmd {
 	msg := images.RequestedMsg{Squares: map[discord.URL]uint{}, Previews: map[discord.URL]image.Point{}}
 	for index := range m.items {
 		item := &m.items[index]
@@ -70,7 +70,7 @@ func (m Model) LoadImages() tview.Cmd {
 		return nil
 	}
 
-	return cmd.Task(func() tview.Msg { return msg })
+	return cmd.Task(func() tui.Msg { return msg })
 }
 
 // addEmojis adds the custom emoji of the reactions to the item's message and in its content to squares.

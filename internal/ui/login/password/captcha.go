@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
 	"github.com/seamanticus/amitty/internal/captcha"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/ui"
 )
 
@@ -23,8 +23,8 @@ type CaptchaOpenFailedMsg struct{ err error }
 type CaptchaSolvedMsg struct{ solution captcha.Solution }
 
 // serveCaptcha puts challenge on a page.
-func serveCaptcha(challenge captcha.Challenge) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func serveCaptcha(challenge captcha.Challenge) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		page, err := captcha.Serve(context.Background(), challenge)
 		if err != nil {
 			return FailedMsg{err}
@@ -34,8 +34,8 @@ func serveCaptcha(challenge captcha.Challenge) tview.Cmd {
 }
 
 // openCaptcha opens url in the browser. It can block until a browser it started exits, so it runs apart from waitCaptcha.
-func openCaptcha(url string) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func openCaptcha(url string) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		if err := ui.OpenExternal(context.Background(), url); err != nil {
 			return CaptchaOpenFailedMsg{err}
 		}
@@ -44,8 +44,8 @@ func openCaptcha(url string) tview.Cmd {
 }
 
 // waitCaptcha waits for the answer to page, which closes itself after captcha.AnswerTimeout.
-func waitCaptcha(page *captcha.Page) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func waitCaptcha(page *captcha.Page) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		solution, err := page.Wait(context.Background())
 		if err != nil {
 			return FailedMsg{err}
@@ -55,15 +55,15 @@ func waitCaptcha(page *captcha.Page) tview.Cmd {
 }
 
 // closeCaptcha closes page, which ends its waitCaptcha with a failure.
-func closeCaptcha(page *captcha.Page) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func closeCaptcha(page *captcha.Page) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		page.Close()
 		return nil
 	})
 }
 
 // updateCaptcha steps the captcha of the login in flight; messages of a login that ended are dropped.
-func (m Model) updateCaptcha(msg tview.Msg) (Model, tview.Cmd) {
+func (m Model) updateCaptcha(msg tui.Msg) (Model, tui.Cmd) {
 	switch msg := msg.(type) {
 	case CaptchaMsg:
 		if !m.submitting {
@@ -71,7 +71,7 @@ func (m Model) updateCaptcha(msg tview.Msg) (Model, tview.Cmd) {
 		}
 		if m.captchaTries >= captcha.MaxTries {
 			err := fmt.Errorf("Discord did not accept the captcha after %d tries; try again later or use QR login", captcha.MaxTries)
-			return m, cmd.Task(func() tview.Msg { return FailedMsg{err} })
+			return m, cmd.Task(func() tui.Msg { return FailedMsg{err} })
 		}
 		m.captchaTries++
 		return m, serveCaptcha(msg.challenge)

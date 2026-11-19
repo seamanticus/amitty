@@ -1,13 +1,13 @@
 package messageslist
 
 import (
-	"github.com/ayn2op/tview/cmd"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"image"
 	"slices"
 	"testing"
 
-	tviewimage "github.com/ayn2op/tview/image"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
 	"github.com/seamanticus/amitty/internal/ui/emojis"
 	"github.com/seamanticus/amitty/internal/ui/images"
 )
@@ -66,7 +66,7 @@ func TestModelEmojiLine(t *testing.T) {
 		}
 	})
 	t.Run("loaded", func(t *testing.T) {
-		ml.images = map[discord.URL]tviewimage.Widget{emojis.URLFromID(5): tviewimage.New(image.NewAlpha(image.Rect(0, 0, 2, 2))).Width(2)}
+		ml.images = map[discord.URL]tuiimage.Widget{emojis.URLFromID(5): tuiimage.New(image.NewAlpha(image.Rect(0, 0, 2, 2))).Width(2)}
 		if got := ml.emojiLine("5"); len(got) != 2 {
 			t.Fatalf("line = %v, want the two cells of the emoji", got)
 		}

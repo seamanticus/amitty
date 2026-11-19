@@ -5,11 +5,11 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/ayn2op/tview"
-	tviewimage "github.com/ayn2op/tview/image"
 	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/ningen"
+	"github.com/seamanticus/amitty/internal/tui"
+	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
 )
 
 func TestAll(t *testing.T) {
@@ -25,7 +25,7 @@ func TestAll(t *testing.T) {
 }
 
 func TestLine(t *testing.T) {
-	images := map[discord.URL]tviewimage.Widget{URLFromID(1): tviewimage.New(image.NewAlpha(image.Rect(0, 0, 2, 2))).Width(2)}
+	images := map[discord.URL]tuiimage.Widget{URLFromID(1): tuiimage.New(image.NewAlpha(image.Rect(0, 0, 2, 2))).Width(2)}
 	for _, test := range []struct {
 		name  string
 		emoji discord.Emoji
@@ -35,14 +35,14 @@ func TestLine(t *testing.T) {
 		{"not loaded", discord.Emoji{ID: 2, Name: "dog"}, 1},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			got := Line(test.emoji, test.emoji.Name, tview.Style{}, images)
+			got := Line(test.emoji, test.emoji.Name, tui.Style{}, images)
 			if len(got) != test.want || got[len(got)-1].Text != test.emoji.Name {
 				t.Errorf("Line = %v, want %d spans ending with the name", got, test.want)
 			}
 		})
 	}
 	t.Run("unicode", func(t *testing.T) {
-		if got := Line(discord.Emoji{Name: "👍"}, "thumbsup", tview.Style{}, nil); len(got) != 1 || got[0].Text != "👍 thumbsup" {
+		if got := Line(discord.Emoji{Name: "👍"}, "thumbsup", tui.Style{}, nil); len(got) != 1 || got[0].Text != "👍 thumbsup" {
 			t.Errorf("Line = %v, want the emoji before its name", got)
 		}
 	})

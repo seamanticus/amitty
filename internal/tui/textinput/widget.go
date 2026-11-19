@@ -1,0 +1,193 @@
+// Package textinput provides a single-line text input.
+package textinput
+
+import (
+	"strings"
+
+	"github.com/seamanticus/amitty/internal/tui/layout"
+
+	"github.com/gdamore/tcell/v3"
+	"github.com/rockorager/go-uucode"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/internal/grapheme"
+)
+
+// Widget draws a text with a cursor in it and turns typing into the text and cursor it leaves.
+type Widget struct {
+	text string
+	// cursor is the byte offset of the cursor in text, always at a grapheme boundary.
+	cursor int
+
+	width layout.Length
+	style tui.Style
+	mask  string
+
+	keybind func(tui.KeyMsg) Action
+	focused bool
+
+	onInput  func(text string, cursor int) tui.Msg
+	onSubmit tui.Msg
+}
+
+var _ tui.Widget = Widget{}
+
+// New returns a one-line text input showing text, with the cursor at the byte offset cursor in it, that fills its parent's width. The model owns both.
+func New(text string, cursor int) Widget {
+	return Widget{
+		text:    text,
+		cursor:  min(max(cursor, 0), len(text)),
+		width:   layout.Fill,
+		keybind: DefaultKeybind,
+	}
+}
+
+// Width sets the width of the text input.
+func (w Widget) Width(width layout.Length) Widget {
+	w.width = width
+	return w
+}
+
+// Style sets the style of the text input.
+func (w Widget) Style(style tui.Style) Widget {
+	w.style = style
+	return w
+}
+
+// Mask sets the text drawn for each character of the value instead, such as "*" for passwords. An empty mask shows the value.
+func (w Widget) Mask(mask string) Widget {
+	w.mask = mask
+	return w
+}
+
+// Keybind sets the function that turns keys into Actions, or ActionNone for keys it does not bind, DefaultKeybind unless set.
+func (w Widget) Keybind(f func(tui.KeyMsg) Action) Widget {
+	w.keybind = f
+	return w
+}
+
+// OnInput turns typing and moving the cursor into the message f returns for the text and cursor they leave.
+func (w Widget) OnInput(f func(text string, cursor int) tui.Msg) Widget {
+	w.onInput = f
+	return w
+}
+
+// OnSubmit sets the message returned for Enter.
+func (w Widget) OnSubmit(msg tui.Msg) Widget {
+	w.onSubmit = msg
+	return w
+}
+
+// Focused sets whether the text input receives keys and paste and shows the cursor.
+func (w Widget) Focused(focused bool) Widget {
+	w.focused = focused
+	return w
+}
+
+// Size returns the width and a height of one line.
+func (w Widget) Size() (width, height layout.Length) {
+	return w.width, layout.Fixed(1)
+}
+
+// Layout returns the size of the text input within limits.
+func (w Widget) Layout(limits layout.Limits) layout.Size {
+	width, height := w.Size()
+	return layout.Atomic(limits, width, height)
+}
+
+// shown returns text as it is drawn, masked if a mask is set.
+func (w Widget) shown(text string) string {
+	if w.mask == "" {
+		return text
+	}
+	count := 0
+	clusters := uucode.NewGraphemeIterator(text)
+	for _, ok := clusters.Next(); ok; _, ok = clusters.Next() {
+		count++
+	}
+	return strings.Repeat(w.mask, count)
+}
+
+// skip returns text without the clusters in its first n cells.
+func skip(text string, n int) string {
+	start := 0
+	clusters := uucode.NewGraphemeWidthIterator(text)
+	for n > 0 {
+		cluster, ok := clusters.Next()
+		if !ok {
+			break
+		}
+		start, n = cluster.End, n-cluster.Width
+	}
+	return text[start:]
+}
+
+// scroll returns how many cells are scrolled off the left edge to keep the cursor visible in width cells.
+func (w Widget) scroll(width int) int {
+	return max(uucode.StringWidth(w.shown(w.text[:w.cursor]))-width+1, 0)
+}
+
+// Draw fills the first row of area with the style and draws the value, showing the cursor while focused.
+func (w Widget) Draw(screen tui.Screen, area tui.Rectangle) {
+	if area.Width <= 0 || area.Height <= 0 {
+		return
+	}
+	for x := area.X; x < area.X+area.Width; x++ {
+		screen.Put(x, area.Y, " ", w.style)
+	}
+	offset := w.scroll(area.Width)
+	tui.Print(screen, skip(w.shown(w.text), offset), area.X, area.Y, area.Width, tui.HorizontalAlignmentLeft, w.style)
+	if w.focused {
+		screen.ShowCursor(area.X+uucode.StringWidth(w.shown(w.text[:w.cursor]))-offset, area.Y)
+	}
+}
+
+// Handle turns editing keys and paste into the OnInput message while focused, and ActionSubmit into the OnSubmit message. Other messages pass through unchanged.
+func (w Widget) Handle(msg tui.Msg, area tui.Rectangle) tui.Msg {
+	if !w.focused || w.onInput == nil {
+		return msg
+	}
+	value, cursor := w.text, w.cursor
+	switch m := msg.(type) {
+	case tui.KeyMsg:
+		action := w.keybind(m)
+		switch {
+		case action == ActionSubmit:
+			if w.onSubmit == nil {
+				return msg
+			}
+			return w.onSubmit
+		case action != ActionNone:
+			value, cursor = edit(action, value, cursor)
+		case m.Key() == tcell.KeyRune && m.Modifiers()&^tcell.ModShift == 0:
+			value, cursor = value[:cursor]+m.Str()+value[cursor:], cursor+len(m.Str())
+		default:
+			return msg
+		}
+	case tui.PasteMsg:
+		text := strings.NewReplacer("\r\n", " ", "\n", " ", "\r", " ").Replace(string(m))
+		value, cursor = value[:cursor]+text+value[cursor:], cursor+len(text)
+	default:
+		return msg
+	}
+	return w.onInput(value, cursor)
+}
+
+// edit applies action to value and cursor.
+func edit(action Action, value string, cursor int) (string, int) {
+	switch action {
+	case ActionBackspace:
+		start := grapheme.Previous(value, cursor)
+		return value[:start] + value[cursor:], start
+	case ActionDelete:
+		return value[:cursor] + value[grapheme.Next(value, cursor):], cursor
+	case ActionLeft:
+		return value, grapheme.Previous(value, cursor)
+	case ActionRight:
+		return value, grapheme.Next(value, cursor)
+	case ActionHome:
+		return value, 0
+	case ActionEnd:
+		return value, len(value)
+	}
+	return value, cursor
+}

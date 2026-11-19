@@ -1,11 +1,11 @@
 package composer
 
 import (
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/help"
-	"github.com/ayn2op/tview/keybind"
-	"github.com/ayn2op/tview/textarea"
 	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/help"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
+	"github.com/seamanticus/amitty/internal/tui/textarea"
 )
 
 var _ help.KeyMap = Model{}
@@ -65,7 +65,7 @@ func (m Model) FullHelp() [][]keybind.Keybind {
 }
 
 // keybind binds the configured newline and editing keys and textarea's other default keys, leaving the composer's own keys and the global ones to Update.
-func (m Model) keybind(key tview.KeyMsg) textarea.Action {
+func (m Model) keybind(key tui.KeyMsg) textarea.Action {
 	if m.isBound(key) || keybind.Matches(key, m.cfg.Keybinds.Global()...) {
 		return textarea.ActionNone
 	}
@@ -82,7 +82,7 @@ func (m Model) keybind(key tview.KeyMsg) textarea.Action {
 }
 
 // editAction returns the action of the editing keybind key matches, or ActionNone.
-func (m Model) editAction(key tview.KeyMsg) textarea.Action {
+func (m Model) editAction(key tui.KeyMsg) textarea.Action {
 	keybinds := m.cfg.Keybinds.Composer
 	for _, bind := range []struct {
 		keybind config.Keybind

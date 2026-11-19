@@ -2,16 +2,16 @@
 package autocomplete
 
 import (
-	"github.com/ayn2op/tview"
-	tviewimage "github.com/ayn2op/tview/image"
-	"github.com/ayn2op/tview/layout"
-	"github.com/ayn2op/tview/list"
-	"github.com/ayn2op/tview/scrollbar"
-	"github.com/ayn2op/tview/text"
-	"github.com/ayn2op/tview/viewport"
 	"github.com/rockorager/go-uucode"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/tui"
+	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
+	"github.com/seamanticus/amitty/internal/tui/layout"
+	"github.com/seamanticus/amitty/internal/tui/list"
+	"github.com/seamanticus/amitty/internal/tui/scrollbar"
+	"github.com/seamanticus/amitty/internal/tui/text"
+	"github.com/seamanticus/amitty/internal/tui/viewport"
 	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/amitty/internal/ui/images"
 )
@@ -22,7 +22,7 @@ type Model struct {
 	title string
 	items []Item
 	// images are the chat model's, which loads them, by URL.
-	images      map[discord.URL]tviewimage.Widget
+	images      map[discord.URL]tuiimage.Widget
 	cursor      int
 	scrollState viewport.ScrollState
 }
@@ -45,18 +45,18 @@ func (m Model) Selected() (Item, bool) {
 }
 
 func (m Model) listView() viewport.Widget {
-	l := list.New(m.cursor, len(m.items), func(i int) tview.Widget {
+	l := list.New(m.cursor, len(m.items), func(i int) tui.Widget {
 		return text.Rich(m.items[i].Line(m.images)...).Wrapping(text.WrappingNone)
 	}).
 		SelectedStyle(m.cfg.Theme.Autocomplete.SelectedStyle.Style).
 		Keybind(ui.SelectionKeybind(m.cfg.Keybinds.Autocomplete.SelectionKeybinds)).
 		// Shown only while completing, so it takes keys first.
 		Focused(true).
-		OnChange(func(cursor int) tview.Msg { return listMsg(cursor) })
+		OnChange(func(cursor int) tui.Msg { return listMsg(cursor) })
 	return viewport.New(l, m.scrollState).
 		Target(l.Target(m.cursor)).
 		ScrollBar(scrollbar.New(), viewport.ScrollBarVisibilityAutomatic).
-		OnChange(func(s *viewport.ScrollState) tview.Msg { return scrollMsg(*s) })
+		OnChange(func(s *viewport.ScrollState) tui.Msg { return scrollMsg(*s) })
 }
 
 func (m Model) maxDisplayWidth() int {
@@ -71,11 +71,11 @@ func (m Model) maxDisplayWidth() int {
 	return width
 }
 
-var _ tview.Model[Model] = Model{}
+var _ tui.Model[Model] = Model{}
 
-func (m Model) Init() tview.Cmd { return nil }
+func (m Model) Init() tui.Cmd { return nil }
 
-func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
+func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	switch msg := msg.(type) {
 	case SetItemsMsg:
 		m.title, m.items, m.cursor = msg.Title, msg.Items, 0
@@ -92,7 +92,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 }
 
 // View joins the box's bottom corners to the composer's border.
-func (m Model) View() tview.Widget {
+func (m Model) View() tui.Widget {
 	set := m.cfg.UI.Border.NormalSet.BorderSet
 	set.BottomLeft, set.BottomRight = set.BottomT, set.BottomT
 	cfg := m.cfg.UI.Autocomplete

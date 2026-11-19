@@ -1,0 +1,146 @@
+package flex
+
+import (
+	"github.com/seamanticus/amitty/internal/tui/layout"
+	"slices"
+	"testing"
+
+	"github.com/gdamore/tcell/v3"
+	"github.com/seamanticus/amitty/internal/tui"
+)
+
+// sized is a widget with a fixed width and height that records the area it handles a message in.
+type sized struct {
+	width, height layout.Length
+	area          *tui.Rectangle
+}
+
+func (s sized) Size() (width, height layout.Length) { return s.width, s.height }
+
+func (sized) Draw(tui.Screen, tui.Rectangle) {}
+
+func (s sized) Handle(msg tui.Msg, area tui.Rectangle) tui.Msg {
+	if s.area != nil {
+		*s.area = area
+	}
+	if key, ok := msg.(tui.KeyMsg); ok && key.Key() == tcell.KeyEscape {
+		return nil
+	}
+	return msg
+}
+
+func wide(width layout.Length) tui.Widget  { return sized{width: width, height: layout.Fill} }
+func tall(height layout.Length) tui.Widget { return sized{width: layout.Fill, height: height} }
+
+func TestWidgetAreas(t *testing.T) {
+	area := tui.Rectangle{X: 1, Y: 2, Width: 10, Height: 4}
+	for _, tt := range []struct {
+		name   string
+		layout Widget
+		want   []tui.Rectangle
+	}{
+		{"row portions", New(true, wide(layout.Fill), wide(layout.FillPortion(2)), wide(layout.Fill)), []tui.Rectangle{
+			{X: 1, Y: 2, Width: 2, Height: 4},
+			{X: 3, Y: 2, Width: 5, Height: 4},
+			{X: 8, Y: 2, Width: 3, Height: 4},
+		}},
+		{"row fixed", New(true, wide(layout.Fixed(3)), wide(layout.Fill)), []tui.Rectangle{
+			{X: 1, Y: 2, Width: 3, Height: 4},
+			{X: 4, Y: 2, Width: 7, Height: 4},
+		}},
+		{"row spacing", New(true, wide(layout.Fill), wide(layout.Fill)).Spacing(2), []tui.Rectangle{
+			{X: 1, Y: 2, Width: 4, Height: 4},
+			{X: 7, Y: 2, Width: 4, Height: 4},
+		}},
+		{"row maximum", New(true, wide(layout.Fill.Max(2)), wide(layout.Fill)), []tui.Rectangle{
+			{X: 1, Y: 2, Width: 2, Height: 4},
+			{X: 3, Y: 2, Width: 8, Height: 4},
+		}},
+		{"column overflow", New(false, tall(layout.Fixed(3)), tall(layout.Fixed(3)), tall(layout.Fill)), []tui.Rectangle{
+			{X: 1, Y: 2, Width: 10, Height: 3},
+			{X: 1, Y: 5, Width: 10, Height: 1},
+			{X: 1, Y: 6, Width: 10, Height: 0},
+		}},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.layout.areas(area); !slices.Equal(got, tt.want) {
+				t.Fatalf("got %+v, want %+v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestWidgetHandle(t *testing.T) {
+	var left, right tui.Rectangle
+	l := New(true,
+		sized{width: layout.Fill, height: layout.Fill, area: &left},
+		sized{width: layout.Fill, height: layout.Fill, area: &right},
+	)
+	area := tui.Rectangle{Width: 10, Height: 1}
+	t.Run("child areas", func(t *testing.T) {
+		enter := tcell.NewEventKey(tcell.KeyEnter, "", tcell.ModNone)
+		if got := l.Handle(enter, area); got != enter {
+			t.Fatalf("got %v", got)
+		}
+		if left != (tui.Rectangle{Width: 5, Height: 1}) || right != (tui.Rectangle{X: 5, Width: 5, Height: 1}) {
+			t.Fatalf("left=%+v, right=%+v", left, right)
+		}
+	})
+	t.Run("stops when dropped", func(t *testing.T) {
+		right = tui.Rectangle{}
+		if got := l.Handle(tcell.NewEventKey(tcell.KeyEscape, "", tcell.ModNone), area); got != nil {
+			t.Fatalf("got %v", got)
+		}
+		if right != (tui.Rectangle{}) {
+			t.Fatal("message reached the child after the one that dropped it")
+		}
+	})
+}
+
+func (s sized) Layout(limits layout.Limits) layout.Size {
+	return layout.Atomic(limits, s.width, s.height)
+}
+
+// wrapped is as tall as 12 cells of text wrapped to its width.
+type wrapped struct{ sized }
+
+func (wrapped) Size() (width, height layout.Length) { return layout.Fill, layout.Shrink }
+
+func (wrapped) Layout(limits layout.Limits) layout.Size {
+	return layout.Sized(limits, layout.Fill, layout.Shrink, func(limits layout.Limits) layout.Size {
+		return layout.Size{Height: (12 + limits.Max.Width - 1) / max(limits.Max.Width, 1)}
+	})
+}
+
+func TestWidgetLayout(t *testing.T) {
+	fixed := New(true,
+		sized{width: layout.Fixed(2), height: layout.Fixed(1)},
+		sized{width: layout.Fixed(3), height: layout.Fixed(2)},
+	).Width(layout.Shrink).Height(layout.Shrink).Spacing(1)
+	t.Run("fixed", func(t *testing.T) {
+		if got := fixed.Layout(layout.Limits{Max: layout.Size{Width: 10, Height: 10}}); got != (layout.Size{Width: 6, Height: 2}) {
+			t.Fatalf("got %+v", got)
+		}
+	})
+
+	limits := layout.Limits{Max: layout.Size{Width: 7}, Infinite: layout.Axes{Height: true}}
+	row := New(true, sized{width: layout.Fixed(2), height: layout.Fixed(2)}, wrapped{}).Spacing(1).Height(layout.Shrink)
+	t.Run("row", func(t *testing.T) {
+		if got := row.Layout(limits); got != (layout.Size{Width: 7, Height: 3}) {
+			t.Fatalf("got %+v", got)
+		}
+	})
+
+	column := New(false, tall(layout.Fixed(1)), row).Height(layout.Shrink)
+	t.Run("column", func(t *testing.T) {
+		if got := column.Layout(limits); got != (layout.Size{Width: 7, Height: 4}) {
+			t.Fatalf("got %+v", got)
+		}
+	})
+	t.Run("areas", func(t *testing.T) {
+		want := []tui.Rectangle{{Width: 7, Height: 1}, {Y: 1, Width: 7, Height: 3}}
+		if got := column.areas(tui.Rectangle{Width: 7, Height: 4}); !slices.Equal(got, want) {
+			t.Fatalf("got %+v", got)
+		}
+	})
+}

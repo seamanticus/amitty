@@ -17,14 +17,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
 	"github.com/gorilla/websocket"
 	"github.com/seamanticus/amitty/internal/captcha"
 	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	"github.com/seamanticus/amitty/internal/gateway"
 	"github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/skip2/go-qrcode"
 )
 
@@ -56,8 +56,8 @@ type connCreateMsg struct {
 type connCloseMsg struct{ conn *gatewayConn }
 
 // connect opens the Remote Auth Gateway through network with the handshake of the web client's login page, which carries no API headers.
-func connect(network http.Network) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func connect(network http.Network) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		dialer := gateway.NewDialer(network)
 		conn, _, err := dialer.Dial(remoteAuthGatewayURL, gateway.HandshakeHeaders())
 		if err != nil {
@@ -67,8 +67,8 @@ func connect(network http.Network) tview.Cmd {
 	})
 }
 
-func closeConn(conn *gatewayConn) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func closeConn(conn *gatewayConn) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		if conn == nil {
 			return connCloseMsg{conn}
 		}
@@ -111,8 +111,8 @@ type expiredMsg struct{}
 // ignoredMsg is a gateway message the login does not act on, such as heartbeat_ack.
 type ignoredMsg struct{}
 
-func listen(conn *gatewayConn) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func listen(conn *gatewayConn) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		if conn == nil {
 			return nil
 		}
@@ -134,7 +134,7 @@ func listen(conn *gatewayConn) tview.Cmd {
 }
 
 // closedMsg is the message for a gateway close code: expiry for 4003, else an error naming the cause.
-func closedMsg(code int) tview.Msg {
+func closedMsg(code int) tui.Msg {
 	var cause string
 	switch code {
 	case 4003:
@@ -151,7 +151,7 @@ func closedMsg(code int) tview.Msg {
 	return fmt.Errorf("remote auth gateway: %s (close %d)", cause, code)
 }
 
-func decodeMessage(data []byte) tview.Msg {
+func decodeMessage(data []byte) tui.Msg {
 	var payload struct {
 		Op                   string `json:"op"`
 		HeartbeatInterval    int    `json:"heartbeat_interval"`
@@ -186,8 +186,8 @@ func decodeMessage(data []byte) tview.Msg {
 // heartbeatTickMsg is due on conn; the model drops it once conn is no longer current.
 type heartbeatTickMsg struct{ conn *gatewayConn }
 
-func scheduleHeartbeat(conn *gatewayConn, interval time.Duration) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func scheduleHeartbeat(conn *gatewayConn, interval time.Duration) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		time.Sleep(interval)
 		return heartbeatTickMsg{conn}
 	})
@@ -196,15 +196,15 @@ func scheduleHeartbeat(conn *gatewayConn, interval time.Duration) tview.Cmd {
 // expiryTickMsg counts down one second of the time left on conn's code.
 type expiryTickMsg struct{ conn *gatewayConn }
 
-func tickExpiry(conn *gatewayConn) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func tickExpiry(conn *gatewayConn) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		time.Sleep(time.Second)
 		return expiryTickMsg{conn}
 	})
 }
 
-func sendHeartbeat(conn *gatewayConn) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func sendHeartbeat(conn *gatewayConn) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		if conn == nil {
 			return nil
 		}
@@ -222,8 +222,8 @@ type privateKeyMsg struct {
 	privateKey *rsa.PrivateKey
 }
 
-func generatePrivateKey() tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func generatePrivateKey() tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 		if err != nil {
 			return err
@@ -232,8 +232,8 @@ func generatePrivateKey() tview.Cmd {
 	})
 }
 
-func sendInit(conn *gatewayConn, privateKey *rsa.PrivateKey) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func sendInit(conn *gatewayConn, privateKey *rsa.PrivateKey) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		if privateKey == nil {
 			return errors.New("missing private key")
 		}
@@ -266,8 +266,8 @@ func ownsFingerprint(key *rsa.PrivateKey, fingerprint string) bool {
 	return base64.RawURLEncoding.EncodeToString(sum[:]) == fingerprint
 }
 
-func sendNonceProof(conn *gatewayConn, privateKey *rsa.PrivateKey, encryptedNonce string) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func sendNonceProof(conn *gatewayConn, privateKey *rsa.PrivateKey, encryptedNonce string) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		decodedNonce, err := base64.StdEncoding.DecodeString(encryptedNonce)
 		if err != nil {
 			return err
@@ -294,8 +294,8 @@ type qrCodeMsg struct {
 	qrCode image.Image
 }
 
-func generateQRCode(fingerprint string) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func generateQRCode(fingerprint string) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		content := "https://discord.com/ra/" + fingerprint
 		qrCode, err := qrcode.New(content, qrcode.Low)
 		if err != nil {
@@ -311,8 +311,8 @@ type userMsg struct {
 	username      string
 }
 
-func decryptUserPayload(privateKey *rsa.PrivateKey, encryptedPayload string) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func decryptUserPayload(privateKey *rsa.PrivateKey, encryptedPayload string) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		decodedPayload, err := base64.StdEncoding.DecodeString(encryptedPayload)
 		if err != nil {
 			return err
@@ -340,8 +340,8 @@ type retryMsg struct {
 }
 
 // exchangeTicket redeems ticket once, with the captcha solution if set. A first attempt whose connection failed starts the countdown to a retry; a final one fails.
-func exchangeTicket(build http.Build, network http.Network, fingerprint string, solution captcha.Solution, privateKey *rsa.PrivateKey, ticket string, final bool) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func exchangeTicket(build http.Build, network http.Network, fingerprint string, solution captcha.Solution, privateKey *rsa.PrivateKey, ticket string, final bool) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), http.AuthTimeout)
 		defer cancel()
 		client := ticketClient(http.NewClient(network, ""), build, fingerprint)
@@ -351,7 +351,7 @@ func exchangeTicket(build http.Build, network http.Network, fingerprint string, 
 }
 
 // retryOr returns msg, or the countdown to a retry when msg is the failure of a first exchange of ticket whose connection failed.
-func retryOr(msg tview.Msg, ticket string, final bool) tview.Msg {
+func retryOr(msg tui.Msg, ticket string, final bool) tui.Msg {
 	if err, ok := msg.(error); ok && !final && http.Retryable(err) {
 		return retryMsg{ticket: ticket, left: http.RetryDelay, err: err}
 	}
@@ -359,8 +359,8 @@ func retryOr(msg tview.Msg, ticket string, final bool) tview.Msg {
 }
 
 // tickRetry sends the countdown one second later.
-func tickRetry(msg retryMsg) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func tickRetry(msg retryMsg) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		time.Sleep(time.Second)
 		return retryMsg{ticket: msg.ticket, left: msg.left - 1, err: msg.err}
 	})
@@ -380,7 +380,7 @@ func ticketClient(client *api.Client, build http.Build, fingerprint string) *api
 }
 
 // redeemTicket exchanges ticket for the token encrypted to privateKey and returns a TokenMsg, a captchaMsg or an error.
-func redeemTicket(ctx context.Context, client *api.Client, privateKey *rsa.PrivateKey, ticket string) tview.Msg {
+func redeemTicket(ctx context.Context, client *api.Client, privateKey *rsa.PrivateKey, ticket string) tui.Msg {
 	encryptedToken, err := client.WithContext(ctx).ExchangeRemoteAuthTicket(ticket)
 	if challenge, ok := captcha.FromError(err); ok {
 		return captchaMsg{ticket: ticket, challenge: challenge}

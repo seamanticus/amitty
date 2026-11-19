@@ -1,16 +1,16 @@
 package token
 
 import (
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/button"
-	"github.com/ayn2op/tview/column"
-	"github.com/ayn2op/tview/help"
-	"github.com/ayn2op/tview/keybind"
-	"github.com/ayn2op/tview/layout"
-	"github.com/ayn2op/tview/row"
-	"github.com/ayn2op/tview/text"
-	"github.com/ayn2op/tview/textinput"
 	"github.com/gdamore/tcell/v3"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/button"
+	"github.com/seamanticus/amitty/internal/tui/column"
+	"github.com/seamanticus/amitty/internal/tui/help"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
+	"github.com/seamanticus/amitty/internal/tui/layout"
+	"github.com/seamanticus/amitty/internal/tui/row"
+	"github.com/seamanticus/amitty/internal/tui/text"
+	"github.com/seamanticus/amitty/internal/tui/textinput"
 	"github.com/seamanticus/amitty/internal/ui/login/keys"
 )
 
@@ -29,7 +29,7 @@ func (Model) Label() string {
 	return "Token"
 }
 
-var _ tview.Model[Model] = Model{}
+var _ tui.Model[Model] = Model{}
 
 var _ help.KeyMap = Model{}
 
@@ -39,9 +39,9 @@ func (Model) ShortHelp() []keybind.Keybind {
 
 func (m Model) FullHelp() [][]keybind.Keybind { return [][]keybind.Keybind{m.ShortHelp()} }
 
-func (Model) Init() tview.Cmd { return nil }
+func (Model) Init() tui.Cmd { return nil }
 
-func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
+func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	switch msg := msg.(type) {
 	case tokenMsg:
 		m.token, m.cursor = msg.text, msg.cursor
@@ -49,7 +49,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 		m.buttonFocused = true
 	case hoverMsg:
 		m.buttonHovered = bool(msg)
-	case tview.KeyMsg:
+	case tui.KeyMsg:
 		if keybind.Matches(msg, keys.FocusNext(), keys.FocusPrevious()) {
 			m.buttonFocused = !m.buttonFocused
 		}
@@ -62,11 +62,11 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 	return m, nil
 }
 
-func (m Model) View() tview.Widget {
+func (m Model) View() tui.Widget {
 	input := textinput.New(m.token, m.cursor).
 		Mask("*").
 		Focused(!m.buttonFocused).
-		OnInput(func(text string, cursor int) tview.Msg { return tokenMsg{text, cursor} }).
+		OnInput(func(text string, cursor int) tui.Msg { return tokenMsg{text, cursor} }).
 		OnSubmit(focusButtonMsg{})
 	buttonStyle := tcell.StyleDefault
 	switch {
@@ -80,10 +80,10 @@ func (m Model) View() tview.Widget {
 		Width(layout.Fixed(len("Login") + 4)).
 		Focused(m.buttonFocused).
 		Hovered(m.buttonHovered).
-		OnHover(func(hovered bool) tview.Msg { return hoverMsg(hovered) }).
+		OnHover(func(hovered bool) tui.Msg { return hoverMsg(hovered) }).
 		OnClick(submitMsg{})
 	return column.New(
 		row.New(text.New("Token").Width(layout.Fixed(len("Token")+1)), input).Height(layout.Shrink),
 		submit,
-	).Spacing(1).AlignX(tview.HorizontalAlignmentCenter)
+	).Spacing(1).AlignX(tui.HorizontalAlignmentCenter)
 }

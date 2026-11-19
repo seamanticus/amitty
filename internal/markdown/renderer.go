@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/text"
 	"github.com/seamanticus/amitty/internal/config"
 	md "github.com/seamanticus/amitty/internal/dmwire/markdown"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/yuin/goldmark/v2/ast"
 )
 
@@ -23,8 +23,8 @@ func NewRenderer(cfg *config.Config) *Renderer {
 }
 
 // RenderText returns the spans of the markdown node. emoji returns the image of the custom emoji with an ID as a line of spans, or nil if it has none.
-func (r *Renderer) RenderText(source []byte, node ast.Node, base tview.Style, emoji func(id string) []text.Span) []text.Span {
-	walker := &walker{renderer: r, source: source, emoji: emoji, builder: new(Builder), styles: []tview.Style{base}}
+func (r *Renderer) RenderText(source []byte, node ast.Node, base tui.Style, emoji func(id string) []text.Span) []text.Span {
+	walker := &walker{renderer: r, source: source, emoji: emoji, builder: new(Builder), styles: []tui.Style{base}}
 	_ = ast.Walk(node, walker.walk)
 	return walker.builder.Finish()
 }
@@ -36,7 +36,7 @@ type walker struct {
 	emoji    func(id string) []text.Span
 
 	builder   *Builder
-	styles    []tview.Style
+	styles    []tui.Style
 	linkDepth int
 	listDepth int
 }
@@ -69,11 +69,11 @@ func (w *walker) enter(node ast.Node) ast.WalkStatus {
 		w.renderer.renderCodeBlock(w.builder, w.source, node, w.style())
 	case *ast.AutoLink:
 		url := string(node.Destination.Bytes(w.source))
-		w.builder.Write(url, tview.MergeStyle(w.style(), theme.URLStyle.Style).Url(url))
+		w.builder.Write(url, tui.MergeStyle(w.style(), theme.URLStyle.Style).Url(url))
 	case *ast.Link:
 		url := string(node.Destination.Bytes(w.source))
 		w.linkDepth++
-		w.pushStyle(tview.MergeStyle(w.style(), theme.URLStyle.Style).Url(url))
+		w.pushStyle(tui.MergeStyle(w.style(), theme.URLStyle.Style).Url(url))
 	case *ast.List:
 		w.builder.NewLine()
 		w.listDepth++
@@ -87,7 +87,7 @@ func (w *walker) enter(node ast.Node) ast.WalkStatus {
 
 		w.pushStyle(applyInlineAttr(w.style(), node.Attr, w.linkDepth > 0))
 	case *md.Mention:
-		w.builder.Write(mentionText(node), tview.MergeStyle(w.style(), theme.MentionStyle.Style))
+		w.builder.Write(mentionText(node), tui.MergeStyle(w.style(), theme.MentionStyle.Style))
 	case *md.Emoji:
 		w.writeEmoji(node)
 	case *md.Timestamp:
@@ -129,14 +129,14 @@ func (w *walker) writeEmoji(node *md.Emoji) {
 		w.builder.Write(" ", w.style())
 	}
 
-	w.builder.Write(emojis.Name(node.Name), tview.MergeStyle(w.style(), w.renderer.cfg.Theme.MessagesList.EmojiStyle.Style))
+	w.builder.Write(emojis.Name(node.Name), tui.MergeStyle(w.style(), w.renderer.cfg.Theme.MessagesList.EmojiStyle.Style))
 }
 
-func (w *walker) style() tview.Style {
+func (w *walker) style() tui.Style {
 	return w.styles[len(w.styles)-1]
 }
 
-func (w *walker) pushStyle(style tview.Style) {
+func (w *walker) pushStyle(style tui.Style) {
 	w.styles = append(w.styles, style)
 }
 
@@ -146,7 +146,7 @@ func (w *walker) popStyle() {
 	}
 }
 
-func (r *Renderer) renderCodeBlock(builder *Builder, source []byte, node *ast.CodeBlock, base tview.Style) {
+func (r *Renderer) renderCodeBlock(builder *Builder, source []byte, node *ast.CodeBlock, base tui.Style) {
 	var code strings.Builder
 	for _, line := range node.Value.Segments() {
 		code.Write(line.Bytes(source))
@@ -157,7 +157,7 @@ func (r *Renderer) renderCodeBlock(builder *Builder, source []byte, node *ast.Co
 }
 
 // writeCode writes code in style, starting each line after the first with the code block indent in base.
-func writeCode(builder *Builder, code string, style, base tview.Style) {
+func writeCode(builder *Builder, code string, style, base tui.Style) {
 	for index, line := range strings.Split(code, "\n") {
 		if index > 0 {
 			builder.NewLine()
@@ -206,7 +206,7 @@ func mentionText(node *md.Mention) string {
 	}
 }
 
-func applyInlineAttr(style tview.Style, attr md.Attribute, inLink bool) tview.Style {
+func applyInlineAttr(style tui.Style, attr md.Attribute, inLink bool) tui.Style {
 	if attr&md.AttrBold != 0 {
 		style = style.Bold(true)
 	}

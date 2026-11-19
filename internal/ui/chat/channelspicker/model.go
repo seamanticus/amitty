@@ -3,12 +3,12 @@ package channelspicker
 import (
 	"log/slog"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/picker"
-	"github.com/ayn2op/tview/text"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/ningen"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/picker"
+	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/seamanticus/amitty/internal/ui"
 	uipicker "github.com/seamanticus/amitty/internal/ui/picker"
 )
@@ -65,17 +65,17 @@ func (m Model) channelItem(state *ningen.State, guild *discord.Guild, channel di
 	return picker.Item{Content: text.New(name), FilterText: name, Reference: channel.ID}
 }
 
-var _ tview.Model[Model] = Model{}
+var _ tui.Model[Model] = Model{}
 
-func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
-	var cmd tview.Cmd
+func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
+	var cmd tui.Cmd
 	m.Model, cmd = m.Model.Update(msg)
 	return m, cmd
 }
 
 // View shows the picker in a box titled Channels.
-func (m Model) View() tview.Widget {
-	return m.Model.View(func(item picker.Item) tview.Msg {
+func (m Model) View() tui.Widget {
+	return m.Model.View(func(item picker.Item) tui.Msg {
 		channelID, ok := item.Reference.(discord.ChannelID)
 		if !ok || !channelID.IsValid() {
 			return nil

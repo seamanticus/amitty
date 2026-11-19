@@ -7,13 +7,13 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
-	"github.com/ayn2op/tview/column"
-	"github.com/ayn2op/tview/keybind"
-	"github.com/ayn2op/tview/text"
-	"github.com/ayn2op/tview/textinput"
 	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
+	"github.com/seamanticus/amitty/internal/tui/column"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
+	"github.com/seamanticus/amitty/internal/tui/text"
+	"github.com/seamanticus/amitty/internal/tui/textinput"
 	"github.com/seamanticus/amitty/internal/ui"
 )
 
@@ -21,12 +21,12 @@ import (
 type ShowMsg struct {
 	Title  string
 	Path   string
-	Submit func(path string) tview.Cmd
+	Submit func(path string) tui.Cmd
 }
 
 // SubmittedMsg reports that a path was entered; Cmd acts on it.
 type SubmittedMsg struct {
-	Cmd tview.Cmd
+	Cmd tui.Cmd
 }
 
 // CancelMsg reports that the prompt was dismissed.
@@ -61,16 +61,16 @@ type Model struct {
 }
 
 // New returns the prompt asked for by show and the command that lists the directory typed in it.
-func New(cfg *config.Config, show ShowMsg) (Model, tview.Cmd) {
+func New(cfg *config.Config, show ShowMsg) (Model, tui.Cmd) {
 	m := Model{cfg: cfg, show: show, text: show.Path, cursor: len(show.Path)}
 	return m, m.relist()
 }
 
-var _ tview.Model[Model] = Model{}
+var _ tui.Model[Model] = Model{}
 
-func (Model) Init() tview.Cmd { return nil }
+func (Model) Init() tui.Cmd { return nil }
 
-func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
+func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	switch msg := msg.(type) {
 	case inputMsg:
 		m.text, m.cursor = msg.text, msg.cursor
@@ -86,8 +86,8 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 			return m, nil
 		}
 		submit := m.show.Submit
-		return m, cmd.Task(func() tview.Msg { return SubmittedMsg{Cmd: submit(path)} })
-	case tview.KeyMsg:
+		return m, cmd.Task(func() tui.Msg { return SubmittedMsg{Cmd: submit(path)} })
+	case tui.KeyMsg:
 		keybinds := m.cfg.Keybinds.PathPrompt
 		switch {
 		case keybind.Matches(msg, keybinds.Complete.Keybind):
@@ -95,29 +95,29 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 			m.cursor = len(m.text)
 			return m, m.relist()
 		case keybind.Matches(msg, keybinds.Cancel.Keybind):
-			return m, cmd.Task(func() tview.Msg { return CancelMsg{} })
+			return m, cmd.Task(func() tui.Msg { return CancelMsg{} })
 		}
 	}
 	return m, nil
 }
 
 // relist lists the directory typed when it is not the one listed.
-func (m *Model) relist() tview.Cmd {
+func (m *Model) relist() tui.Cmd {
 	dir, _ := split(m.text)
 	if m.requested && dir == m.dir {
 		return nil
 	}
 	m.dir, m.requested, m.names = dir, true, nil
-	return cmd.Task(func() tview.Msg { return listedMsg{dir: dir, names: list(dir)} })
+	return cmd.Task(func() tui.Msg { return listedMsg{dir: dir, names: list(dir)} })
 }
 
 // View shows the input in a box titled as asked, over the entries that complete it.
-func (m Model) View() tview.Widget {
+func (m Model) View() tui.Widget {
 	cfg := m.cfg
 	input := textinput.New(m.text, m.cursor).
 		Focused(true).
 		Keybind(inputKeybind(cfg.Keybinds.PathPrompt.Submit.Keybind)).
-		OnInput(func(text string, cursor int) tview.Msg { return inputMsg{text, cursor} }).
+		OnInput(func(text string, cursor int) tui.Msg { return inputMsg{text, cursor} }).
 		OnSubmit(submitMsg{})
 	_, prefix := split(m.text)
 	entries := text.New(strings.Join(matches(m.names, prefix), "\n")).Wrapping(text.WrappingNone)
@@ -125,8 +125,8 @@ func (m Model) View() tview.Widget {
 }
 
 // inputKeybind is the input's default keybind with submit as the only key that submits.
-func inputKeybind(submit keybind.Keybind) func(tview.KeyMsg) textinput.Action {
-	return func(key tview.KeyMsg) textinput.Action {
+func inputKeybind(submit keybind.Keybind) func(tui.KeyMsg) textinput.Action {
+	return func(key tui.KeyMsg) textinput.Action {
 		if keybind.Matches(key, submit) {
 			return textinput.ActionSubmit
 		}

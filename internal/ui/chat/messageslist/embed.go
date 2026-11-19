@@ -4,14 +4,14 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/box"
-	"github.com/ayn2op/tview/layout"
-	"github.com/ayn2op/tview/text"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/markdown"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/box"
+	"github.com/seamanticus/amitty/internal/tui/layout"
+	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/yuin/goldmark/v2/ast"
 )
 
@@ -25,7 +25,7 @@ const (
 // embedViews returns each embed of message as its text with a bar down its left, or nil if the message does not show its embeds: one without any, by a blocked user, or that is not drawn with its own content, as a forward.
 // The views capture the model and the message, so they are made once with the text of the message rather than in buildItem.
 // root is the parsed content of message, or nil to parse it here.
-func (m Model) embedViews(message discord.Message, root ast.Node) []tview.Widget {
+func (m Model) embedViews(message discord.Message, root ast.Node) []tui.Widget {
 	forward := message.Reference != nil && message.Reference.Type == discord.MessageReferenceTypeForward
 	ownContent := message.Type == discord.DefaultMessage && !forward || message.Type == discord.InlinedReplyMessage
 	if !m.cfg.UI.MessagesList.Embeds.Enabled || len(message.Embeds) == 0 || m.blocked(message.Author) || !ownContent {
@@ -41,7 +41,7 @@ func (m Model) embedViews(message discord.Message, root ast.Node) []tview.Widget
 
 	baseStyle := m.cfg.Theme.MessagesList.MessageStyle.Style
 	lineStyles := embedLineStyles(baseStyle, m.cfg.Theme.MessagesList.Embeds)
-	var views []tview.Widget
+	var views []tui.Widget
 	for _, embed := range message.Embeds {
 		lines := embedLines(embed, seenURLs)
 		if len(lines) == 0 {
@@ -54,8 +54,8 @@ func (m Model) embedViews(message discord.Message, root ast.Node) []tview.Widget
 		}
 
 		bar := box.New(messageText(m.renderEmbed(message, lines, lineStyles))).
-			Borders(tview.BordersLeft).
-			BorderSet(tview.BorderSet{Left: embedBar}).
+			Borders(tui.BordersLeft).
+			BorderSet(tui.BorderSet{Left: embedBar}).
 			BorderStyle(barStyle).
 			Padding(0, 0, embedBarGap, 0).
 			Height(layout.Shrink)
@@ -66,7 +66,7 @@ func (m Model) embedViews(message discord.Message, root ast.Node) []tview.Widget
 }
 
 // renderEmbed returns lines of an embed of message, each on its own line in the style of its kind.
-func (m Model) renderEmbed(message discord.Message, lines []embedLine, lineStyles [embedLineKinds]tview.Style) []text.Span {
+func (m Model) renderEmbed(message discord.Message, lines []embedLine, lineStyles [embedLineKinds]tui.Style) []text.Span {
 	builder := new(markdown.Builder)
 	for _, line := range lines {
 		if !builder.LineEmpty() {
@@ -117,16 +117,16 @@ const (
 	embedLineKinds
 )
 
-func embedLineStyles(baseStyle tview.Style, theme config.MessagesListEmbedsThemeConfig) [embedLineKinds]tview.Style {
-	return [embedLineKinds]tview.Style{
-		embedLineProvider:    tview.MergeStyle(baseStyle, theme.ProviderStyle.Style),
-		embedLineAuthor:      tview.MergeStyle(baseStyle, theme.AuthorStyle.Style),
-		embedLineTitle:       tview.MergeStyle(baseStyle, theme.TitleStyle.Style),
-		embedLineDescription: tview.MergeStyle(baseStyle, theme.DescriptionStyle.Style),
-		embedLineFieldName:   tview.MergeStyle(baseStyle, theme.FieldNameStyle.Style),
-		embedLineFieldValue:  tview.MergeStyle(baseStyle, theme.FieldValueStyle.Style),
-		embedLineFooter:      tview.MergeStyle(baseStyle, theme.FooterStyle.Style),
-		embedLineURL:         tview.MergeStyle(baseStyle, theme.URLStyle.Style),
+func embedLineStyles(baseStyle tui.Style, theme config.MessagesListEmbedsThemeConfig) [embedLineKinds]tui.Style {
+	return [embedLineKinds]tui.Style{
+		embedLineProvider:    tui.MergeStyle(baseStyle, theme.ProviderStyle.Style),
+		embedLineAuthor:      tui.MergeStyle(baseStyle, theme.AuthorStyle.Style),
+		embedLineTitle:       tui.MergeStyle(baseStyle, theme.TitleStyle.Style),
+		embedLineDescription: tui.MergeStyle(baseStyle, theme.DescriptionStyle.Style),
+		embedLineFieldName:   tui.MergeStyle(baseStyle, theme.FieldNameStyle.Style),
+		embedLineFieldValue:  tui.MergeStyle(baseStyle, theme.FieldValueStyle.Style),
+		embedLineFooter:      tui.MergeStyle(baseStyle, theme.FooterStyle.Style),
+		embedLineURL:         tui.MergeStyle(baseStyle, theme.URLStyle.Style),
 	}
 }
 

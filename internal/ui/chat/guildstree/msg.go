@@ -3,11 +3,11 @@ package guildstree
 import (
 	"log/slog"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
-	"github.com/ayn2op/tview/tree"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/ningen"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
+	"github.com/seamanticus/amitty/internal/tui/tree"
 	"github.com/seamanticus/amitty/internal/ui"
 )
 
@@ -28,7 +28,7 @@ type ChannelLoadedMsg struct {
 
 type NavigateMsg struct{ ChannelID discord.ChannelID }
 
-func (m *Model) navigate(channelID discord.ChannelID) tview.Cmd {
+func (m *Model) navigate(channelID discord.ChannelID) tui.Cmd {
 	channel, err := m.state.Cabinet.Channel(channelID)
 	if err != nil {
 		slog.Error("failed to get channel from state", "err", err, "channel_id", channelID)
@@ -47,7 +47,7 @@ func (m *Model) navigate(channelID discord.ChannelID) tview.Cmd {
 	return m.selectNode(node)
 }
 
-func (m Model) selectNode(node *tree.Node) tview.Cmd {
+func (m Model) selectNode(node *tree.Node) tui.Cmd {
 	if expandable(node) {
 		node.SetExpanded(!node.Expanded())
 		return nil
@@ -79,7 +79,7 @@ func (m Model) expandGuild(node *tree.Node, guildID discord.GuildID) {
 }
 
 // selectChannel loads the messages of the channel, or shows the threads of a forum.
-func (m Model) selectChannel(node *tree.Node, channelID discord.ChannelID) tview.Cmd {
+func (m Model) selectChannel(node *tree.Node, channelID discord.ChannelID) tui.Cmd {
 	channel, err := m.state.Cabinet.Channel(channelID)
 	if err != nil {
 		slog.Error("failed to get channel from state", "err", err, "channel_id", channelID)
@@ -125,8 +125,8 @@ func (m Model) expandPrivateChannels(node *tree.Node) {
 	node.Expand()
 }
 
-func loadChannel(state *ningen.State, limit uint, channel discord.Channel) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func loadChannel(state *ningen.State, limit uint, channel discord.Channel) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		messages, err := state.Messages(channel.ID, limit)
 		if err != nil {
 			slog.Error("failed to get messages", "err", err, "channel_id", channel.ID, "limit", limit)

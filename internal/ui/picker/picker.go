@@ -2,10 +2,10 @@
 package picker
 
 import (
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/picker"
-	"github.com/ayn2op/tview/scrollbar"
 	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/picker"
+	"github.com/seamanticus/amitty/internal/tui/scrollbar"
 	"github.com/seamanticus/amitty/internal/ui"
 )
 
@@ -38,9 +38,9 @@ func (m Model) Visible() picker.Items {
 // Reset clears the query.
 func (m *Model) Reset() { m.searchState.Reset() }
 
-func (Model) Init() tview.Cmd { return nil }
+func (Model) Init() tui.Cmd { return nil }
 
-func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
+func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	if msg, ok := msg.(changeMsg); ok {
 		m.searchState = picker.SearchState(msg)
 	}
@@ -48,7 +48,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 }
 
 // View shows the picker, turning the selected item into the message onSelect returns and canceling with onCancel.
-func (m Model) View(onSelect func(picker.Item) tview.Msg, onCancel tview.Msg) tview.Widget {
+func (m Model) View(onSelect func(picker.Item) tui.Msg, onCancel tui.Msg) tui.Widget {
 	cfg := m.cfg
 	bar := scrollbar.New().
 		SymbolSet(cfg.UI.ScrollBar.SymbolSet.SymbolSet).
@@ -58,7 +58,7 @@ func (m Model) View(onSelect func(picker.Item) tview.Msg, onCancel tview.Msg) tv
 		ScrollBar(bar, cfg.UI.ScrollBar.Visibility.ScrollBarVisibility).
 		Keybind(pickerKeybind(cfg.Keybinds.Picker)).
 		ListKeybind(ui.SelectionKeybind(cfg.Keybinds.Picker.SelectionKeybinds)).
-		OnChange(func(s *picker.SearchState) tview.Msg { return changeMsg(*s) }).
+		OnChange(func(s *picker.SearchState) tui.Msg { return changeMsg(*s) }).
 		OnSelect(onSelect).
 		OnCancel(onCancel)
 	return ui.Box(p, cfg, true).Title(ui.Label(m.title, cfg.Theme.Title, true))

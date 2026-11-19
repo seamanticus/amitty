@@ -7,19 +7,19 @@ import (
 	stdimage "image"
 	"time"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/box"
-	"github.com/ayn2op/tview/center"
-	"github.com/ayn2op/tview/cmd"
-	"github.com/ayn2op/tview/column"
-	"github.com/ayn2op/tview/help"
-	"github.com/ayn2op/tview/image"
-	"github.com/ayn2op/tview/keybind"
-	"github.com/ayn2op/tview/layout"
-	"github.com/ayn2op/tview/text"
 	"github.com/gdamore/tcell/v3/color"
 	"github.com/seamanticus/amitty/internal/captcha"
 	"github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/box"
+	"github.com/seamanticus/amitty/internal/tui/center"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
+	"github.com/seamanticus/amitty/internal/tui/column"
+	"github.com/seamanticus/amitty/internal/tui/help"
+	"github.com/seamanticus/amitty/internal/tui/image"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
+	"github.com/seamanticus/amitty/internal/tui/layout"
+	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/seamanticus/amitty/internal/ui/login/keys"
 )
 
@@ -71,7 +71,7 @@ func (Model) Label() string {
 	return "QR"
 }
 
-var _ tview.Model[Model] = Model{}
+var _ tui.Model[Model] = Model{}
 
 var _ help.KeyMap = Model{}
 
@@ -84,18 +84,18 @@ func (m Model) ShortHelp() []keybind.Keybind {
 
 func (m Model) FullHelp() [][]keybind.Keybind { return [][]keybind.Keybind{m.ShortHelp()} }
 
-func (Model) Init() tview.Cmd {
-	return cmd.Task(func() tview.Msg { return startMsg{} })
+func (Model) Init() tui.Cmd {
+	return cmd.Task(func() tui.Msg { return startMsg{} })
 }
 
 // Update returns m changed in response to msg and a command to run, or nil.
-func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
+func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	switch msg := msg.(type) {
 	case startMsg:
 		next := NewModel(m.build, m.network)
 		next.status = "Connecting to Remote Auth Gateway..."
 		return next, cmd.Batch{closeConn(m.conn), closeCaptcha(m.captcha), connect(m.network)}
-	case tview.KeyMsg:
+	case tui.KeyMsg:
 		switch {
 		case m.ended && keybind.Matches(msg, keys.Renew()):
 			return m.Update(startMsg{})
@@ -133,7 +133,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 		return m, cmd.Batch{listen(m.conn), sendNonceProof(m.conn, m.privateKey, msg.encryptedNonce)}
 	case pendingRemoteInitMsg:
 		if !ownsFingerprint(m.privateKey, msg.fingerprint) {
-			return m, cmd.Task(func() tview.Msg {
+			return m, cmd.Task(func() tui.Msg {
 				return errors.New("remote auth gateway sent a fingerprint that is not of our key; the code is not shown")
 			})
 		}
@@ -201,7 +201,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 }
 
 // end stops the login with status, hiding the code and closing the connection and any captcha page.
-func (m Model) end(status string) (Model, tview.Cmd) {
+func (m Model) end(status string) (Model, tui.Cmd) {
 	page := m.captcha
 	m.status = status
 	m.ended = true
@@ -212,8 +212,8 @@ func (m Model) end(status string) (Model, tview.Cmd) {
 }
 
 // View centers the code above the status.
-func (m Model) View() tview.Widget {
-	var qrCode tview.Widget
+func (m Model) View() tui.Widget {
+	var qrCode tui.Widget
 	if m.qrCode != nil {
 		// The white margin around the code, two modules wide, is what scanners find it by against a dark terminal.
 		qrCode = box.New(image.New(m.qrCode)).
@@ -223,7 +223,7 @@ func (m Model) View() tview.Widget {
 			Height(layout.Shrink)
 	}
 
-	var note tview.Widget
+	var note tui.Widget
 	switch {
 	case m.ended:
 		note = text.New("Press " + keys.Renew().Help().Key + " for a new code")
@@ -233,7 +233,7 @@ func (m Model) View() tview.Widget {
 
 	return center.New(column.New(qrCode, text.New(m.status), note).
 		Spacing(statusSpacing).
-		AlignX(tview.HorizontalAlignmentCenter).
+		AlignX(tui.HorizontalAlignmentCenter).
 		Width(layout.Shrink).
 		Height(layout.Shrink))
 }

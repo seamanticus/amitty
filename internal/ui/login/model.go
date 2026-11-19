@@ -1,14 +1,14 @@
 package login
 
 import (
-	"github.com/ayn2op/tview/layout"
-	"github.com/ayn2op/tview/tabs"
+	"github.com/seamanticus/amitty/internal/tui/layout"
+	"github.com/seamanticus/amitty/internal/tui/tabs"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
-	"github.com/ayn2op/tview/column"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
+	"github.com/seamanticus/amitty/internal/tui/column"
 	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/amitty/internal/ui/login/password"
 	"github.com/seamanticus/amitty/internal/ui/login/qr"
@@ -52,10 +52,10 @@ func (m Model) tabs() tabs.Widget {
 		ClickableArrows(cfg.ClickableArrows)
 }
 
-var _ tview.Model[Model] = Model{}
+var _ tui.Model[Model] = Model{}
 
 // Init initializes the active tab.
-func (m Model) Init() tview.Cmd {
+func (m Model) Init() tui.Cmd {
 	switch m.active {
 	case tabPassword:
 		return m.password.Init()
@@ -67,8 +67,8 @@ func (m Model) Init() tview.Cmd {
 	return nil
 }
 
-func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
-	var errCmd tview.Cmd
+func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
+	var errCmd tui.Cmd
 	switch msg := msg.(type) {
 	case selectTabMsg:
 		if msg < 0 || tab(msg) >= tabCount {
@@ -78,13 +78,13 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 		return m, m.Init()
 	case password.FailedMsg:
 		// The password tab gets it even when inactive, so its submit unlocks.
-		var command tview.Cmd
+		var command tui.Cmd
 		m.password, command = m.password.Update(msg)
 		return m, cmd.Batch{showErrorDialog(msg.Err), command}
 	case password.CountdownMsg, password.FingerprintMsg, password.MFAMsg, password.SMSSentMsg,
 		password.CaptchaMsg, password.CaptchaPageMsg, password.CaptchaOpenFailedMsg, password.CaptchaSolvedMsg:
 		// Like a failure, these reach the password tab even when another tab is shown.
-		var command tview.Cmd
+		var command tui.Cmd
 		m.password, command = m.password.Update(msg)
 		return m, command
 	case error:
@@ -92,7 +92,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 		errCmd = showErrorDialog(msg)
 	}
 
-	var command tview.Cmd
+	var command tui.Cmd
 	switch m.active {
 	case tabPassword:
 		m.password, command = m.password.Update(msg)
@@ -105,8 +105,8 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 }
 
 // View shows the tabs in a box.
-func (m Model) View() tview.Widget {
-	var content tview.Widget
+func (m Model) View() tui.Widget {
+	var content tui.Widget
 	switch m.active {
 	case tabPassword:
 		content = m.password.View()
@@ -118,6 +118,6 @@ func (m Model) View() tview.Widget {
 	t := m.tabs().
 		Active(int(m.active)).
 		Keybind(tabsKeybind).
-		OnSelect(func(i int) tview.Msg { return selectTabMsg(i) })
+		OnSelect(func(i int) tui.Msg { return selectTabMsg(i) })
 	return ui.Box(column.New(t, content), m.cfg, false)
 }

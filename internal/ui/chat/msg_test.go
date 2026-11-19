@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ayn2op/tview/cmd"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 )
 
 // evidence: witnesses

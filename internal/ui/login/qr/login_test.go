@@ -17,13 +17,13 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gorilla/websocket"
 	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	dhttp "github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/ui/login/keys"
 )
 
@@ -48,7 +48,7 @@ func encrypt(t *testing.T, key *rsa.PrivateKey, plain string) string {
 }
 
 // run runs a task command and returns its message.
-func run(t *testing.T, command tview.Cmd) tview.Msg {
+func run(t *testing.T, command tui.Cmd) tui.Msg {
 	t.Helper()
 	task, ok := command.(cmd.Task)
 	if !ok {
@@ -152,7 +152,7 @@ func TestDecryptUserPayload(t *testing.T) {
 	key := testKey(t)
 	for _, tt := range []struct {
 		name, payload string
-		want          tview.Msg
+		want          tui.Msg
 	}{
 		{"pomelo user", "1:0:avatar:name", userMsg{discriminator: "0", username: "name"}},
 		{"legacy tag", "1:1234:avatar:name", userMsg{discriminator: "1234", username: "name"}},
@@ -319,11 +319,11 @@ func TestModelUpdate(t *testing.T) {
 
 	for _, tt := range []struct {
 		name string
-		msg  tview.Msg
+		msg  tui.Msg
 		want string
 	}{
 		{"cancel on the phone", cancelMsg{}, "Login canceled on mobile"},
-		{"Esc", tview.KeyMsg(tcell.NewEventKey(tcell.KeyEsc, "", tcell.ModNone)), "Canceled"},
+		{"Esc", tui.KeyMsg(tcell.NewEventKey(tcell.KeyEsc, "", tcell.ModNone)), "Canceled"},
 		{"an error", errors.New("boom"), "boom"},
 	} {
 		t.Run(tt.name+" closes the connection", func(t *testing.T) {
@@ -359,7 +359,7 @@ func TestModelUpdate(t *testing.T) {
 
 	t.Run("keys other than Esc do nothing", func(t *testing.T) {
 		m := NewModel(dhttp.Build{}, dhttp.Network{})
-		if got, command := m.Update(tview.KeyMsg(tcell.NewEventKey(tcell.KeyRune, "q", tcell.ModNone))); command != nil || got.status != m.status {
+		if got, command := m.Update(tui.KeyMsg(tcell.NewEventKey(tcell.KeyRune, "q", tcell.ModNone))); command != nil || got.status != m.status {
 			t.Fatalf("status = %q, command = %v", got.status, command)
 		}
 	})
@@ -456,7 +456,7 @@ func TestRetryOr(t *testing.T) {
 	refused := &httputil.HTTPError{Status: http.StatusBadGateway}
 	for _, tt := range []struct {
 		name  string
-		msg   tview.Msg
+		msg   tui.Msg
 		final bool
 		retry bool
 	}{
@@ -482,8 +482,8 @@ func TestRetryOr(t *testing.T) {
 }
 
 func TestModelLifecycle(t *testing.T) {
-	press := func(m Model, key string) (Model, tview.Cmd) {
-		return m.Update(tview.KeyMsg(tcell.NewEventKey(tcell.KeyRune, key, tcell.ModNone)))
+	press := func(m Model, key string) (Model, tui.Cmd) {
+		return m.Update(tui.KeyMsg(tcell.NewEventKey(tcell.KeyRune, key, tcell.ModNone)))
 	}
 	live := func() Model {
 		m := NewModel(dhttp.Build{}, dhttp.Network{})
@@ -516,7 +516,7 @@ func TestModelLifecycle(t *testing.T) {
 	t.Run("a tick of an old connection is dropped", func(t *testing.T) {
 		m := live()
 		m.expiresIn = 5
-		for _, msg := range []tview.Msg{expiryTickMsg{&gatewayConn{}}, heartbeatTickMsg{&gatewayConn{}}} {
+		for _, msg := range []tui.Msg{expiryTickMsg{&gatewayConn{}}, heartbeatTickMsg{&gatewayConn{}}} {
 			if got, command := m.Update(msg); command != nil || got.expiresIn != 5 {
 				t.Fatalf("%T: expiresIn = %d, command = %v", msg, got.expiresIn, command)
 			}
@@ -564,7 +564,7 @@ func TestModelLifecycle(t *testing.T) {
 
 	t.Run("an ended login ignores late errors and retries", func(t *testing.T) {
 		m, _ := NewModel(dhttp.Build{}, dhttp.Network{}).end("Code expired")
-		for _, msg := range []tview.Msg{errors.New("late"), retryMsg{ticket: "tk", left: 1}} {
+		for _, msg := range []tui.Msg{errors.New("late"), retryMsg{ticket: "tk", left: 1}} {
 			if got, command := m.Update(msg); command != nil || got.status != "Code expired" {
 				t.Fatalf("%T: status = %q, command = %v", msg, got.status, command)
 			}

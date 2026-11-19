@@ -7,12 +7,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/captcha"
 	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 )
 
 // challengeBody is a captcha response as Discord sends it.
@@ -109,7 +109,7 @@ func TestModelCaptcha(t *testing.T) {
 	t.Run("a challenge serves a page, up to the last try", func(t *testing.T) {
 		m := submitting()
 		for try := 1; try <= captcha.MaxTries; try++ {
-			var command tview.Cmd
+			var command tui.Cmd
 			m, command = m.Update(CaptchaMsg{testChallenge(t)})
 			if m.captchaTries != try || command == nil {
 				t.Fatalf("try %d: tries = %d, command = %v", try, m.captchaTries, command)

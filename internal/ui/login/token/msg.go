@@ -1,8 +1,8 @@
 package token
 
 import (
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 )
 
 type TokenMsg string
@@ -19,8 +19,8 @@ type (
 	submitMsg      struct{}
 )
 
-func submitToken(token string) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func submitToken(token string) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		return TokenMsg(token)
 	})
 }

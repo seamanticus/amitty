@@ -3,24 +3,24 @@ package root
 import (
 	"log/slog"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
 	"github.com/seamanticus/amitty/internal/consts"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/ui/chat"
 	"github.com/seamanticus/amitty/internal/ui/login"
 	"golang.design/x/clipboard"
 )
 
 // quit quits once the chat, if shown, has closed its session.
-func (m *Model) quit() tview.Cmd {
+func (m *Model) quit() tui.Cmd {
 	if m.screen.isChat() {
 		return m.updateScreen(chat.QuitMsg{})
 	}
 	return cmd.Quit{}
 }
 
-func initClipboard() tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func initClipboard() tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		if err := clipboard.Init(); err != nil {
 			slog.Error("failed to init clipboard", "err", err)
 		}
@@ -28,13 +28,13 @@ func initClipboard() tview.Cmd {
 	})
 }
 
-func (m *Model) showLogin() tview.Cmd {
+func (m *Model) showLogin() tui.Cmd {
 	l := login.NewModel(m.cfg, m.build, m.network)
 	m.screen = loginScreen(l)
 	return m.show(l.Init())
 }
 
-func (m *Model) showChat(token string) tview.Cmd {
+func (m *Model) showChat(token string) tui.Cmd {
 	c := chat.NewModel(m.cfg, m.build, m.network, token)
 	m.screen = chatScreen(c)
 	init := c.Init()
@@ -45,12 +45,12 @@ func (m *Model) showChat(token string) tview.Cmd {
 }
 
 // show closes any open dialog after the shown model changed and returns what it needs done, with init its first command.
-func (m *Model) show(init tview.Cmd) tview.Cmd {
+func (m *Model) show(init tui.Cmd) tui.Cmd {
 	m.dialog = nil
 	return cmd.Batch{cmd.SetTitle(consts.Name), init}
 }
 
-func (m *Model) finishDialog(index int) tview.Cmd {
+func (m *Model) finishDialog(index int) tui.Cmd {
 	if m.dialog == nil || index < 0 || index >= len(m.dialog.Buttons) {
 		m.dialog = nil
 		return nil

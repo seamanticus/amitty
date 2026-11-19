@@ -2,14 +2,14 @@
 package emojis
 
 import (
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
-	tviewimage "github.com/ayn2op/tview/image"
-	"github.com/ayn2op/tview/text"
 	"github.com/sahilm/fuzzy"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/ningen"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
+	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
+	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/seamanticus/amitty/internal/ui/autocomplete"
 	uiemojis "github.com/seamanticus/amitty/internal/ui/emojis"
 	"github.com/seamanticus/amitty/internal/ui/images"
@@ -21,14 +21,14 @@ const Title = "Emojis"
 type item struct {
 	emoji discord.Emoji
 	name  string
-	style tview.Style
+	style tui.Style
 	// preview reports whether the image of a custom emoji is shown, so that none loaded for other panes is drawn when images are off.
 	preview bool
 }
 
 func (i item) Insert() string { return i.emoji.String() }
 
-func (i item) Line(images map[discord.URL]tviewimage.Widget) []text.Span {
+func (i item) Line(images map[discord.URL]tuiimage.Widget) []text.Span {
 	if !i.preview {
 		images = nil
 	}
@@ -36,7 +36,7 @@ func (i item) Line(images map[discord.URL]tviewimage.Widget) []text.Span {
 }
 
 // Items returns up to limit emojis matching query, best first, each once, and the command that loads their images, or nil.
-func Items(cfg *config.Config, s *ningen.State, gID discord.GuildID, query string, limit int) ([]autocomplete.Item, tview.Cmd) {
+func Items(cfg *config.Config, s *ningen.State, gID discord.GuildID, query string, limit int) ([]autocomplete.Item, tui.Cmd) {
 	var names []string
 	var emojis []discord.Emoji
 	for name, emoji := range uiemojis.All(s, gID) {
@@ -76,5 +76,5 @@ func Items(cfg *config.Config, s *ningen.State, gID discord.GuildID, query strin
 	if len(load.Squares) == 0 {
 		return items, nil
 	}
-	return items, cmd.Task(func() tview.Msg { return load })
+	return items, cmd.Task(func() tui.Msg { return load })
 }

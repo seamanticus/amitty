@@ -3,13 +3,13 @@ package tree
 import (
 	"fmt"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/tree"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/tree"
 	"github.com/seamanticus/amitty/internal/ui"
 )
 
 // YankID copies the ID of node to the clipboard.
-func YankID(node *tree.Node) tview.Cmd {
+func YankID(node *tree.Node) tui.Cmd {
 	if node == nil {
 		return nil
 	}

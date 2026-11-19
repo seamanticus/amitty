@@ -6,10 +6,10 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 )
 
 func TestSplit(t *testing.T) {
@@ -98,7 +98,7 @@ func TestList(t *testing.T) {
 }
 
 // run returns the message command makes, which must be a task.
-func run(t *testing.T, command tview.Cmd) tview.Msg {
+func run(t *testing.T, command tui.Cmd) tui.Msg {
 	t.Helper()
 	task, ok := command.(cmd.Task)
 	if !ok {
@@ -114,7 +114,7 @@ func TestModel(t *testing.T) {
 		t.Fatal(err)
 	}
 	var submitted string
-	show := ShowMsg{Title: "Attach", Path: dir + "/", Submit: func(path string) tview.Cmd {
+	show := ShowMsg{Title: "Attach", Path: dir + "/", Submit: func(path string) tui.Cmd {
 		submitted = path
 		return nil
 	}}
@@ -138,7 +138,7 @@ func TestModel(t *testing.T) {
 	})
 	t.Run("tab completes the name", func(t *testing.T) {
 		typed, _ := m.Update(inputMsg{text: dir + "/p", cursor: len(dir) + 2})
-		completed, _ := typed.Update(tview.KeyMsg(tcell.NewEventKey(tcell.KeyTab, "", tcell.ModNone)))
+		completed, _ := typed.Update(tui.KeyMsg(tcell.NewEventKey(tcell.KeyTab, "", tcell.ModNone)))
 		if want := dir + "/photo.png"; completed.text != want || completed.cursor != len(want) {
 			t.Errorf("text, cursor = %q, %d, want %q at its end", completed.text, completed.cursor, want)
 		}
@@ -157,7 +157,7 @@ func TestModel(t *testing.T) {
 		}
 	})
 	t.Run("esc cancels", func(t *testing.T) {
-		_, command := m.Update(tview.KeyMsg(tcell.NewEventKey(tcell.KeyEsc, "", tcell.ModNone)))
+		_, command := m.Update(tui.KeyMsg(tcell.NewEventKey(tcell.KeyEsc, "", tcell.ModNone)))
 		if _, ok := run(t, command).(CancelMsg); !ok {
 			t.Error("esc did not cancel")
 		}

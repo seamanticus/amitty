@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/scrollbar"
-	"github.com/ayn2op/tview/viewport"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/scrollbar"
+	"github.com/seamanticus/amitty/internal/tui/viewport"
 )
 
 // enum pairs the names an option accepts with their values; a value is written back as the first of its names.
@@ -39,17 +39,17 @@ func (e enum[T]) text(value T) ([]byte, error) {
 var (
 	boxDrawing = scrollbar.SymbolSet{Track: "│", Thumb: "█", Begin: "▲", End: "▼"}
 
-	alignments = enum[tview.HorizontalAlignment]{
-		{"left", tview.HorizontalAlignmentLeft},
-		{"center", tview.HorizontalAlignmentCenter},
-		{"right", tview.HorizontalAlignmentRight},
+	alignments = enum[tui.HorizontalAlignment]{
+		{"left", tui.HorizontalAlignmentLeft},
+		{"center", tui.HorizontalAlignmentCenter},
+		{"right", tui.HorizontalAlignmentRight},
 	}
-	borderSets = enum[tview.BorderSet]{
-		{"hidden", tview.BorderSetHidden()},
-		{"plain", tview.BorderSetPlain()},
-		{"round", tview.BorderSetRound()},
-		{"thick", tview.BorderSetThick()},
-		{"double", tview.BorderSetDouble()},
+	borderSets = enum[tui.BorderSet]{
+		{"hidden", tui.BorderSetHidden()},
+		{"plain", tui.BorderSetPlain()},
+		{"round", tui.BorderSetRound()},
+		{"thick", tui.BorderSetThick()},
+		{"double", tui.BorderSetDouble()},
 	}
 	symbolSets = enum[scrollbar.SymbolSet]{
 		{"minimal", scrollbar.SymbolSet{Thumb: "█", Begin: "▲", End: "▼"}},
@@ -69,7 +69,7 @@ var (
 	}
 )
 
-type AlignmentWrapper struct{ tview.HorizontalAlignment }
+type AlignmentWrapper struct{ tui.HorizontalAlignment }
 
 func (aw *AlignmentWrapper) UnmarshalText(text []byte) (err error) {
 	aw.HorizontalAlignment, err = alignments.parse(string(text))
@@ -80,7 +80,7 @@ func (aw AlignmentWrapper) MarshalText() ([]byte, error) {
 	return alignments.text(aw.HorizontalAlignment)
 }
 
-type BorderSetWrapper struct{ tview.BorderSet }
+type BorderSetWrapper struct{ tui.BorderSet }
 
 func (bw *BorderSetWrapper) UnmarshalText(text []byte) (err error) {
 	bw.BorderSet, err = borderSets.parse(string(text))
@@ -255,8 +255,8 @@ type (
 )
 
 func defaultUI() UIConfig {
-	left := TitleUIConfig{AlignmentWrapper{tview.HorizontalAlignmentLeft}}
-	round := BorderSetWrapper{tview.BorderSetRound()}
+	left := TitleUIConfig{AlignmentWrapper{tui.HorizontalAlignmentLeft}}
+	round := BorderSetWrapper{tui.BorderSetRound()}
 	attachments := AttachmentsUIConfig{
 		ShowLinks:        true,
 		AllowedMIMETypes: MIMETypes{"image/*", "video/*", "audio/*"},
@@ -264,7 +264,7 @@ func defaultUI() UIConfig {
 	}
 	return UIConfig{
 		Tabs: TabsUIConfig{
-			Alignment:       AlignmentWrapper{tview.HorizontalAlignmentCenter},
+			Alignment:       AlignmentWrapper{tui.HorizontalAlignmentCenter},
 			Separator:       "│",
 			Padding:         [2]string{" ", " "},
 			Arrows:          [2]string{"◀", "▶"},

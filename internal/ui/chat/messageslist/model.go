@@ -4,24 +4,24 @@ import (
 	"slices"
 	"time"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/box"
-	"github.com/ayn2op/tview/cmd"
-	"github.com/ayn2op/tview/column"
-	tviewimage "github.com/ayn2op/tview/image"
-	"github.com/ayn2op/tview/keybind"
-	"github.com/ayn2op/tview/layout"
-	"github.com/ayn2op/tview/list"
-	"github.com/ayn2op/tview/row"
-	"github.com/ayn2op/tview/scrollbar"
-	"github.com/ayn2op/tview/spacer"
-	"github.com/ayn2op/tview/text"
-	"github.com/ayn2op/tview/viewport"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	dhttp "github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/markdown"
 	"github.com/seamanticus/amitty/internal/ningen"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/box"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
+	"github.com/seamanticus/amitty/internal/tui/column"
+	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
+	"github.com/seamanticus/amitty/internal/tui/layout"
+	"github.com/seamanticus/amitty/internal/tui/list"
+	"github.com/seamanticus/amitty/internal/tui/row"
+	"github.com/seamanticus/amitty/internal/tui/scrollbar"
+	"github.com/seamanticus/amitty/internal/tui/spacer"
+	"github.com/seamanticus/amitty/internal/tui/text"
+	"github.com/seamanticus/amitty/internal/tui/viewport"
 	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/amitty/internal/ui/images"
 	"github.com/yuin/goldmark/v2/ast"
@@ -30,9 +30,9 @@ import (
 type messageItem struct {
 	message discord.Message
 	// view is the message as drawn, keeping its wrapped text, or nil until it is shown and after what it shows changes.
-	view tview.Widget
+	view tui.Widget
 	// separator is the line with the date of the message after it, or nil for a message.
-	separator tview.Widget
+	separator tui.Widget
 	// grouped reports whether the message is drawn without a header, under that of the message before it.
 	grouped bool
 
@@ -55,7 +55,7 @@ type Model struct {
 
 	renderer *markdown.Renderer
 	// images are the chat model's, which loads them, by URL.
-	images map[discord.URL]tviewimage.Widget
+	images map[discord.URL]tuiimage.Widget
 	// focused, footer and avatarWidth, in cells, are set by the chat model, which keeps what they follow from.
 	focused     bool
 	footer      string
@@ -122,7 +122,7 @@ func (m Model) listView() viewport.Widget {
 			return int(m.cfg.UI.MessagesList.Spacing)
 		}).
 		SelectedStyle(m.cfg.Theme.MessagesList.SelectedMessageStyle.Style).
-		OnChange(func(cursor int) tview.Msg { return listMsg(cursor) })
+		OnChange(func(cursor int) tui.Msg { return listMsg(cursor) })
 	return viewport.New(l, m.scrollState).
 		Target(l.Target(m.target)).
 		ScrollBar(bar, cfg.Visibility.ScrollBarVisibility).
@@ -130,7 +130,7 @@ func (m Model) listView() viewport.Widget {
 		AnchorBottom().
 		Keybind(ui.ScrollKeybind(m.cfg.Keybinds.MessagesList.ScrollKeybinds)).
 		Focused(m.focused).
-		OnChange(func(s *viewport.ScrollState) tview.Msg { return scrollMsg(*s) })
+		OnChange(func(s *viewport.ScrollState) tui.Msg { return scrollMsg(*s) })
 }
 
 // setCursor selects the item at index and scrolls to it if it changed, or selects none if it is negative.
@@ -144,7 +144,7 @@ func (m *Model) setCursor(index int) {
 }
 
 // SetChannel shows messages of channel, newest first as Discord sends them, scrolled to the newest, and requests the members who wrote them.
-func (m *Model) SetChannel(channel *discord.Channel, messages []discord.Message) tview.Cmd {
+func (m *Model) SetChannel(channel *discord.Channel, messages []discord.Message) tui.Cmd {
 	m.channel = channel
 	m.reset()
 	m.setMessages(messages)
@@ -161,13 +161,13 @@ func (m *Model) ShowNewest() {
 }
 
 // UpdateMessage replaces the shown message with the same ID.
-func (m *Model) UpdateMessage(message discord.Message) tview.Cmd {
+func (m *Model) UpdateMessage(message discord.Message) tui.Cmd {
 	m.setMessage(m.indexOf(message.ChannelID, message.ID), message)
 	return m.LoadImages()
 }
 
 // RefreshMessage shows the cached state of a message, such as after a reaction.
-func (m *Model) RefreshMessage(channelID discord.ChannelID, id discord.MessageID) tview.Cmd {
+func (m *Model) RefreshMessage(channelID discord.ChannelID, id discord.MessageID) tui.Cmd {
 	message, err := m.state.Cabinet.Message(channelID, id)
 	if err != nil {
 		return nil
@@ -211,7 +211,7 @@ func (m *Model) setMessages(messages []discord.Message) {
 	m.rebuildItems()
 }
 
-func (m *Model) AddMessage(message discord.Message) tview.Cmd {
+func (m *Model) AddMessage(message discord.Message) tui.Cmd {
 	// Appending keeps the items before it as they are, so only the separator of a new day is added rather than all rebuilt.
 	var previous *discord.Message
 	if last := len(m.items) - 1; last >= 0 {
@@ -261,7 +261,7 @@ func (m *Model) clearSelection() {
 	m.setCursor(-1)
 }
 
-func (m Model) buildItem(index int) tview.Widget {
+func (m Model) buildItem(index int) tui.Widget {
 	if index < 0 || index >= len(m.items) {
 		return nil
 	}
@@ -277,7 +277,7 @@ func (m Model) buildItem(index int) tview.Widget {
 }
 
 // itemView returns the message of item with its header or avatar, embeds, previews, reactions and what it replies to.
-func (m Model) itemView(item *messageItem) tview.Widget {
+func (m Model) itemView(item *messageItem) tui.Widget {
 	message := &item.message
 	root := m.contentRoot(item)
 	style := m.cfg.Theme.MessagesList.MessageStyle.Style
@@ -298,10 +298,10 @@ func (m Model) itemView(item *messageItem) tview.Widget {
 		body = body.Push(m.reactionsView(message.Reactions))
 	}
 
-	var view tview.Widget = body
+	var view tui.Widget = body
 	if m.showsAvatar(message.Author) {
 		// The avatar's column is left empty before it is requested, if it fails to load, and under the avatar of a group, so the text does not shift.
-		var gutter tview.Widget = spacer.New().Width(layout.Fixed(m.avatarWidth))
+		var gutter tui.Widget = spacer.New().Width(layout.Fixed(m.avatarWidth))
 		if avatar, ok := m.images[avatarURL(message.Author)]; ok && !item.grouped {
 			if width, _ := avatar.Size(); width != layout.Fixed(0) {
 				gutter = avatar
@@ -335,12 +335,12 @@ func (m Model) shouldGroup(previous *discord.Message, message discord.Message) b
 const separatorDatePadding = " "
 
 // separatorView returns the line with the date of message in the middle of it. It is made once, when the separator is added, as the list builds every item each time it is laid out.
-func (m Model) separatorView(message discord.Message) tview.Widget {
+func (m Model) separatorView(message discord.Message) tui.Widget {
 	date := message.Timestamp.Time().In(time.Local).Format(m.cfg.DateSeparator.Format)
 	style := m.cfg.Theme.MessagesList.MessageStyle.Dim(true)
 	return box.New(spacer.New()).
-		Borders(tview.BordersTop).
-		BorderSet(tview.BorderSet{Top: m.cfg.DateSeparator.Character}).
+		Borders(tui.BordersTop).
+		BorderSet(tui.BorderSet{Top: m.cfg.DateSeparator.Character}).
 		BorderStyle(style).
 		// The separator is kept, so its date is laid out once.
 		Title(text.New(separatorDatePadding + date + separatorDatePadding).Style(style).Wrapping(text.WrappingNone).Paragraph(new(text.Paragraph))).
@@ -432,7 +432,7 @@ func (m Model) selectedURLs() []string {
 }
 
 // prependOlder shows the older messages loaded above those of the same channel.
-func (m *Model) prependOlder(msg olderMessagesLoadedMsg) tview.Cmd {
+func (m *Model) prependOlder(msg olderMessagesLoadedMsg) tui.Cmd {
 	selectedChannel := m.channel
 	if selectedChannel == nil || selectedChannel.ID != msg.channelID {
 		return nil
@@ -479,7 +479,7 @@ func (m *Model) selectDown() {
 	}
 }
 
-func (m *Model) selectTop() tview.Cmd {
+func (m *Model) selectTop() tui.Cmd {
 	if m.atTop() {
 		return nil
 	}
@@ -560,18 +560,18 @@ func (m Model) contentRoot(item *messageItem) ast.Node {
 	return item.root
 }
 
-var _ tview.Model[Model] = Model{}
+var _ tui.Model[Model] = Model{}
 
-func (Model) Init() tview.Cmd { return nil }
+func (Model) Init() tui.Cmd { return nil }
 
 // Update returns m changed in response to msg and a command to run, or nil.
-func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
+func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	switch msg := msg.(type) {
 	case images.ChangedMsg:
 		m.images = msg
 		m.clearViews()
 		return m, nil
-	case tview.KeyMsg:
+	case tui.KeyMsg:
 		keybinds := m.cfg.Keybinds.MessagesList
 		switch {
 		case keybind.Matches(msg, keybinds.Cancel.Keybind):
@@ -630,7 +630,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 	return m, nil
 }
 
-func (m Model) View() tview.Widget {
+func (m Model) View() tui.Widget {
 	return ui.Box(m.listView(), m.cfg, m.focused).
 		Title(ui.Label(m.title(), m.cfg.Theme.Title, m.focused)).
 		Footer(ui.Label(m.footer, m.cfg.Theme.Footer, m.focused))

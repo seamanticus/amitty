@@ -1,7 +1,7 @@
 package autocomplete
 
 import (
-	"github.com/ayn2op/tview/viewport"
+	"github.com/seamanticus/amitty/internal/tui/viewport"
 )
 
 // SetItemsMsg replaces the items; none hides the list.

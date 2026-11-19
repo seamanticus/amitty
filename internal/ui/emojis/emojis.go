@@ -5,11 +5,11 @@ import (
 	"iter"
 	"slices"
 
-	"github.com/ayn2op/tview"
-	tviewimage "github.com/ayn2op/tview/image"
-	"github.com/ayn2op/tview/text"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/ningen"
+	"github.com/seamanticus/amitty/internal/tui"
+	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
+	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/seamanticus/amitty/pkg/discordemoji"
 )
 
@@ -40,7 +40,7 @@ func All(s *ningen.State, gID discord.GuildID) iter.Seq2[string, discord.Emoji] 
 const separator = " "
 
 // Line returns emoji as drawn under name: a custom one in style after its image, if images has it, and a Unicode one before name.
-func Line(emoji discord.Emoji, name string, style tview.Style, images map[discord.URL]tviewimage.Widget) []text.Span {
+func Line(emoji discord.Emoji, name string, style tui.Style, images map[discord.URL]tuiimage.Widget) []text.Span {
 	if emoji.IsUnicode() {
 		return []text.Span{{Text: emoji.Name + separator + name}}
 	}

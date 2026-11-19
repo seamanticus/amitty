@@ -6,10 +6,10 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/ayn2op/tview"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/tui"
 )
 
 var errInvalidType = errors.New("invalid type")
@@ -33,7 +33,7 @@ var (
 	}
 )
 
-type Style struct{ tview.Style }
+type Style struct{ tui.Style }
 
 func (s *Style) UnmarshalTOML(value any) error {
 	table, ok := value.(map[string]any)
@@ -260,7 +260,7 @@ type TreeThemeConfig struct {
 }
 
 // StatusStyle returns the style for a user with status.
-func (t TreeThemeConfig) StatusStyle(status discord.Status) tview.Style {
+func (t TreeThemeConfig) StatusStyle(status discord.Status) tui.Style {
 	switch status.Visibility() {
 	case discord.ShownOnline:
 		return t.OnlineStyle.Style

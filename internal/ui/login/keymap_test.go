@@ -5,9 +5,9 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/ayn2op/tview/keybind"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
 )
 
 func TestModelShortHelp(t *testing.T) {

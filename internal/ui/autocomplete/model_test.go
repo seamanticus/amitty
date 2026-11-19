@@ -3,9 +3,9 @@ package autocomplete
 import (
 	"testing"
 
-	tviewimage "github.com/ayn2op/tview/image"
-	"github.com/ayn2op/tview/text"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
+	"github.com/seamanticus/amitty/internal/tui/text"
 )
 
 // item is an item drawn as its text.
@@ -13,7 +13,7 @@ type item string
 
 func (i item) Insert() string { return string(i) }
 
-func (i item) Line(map[discord.URL]tviewimage.Widget) []text.Span {
+func (i item) Line(map[discord.URL]tuiimage.Widget) []text.Span {
 	return []text.Span{{Text: string(i)}}
 }
 

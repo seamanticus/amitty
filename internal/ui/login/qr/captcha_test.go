@@ -7,13 +7,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/captcha"
 	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	dhttp "github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 )
 
 // challengeBody is a captcha response as Discord sends it.
@@ -82,7 +82,7 @@ func TestModelCaptcha(t *testing.T) {
 	t.Run("a challenge serves a page, up to the last try", func(t *testing.T) {
 		m := exchanging()
 		for try := 1; try <= captcha.MaxTries; try++ {
-			var command tview.Cmd
+			var command tui.Cmd
 			m, command = m.Update(captchaMsg{ticket: "tk", challenge: testChallenge(t)})
 			if m.captchaTries != try || command == nil || m.ended {
 				t.Fatalf("try %d: tries = %d, ended = %v, command = %v", try, m.captchaTries, m.ended, command)
@@ -124,7 +124,7 @@ func TestModelCaptcha(t *testing.T) {
 		m := exchanging()
 		page := testPage(t)
 		m.captcha = page
-		m, command := m.Update(tview.KeyMsg(tcell.NewEventKey(tcell.KeyEsc, "", tcell.ModNone)))
+		m, command := m.Update(tui.KeyMsg(tcell.NewEventKey(tcell.KeyEsc, "", tcell.ModNone)))
 		if !m.ended || m.captcha != nil {
 			t.Fatalf("ended = %v, captcha = %v", m.ended, m.captcha)
 		}
@@ -140,7 +140,7 @@ func TestModelCaptcha(t *testing.T) {
 
 	t.Run("an ended login drops captcha messages and closes a late page", func(t *testing.T) {
 		m, _ := exchanging().end("Canceled")
-		for _, msg := range []tview.Msg{captchaMsg{ticket: "tk", challenge: testChallenge(t)}, captchaSolvedMsg{ticket: "tk"}} {
+		for _, msg := range []tui.Msg{captchaMsg{ticket: "tk", challenge: testChallenge(t)}, captchaSolvedMsg{ticket: "tk"}} {
 			if got, command := m.Update(msg); command != nil || got.status != "Canceled" {
 				t.Fatalf("%T: status = %q, command = %v", msg, got.status, command)
 			}

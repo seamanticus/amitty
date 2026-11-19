@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ayn2op/tview"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/vt"
 	"github.com/seamanticus/amitty/internal/dmwire/api"
@@ -20,6 +19,7 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
 	dhttp "github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/tui"
 )
 
 // Client returns an API client without a token whose requests handler serves, with the path and query Discord would get.
@@ -56,7 +56,7 @@ func State(t testing.TB) *state.State {
 }
 
 // Draw draws widget on a width x height mock terminal and returns the text drawn, one line per row.
-func Draw(t testing.TB, widget tview.Widget, width, height int) string {
+func Draw(t testing.TB, widget tui.Widget, width, height int) string {
 	t.Helper()
 	screen, err := tcell.NewTerminfoScreenFromTty(vt.NewMockTerm(vt.MockOptSize{X: vt.Col(width), Y: vt.Row(height)}))
 	if err != nil {
@@ -67,7 +67,7 @@ func Draw(t testing.TB, widget tview.Widget, width, height int) string {
 	}
 	t.Cleanup(screen.Fini)
 
-	widget.Draw(screen, tview.Rectangle{Width: width, Height: height})
+	widget.Draw(screen, tui.Rectangle{Width: width, Height: height})
 	var drawn strings.Builder
 	for y := range height {
 		for x := range width {

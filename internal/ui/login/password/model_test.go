@@ -5,24 +5,24 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ayn2op/tview"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/discordtest"
 	dhttp "github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/tui"
 )
 
-var area = tview.Rectangle{Width: 40, Height: 7}
+var area = tui.Rectangle{Width: 40, Height: 7}
 
 // send delivers msg the way the application does: through the view, then Update.
-func send(m *Model, msg tview.Msg) (tview.Msg, tview.Cmd) {
-	var command tview.Cmd
+func send(m *Model, msg tui.Msg) (tui.Msg, tui.Cmd) {
+	var command tui.Cmd
 	if msg = m.View().Handle(msg, area); msg != nil {
 		*m, command = m.Update(msg)
 	}
 	return msg, command
 }
 
-func key(k tcell.Key, str string) tview.KeyMsg { return tcell.NewEventKey(k, str, tcell.ModNone) }
+func key(k tcell.Key, str string) tui.KeyMsg { return tcell.NewEventKey(k, str, tcell.ModNone) }
 
 func typeText(m *Model, s string) {
 	for _, r := range s {
@@ -148,7 +148,7 @@ func TestModelCountdown(t *testing.T) {
 	t.Run("each second shows the warning and ticks, and a second submit is still ignored", func(t *testing.T) {
 		m := start()
 		for left := dhttp.RetryDelay; left > 0; left-- {
-			var command tview.Cmd
+			var command tui.Cmd
 			m, command = m.Update(CountdownMsg{left: left, err: reason})
 			if m.retryIn != left || command == nil {
 				t.Fatalf("left %d: retryIn = %d, command = %v", left, m.retryIn, command)

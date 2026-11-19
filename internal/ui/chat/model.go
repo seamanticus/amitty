@@ -4,22 +4,11 @@ import (
 	"cmp"
 	"context"
 	"fmt"
-	"github.com/ayn2op/tview/layout"
+	"github.com/seamanticus/amitty/internal/tui/layout"
 	"log/slog"
 	"slices"
 	"time"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/backdrop"
-	"github.com/ayn2op/tview/center"
-	"github.com/ayn2op/tview/cmd"
-	"github.com/ayn2op/tview/column"
-	tviewimage "github.com/ayn2op/tview/image"
-	"github.com/ayn2op/tview/inert"
-	"github.com/ayn2op/tview/keybind"
-	"github.com/ayn2op/tview/picker"
-	"github.com/ayn2op/tview/row"
-	"github.com/ayn2op/tview/stack"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/consts"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
@@ -32,6 +21,17 @@ import (
 	clientgateway "github.com/seamanticus/amitty/internal/gateway"
 	"github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/ningen"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/backdrop"
+	"github.com/seamanticus/amitty/internal/tui/center"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
+	"github.com/seamanticus/amitty/internal/tui/column"
+	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
+	"github.com/seamanticus/amitty/internal/tui/inert"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
+	"github.com/seamanticus/amitty/internal/tui/picker"
+	"github.com/seamanticus/amitty/internal/tui/row"
+	"github.com/seamanticus/amitty/internal/tui/stack"
 	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/amitty/internal/ui/autocomplete"
 	"github.com/seamanticus/amitty/internal/ui/chat/attachmentspicker"
@@ -84,7 +84,7 @@ type Model struct {
 	typers map[discord.UserID]time.Time
 
 	// images are shared by the panes.
-	images map[discord.URL]tviewimage.Widget
+	images map[discord.URL]tuiimage.Widget
 	kitty  bool
 	// kittyImages counts the images sent to the terminal.
 	kittyImages int
@@ -98,7 +98,7 @@ type Model struct {
 func NewModel(cfg *config.Config, build http.Build, network http.Network, token string) Model {
 	m := Model{
 		typers: make(map[discord.UserID]time.Time),
-		images: make(map[discord.URL]tviewimage.Widget),
+		images: make(map[discord.URL]tuiimage.Widget),
 
 		token: token,
 		cfg:   cfg,
@@ -167,7 +167,7 @@ const (
 )
 
 // pickerView returns the view of the picker or prompt shown on top, or nil if none is open.
-func (m Model) pickerView() tview.Widget {
+func (m Model) pickerView() tui.Widget {
 	switch m.overlay {
 	case overlayChannelsPicker:
 		return m.channelsPicker.View()
@@ -239,11 +239,11 @@ func (m *Model) syncPanes() {
 	m.messagesList.SetAvatarWidth(int(squareCols(uint(m.cfg.UI.MessagesList.Avatars.Height), m.imageCell())))
 }
 
-func (m Model) update(msg tview.Msg) (Model, tview.Cmd) {
+func (m Model) update(msg tui.Msg) (Model, tui.Cmd) {
 	switch msg := msg.(type) {
 	case gateway.Event:
 		return m, cmd.Batch{m.applyEvent(msg), listen(m.eventsCtx, m.events)}
-	case tview.FocusMsg:
+	case tui.FocusMsg:
 		m.windowUnfocused = !msg.Focused
 		return m, nil
 	case guildstree.ChannelLoadedMsg:
@@ -267,7 +267,7 @@ func (m Model) update(msg tview.Msg) (Model, tview.Cmd) {
 		return m, cmd.Batch{m.clearImages(), cmd.SetTitle(title), m.messagesList.SetChannel(&msg.Channel, msg.Messages), membersCmd}
 	case messageslist.Msg:
 		return m, m.updatePane(paneMessagesList, msg)
-	case tview.ResizeMsg:
+	case tui.ResizeMsg:
 		cell := m.imageCell()
 		cols, rows := msg.Size()
 		width, height := msg.PixelSize()
@@ -276,7 +276,7 @@ func (m Model) update(msg tview.Msg) (Model, tview.Cmd) {
 			m.cellWidth, m.cellHeight = uint(width/cols), uint(height/rows)
 		}
 		return m, m.reloadImages(cell)
-	case tview.TerminalInfoMsg:
+	case tui.TerminalInfoMsg:
 		cell := m.imageCell()
 		m.kitty = m.isKitty(msg.Name)
 		return m, m.reloadImages(cell)
@@ -289,7 +289,7 @@ func (m Model) update(msg tview.Msg) (Model, tview.Cmd) {
 			return m, nil
 		}
 
-		image, command := msg.Image, tview.Cmd(nil)
+		image, command := msg.Image, tui.Cmd(nil)
 		if m.kitty {
 			m.kittyImages++
 			image = image.Kitty(m.kittyImages%maxKittyImages + 1).Compressor(newPooledCompressor)
@@ -320,7 +320,7 @@ func (m Model) update(msg tview.Msg) (Model, tview.Cmd) {
 		return m, nil
 	case messageslist.ShowReactionsMsg:
 		m.overlay = overlayReactionsPicker
-		var command tview.Cmd
+		var command tui.Cmd
 		m.reactionsPicker, command = m.reactionsPicker.Update(reactionspicker.ShowMsg(msg))
 		return m, command
 	case reactionspicker.SelectedMsg:
@@ -330,7 +330,7 @@ func (m Model) update(msg tview.Msg) (Model, tview.Cmd) {
 		m.overlay = overlayNone
 		return m, nil
 	case pathprompt.ShowMsg:
-		var command tview.Cmd
+		var command tui.Cmd
 		m.pathPrompt, command = pathprompt.New(m.cfg, msg)
 		m.overlay = overlayPathPrompt
 		return m, command
@@ -358,7 +358,7 @@ func (m Model) update(msg tview.Msg) (Model, tview.Cmd) {
 		return m, nil
 	case QuitMsg:
 		return m, closeState(m.state, m.stopEvents, StateClosedMsg{})
-	case tview.KeyMsg:
+	case tui.KeyMsg:
 		keybinds := m.cfg.Keybinds
 		switch {
 		case keybind.Matches(msg, keybinds.FocusGuildsTree.Keybind):
@@ -412,8 +412,8 @@ func (m Model) update(msg tview.Msg) (Model, tview.Cmd) {
 }
 
 // route sends msg to the open picker, which takes all input, and otherwise to the focused pane.
-func (m *Model) route(msg tview.Msg) tview.Cmd {
-	var cmd tview.Cmd
+func (m *Model) route(msg tui.Msg) tui.Cmd {
+	var cmd tui.Cmd
 	switch m.overlay {
 	case overlayChannelsPicker:
 		m.channelsPicker, cmd = m.channelsPicker.Update(msg)
@@ -432,8 +432,8 @@ func (m *Model) route(msg tview.Msg) tview.Cmd {
 }
 
 // updatePane updates pane target with msg.
-func (m *Model) updatePane(target pane, msg tview.Msg) tview.Cmd {
-	var cmd tview.Cmd
+func (m *Model) updatePane(target pane, msg tui.Msg) tui.Cmd {
+	var cmd tui.Cmd
 	switch target {
 	case paneGuildsTree:
 		m.guildsTree, cmd = m.guildsTree.Update(msg)
@@ -450,7 +450,7 @@ func (m *Model) updatePane(target pane, msg tview.Msg) tview.Cmd {
 // paneWidget passes input to the widget of a pane and marks mouse input within the pane as meant for it.
 type paneWidget struct {
 	pane  pane
-	child tview.Widget
+	child tui.Widget
 }
 
 func (p paneWidget) Size() (width, height layout.Length) {
@@ -461,15 +461,15 @@ func (p paneWidget) Layout(limits layout.Limits) layout.Size {
 	return p.child.Layout(limits)
 }
 
-func (p paneWidget) Draw(screen tview.Screen, area tview.Rectangle) {
+func (p paneWidget) Draw(screen tui.Screen, area tui.Rectangle) {
 	p.child.Draw(screen, area)
 }
 
-func (p paneWidget) Handle(msg tview.Msg, area tview.Rectangle) tview.Msg {
+func (p paneWidget) Handle(msg tui.Msg, area tui.Rectangle) tui.Msg {
 	out := p.child.Handle(msg, area)
 	// Mouse input the pane leaves, but for a press, goes on to the other panes, for a slider dragged out of one to follow the pointer.
-	if mouse, ok := msg.(tview.MouseMsg); ok && area.Contains(mouse.Position()) {
-		pressed := mouse.Action == tview.MouseLeftDown
+	if mouse, ok := msg.(tui.MouseMsg); ok && area.Contains(mouse.Position()) {
+		pressed := mouse.Action == tui.MouseLeftDown
 		if out != msg || pressed {
 			return paneMsg{pane: p.pane, msg: out, focus: pressed}
 		}
@@ -491,8 +491,8 @@ const (
 )
 
 // paneView returns the view of target, marked so that clicking it focuses it.
-func (m Model) paneView(target pane) tview.Widget {
-	var child tview.Widget
+func (m Model) paneView(target pane) tui.Widget {
+	var child tui.Widget
 	switch target {
 	case paneGuildsTree:
 		child = m.guildsTree.View()
@@ -580,21 +580,21 @@ func (m Model) typerName(channel discord.Channel, userID discord.UserID) string 
 	return channel.DMRecipients[index].DisplayOrUsername()
 }
 
-var _ tview.Model[Model] = Model{}
+var _ tui.Model[Model] = Model{}
 
-func (m Model) Init() tview.Cmd {
+func (m Model) Init() tui.Cmd {
 	return cmd.Batch{openState(m.state), listen(m.eventsCtx, m.events), m.guildsTree.Init(), m.messagesList.Init(), cmd.RequestTerminalInfo{}}
 }
 
 // Update returns m changed in response to msg and a command to run, or nil.
-func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
+func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	m, cmd := m.update(msg)
 	m.syncPanes()
 	return m, cmd
 }
 
 // View shows the panes, with the autocomplete over the messages and an open picker on top.
-func (m Model) View() tview.Widget {
+func (m Model) View() tui.Widget {
 	picker := m.pickerView()
 
 	messages := m.paneView(paneMessagesList)
@@ -602,7 +602,7 @@ func (m Model) View() tview.Widget {
 		messages = stack.New(messages, popup)
 	}
 
-	var right tview.Widget = column.New(messages, m.paneView(paneComposer))
+	var right tui.Widget = column.New(messages, m.paneView(paneComposer))
 
 	main := right
 	if m.membersTreeShown() {

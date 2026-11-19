@@ -6,12 +6,12 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 	"github.com/seamanticus/amitty/internal/ningen"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/amitty/internal/ui/chat/composer"
 	"github.com/seamanticus/amitty/internal/ui/chat/guildstree"
@@ -25,19 +25,19 @@ const closeCodeAuthenticationFailed = 4004
 type TokenRefreshedMsg string
 
 // refreshToken records token as the session's and asks for it to be stored, if it is new.
-func (m *Model) refreshToken(token string) tview.Cmd {
+func (m *Model) refreshToken(token string) tui.Cmd {
 	if token == "" || token == m.token {
 		return nil
 	}
 	m.token = token
-	return cmd.Task(func() tview.Msg { return TokenRefreshedMsg(token) })
+	return cmd.Task(func() tui.Msg { return TokenRefreshedMsg(token) })
 }
 
 // openTimeout bounds the wait for READY; the session keeps reconnecting on its own afterwards.
 const openTimeout = time.Minute
 
-func openState(state *ningen.State) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func openState(state *ningen.State) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), openTimeout)
 		defer cancel()
 
@@ -63,8 +63,8 @@ func isAuthenticationFailed(err error) bool {
 }
 
 // closeState stops the events, then closes the session, if any, before sending next, so that next comes after the session is gone.
-func closeState(state *ningen.State, stopEvents func(), next tview.Msg) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func closeState(state *ningen.State, stopEvents func(), next tui.Msg) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		if stopEvents != nil {
 			stopEvents()
 		}
@@ -78,8 +78,8 @@ func closeState(state *ningen.State, stopEvents func(), next tview.Msg) tview.Cm
 }
 
 // listen waits for the next event, or for ctx to end, which sends nothing.
-func listen(ctx context.Context, events *handler.Queue) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func listen(ctx context.Context, events *handler.Queue) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		ev, ok := events.Pop(ctx)
 		if !ok {
 			return nil
@@ -96,7 +96,7 @@ type (
 	StateClosedMsg struct{}
 )
 
-func (m *Model) setSelectedChannel(channel *discord.Channel) tview.Cmd {
+func (m *Model) setSelectedChannel(channel *discord.Channel) tui.Cmd {
 	m.selectedChannel = channel
 	m.composer.SetChannel(channel)
 	cmd := m.membersTree.SetChannel(channel)
@@ -106,9 +106,9 @@ func (m *Model) setSelectedChannel(channel *discord.Channel) tview.Cmd {
 	return cmd
 }
 
-func (m *Model) navigateToChannel(channelID discord.ChannelID) tview.Cmd {
+func (m *Model) navigateToChannel(channelID discord.ChannelID) tui.Cmd {
 	m.closePicker()
-	var cmd tview.Cmd
+	var cmd tui.Cmd
 	m.guildsTree, cmd = m.guildsTree.Update(guildstree.NavigateMsg{ChannelID: channelID})
 	return cmd
 }
@@ -116,7 +116,7 @@ func (m *Model) navigateToChannel(channelID discord.ChannelID) tview.Cmd {
 // paneMsg is what a pane's widget made of a mouse message within it. A left mouse button press also focuses the pane.
 type paneMsg struct {
 	pane  pane
-	msg   tview.Msg
+	msg   tui.Msg
 	focus bool
 }
 
@@ -126,17 +126,17 @@ type typingExpiredMsg struct {
 }
 
 // addTyper shows userID as typing and returns a command that ends it after the typing duration.
-func (m Model) addTyper(userID discord.UserID) tview.Cmd {
+func (m Model) addTyper(userID discord.UserID) tui.Cmd {
 	m.typers[userID] = time.Now().Add(composer.TypingDuration)
-	return cmd.Task(func() tview.Msg {
+	return cmd.Task(func() tui.Msg {
 		time.Sleep(composer.TypingDuration)
 		return typingExpiredMsg{userID}
 	})
 }
 
 // react reacts as msg asks. The reaction is shown once the gateway reports it.
-func (m Model) react(msg reactionspicker.SelectedMsg) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func (m Model) react(msg reactionspicker.SelectedMsg) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		if err := m.state.React(msg.ChannelID, msg.MessageID, msg.Emoji); err != nil {
 			slog.Error("failed to react", "channel_id", msg.ChannelID, "message_id", msg.MessageID, "emoji", msg.Emoji, "err", err)
 		}

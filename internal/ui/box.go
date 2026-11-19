@@ -1,14 +1,14 @@
 package ui
 
 import (
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/box"
-	"github.com/ayn2op/tview/text"
 	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/box"
+	"github.com/seamanticus/amitty/internal/tui/text"
 )
 
 // Box returns child in a box laid out and styled by cfg, highlighted while focused.
-func Box(child tview.Widget, cfg *config.Config, focused bool) box.Widget {
+func Box(child tui.Widget, cfg *config.Config, focused bool) box.Widget {
 	ui, theme := cfg.UI, cfg.Theme
 	padding := ui.Border.Padding
 	widget := box.New(child).
@@ -16,7 +16,7 @@ func Box(child tview.Widget, cfg *config.Config, focused bool) box.Widget {
 		TitleAlignment(ui.Title.Alignment.HorizontalAlignment).
 		FooterAlignment(ui.Footer.Alignment.HorizontalAlignment)
 	if ui.Border.Enabled {
-		widget = widget.Borders(tview.BordersAll)
+		widget = widget.Borders(tui.BordersAll)
 	}
 
 	if focused {
@@ -27,7 +27,7 @@ func Box(child tview.Widget, cfg *config.Config, focused bool) box.Widget {
 }
 
 // Label returns label on one line in the style of theme for whether its pane is focused, as the title or footer of a box, or nil if label is empty, so the box keeps no row for it.
-func Label(label string, theme config.StyleThemeConfig, focused bool) tview.Widget {
+func Label(label string, theme config.StyleThemeConfig, focused bool) tui.Widget {
 	if label == "" {
 		return nil
 	}

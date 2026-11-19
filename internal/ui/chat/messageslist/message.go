@@ -6,16 +6,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/layout"
-	"github.com/ayn2op/tview/row"
-	"github.com/ayn2op/tview/text"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	md "github.com/seamanticus/amitty/internal/dmwire/markdown"
 	"github.com/seamanticus/amitty/internal/dmwire/state"
 	"github.com/seamanticus/amitty/internal/markdown"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/layout"
+	"github.com/seamanticus/amitty/internal/tui/row"
+	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/seamanticus/amitty/internal/ui/emojis"
 	"github.com/yuin/goldmark/v2/ast"
 )
@@ -25,11 +25,11 @@ func (m Model) blocked(user discord.User) bool {
 }
 
 // messageText returns spans as text that fills its width, keeping its wrapped lines until the width changes, as the list measures every message when it draws.
-func messageText(spans []text.Span) tview.Widget {
+func messageText(spans []text.Span) tui.Widget {
 	return text.Rich(spans...).Width(layout.Fill).Wrapping(text.WrappingWordOrGlyph).Paragraph(new(text.Paragraph))
 }
 
-func (m Model) renderMessage(message discord.Message, root ast.Node, baseStyle tview.Style, grouped bool) []text.Span {
+func (m Model) renderMessage(message discord.Message, root ast.Node, baseStyle tui.Style, grouped bool) []text.Span {
 	builder := new(markdown.Builder)
 	m.writeMessage(builder, message, root, baseStyle, grouped)
 	// Without a header or content, the message starts with the line break that attachments and embeds start below.
@@ -47,7 +47,7 @@ func trimLeadingLineBreaks(spans []text.Span) []text.Span {
 	return spans
 }
 
-func (m Model) writeMessage(builder *markdown.Builder, message discord.Message, root ast.Node, baseStyle tview.Style, grouped bool) {
+func (m Model) writeMessage(builder *markdown.Builder, message discord.Message, root ast.Node, baseStyle tui.Style, grouped bool) {
 	if m.blocked(message.Author) {
 		builder.Write("Blocked message", baseStyle.Foreground(color.Red).Bold(true))
 		return
@@ -72,21 +72,21 @@ func (m Model) writeMessage(builder *markdown.Builder, message discord.Message, 
 }
 
 // reactionsView returns the reactions wrapped to the width of the message, with the image of each custom emoji that has one before its name, or nil if there are none.
-func (m Model) reactionsView(reactions []discord.Reaction) tview.Widget {
+func (m Model) reactionsView(reactions []discord.Reaction) tui.Widget {
 	if len(reactions) == 0 {
 		return nil
 	}
 
 	theme, cfg := m.cfg.Theme.MessagesList, m.cfg.UI.MessagesList.Reactions
-	separatorStyle := tview.MergeStyle(theme.MessageStyle.Style, theme.ReactionStyle.Style)
-	chips := make([]tview.Widget, len(reactions))
+	separatorStyle := tui.MergeStyle(theme.MessageStyle.Style, theme.ReactionStyle.Style)
+	chips := make([]tui.Widget, len(reactions))
 	for index, reaction := range reactions {
 		style := theme.ReactionStyle.Style
 		if reaction.Me {
 			style = theme.OwnReactionStyle.Style
 		}
 
-		style = tview.MergeStyle(theme.MessageStyle.Style, style)
+		style = tui.MergeStyle(theme.MessageStyle.Style, style)
 
 		emoji, hasImage := m.images[emojis.URLFromID(reaction.Emoji.ID)]
 		spans := []text.Span{{Text: m.reactionLabel(reaction, hasImage), Style: style}}
@@ -95,7 +95,7 @@ func (m Model) reactionsView(reactions []discord.Reaction) tview.Widget {
 			spans = append(spans, text.Span{Text: cfg.Separator, Style: separatorStyle})
 		}
 
-		var chip tview.Widget = text.Rich(spans...)
+		var chip tui.Widget = text.Rich(spans...)
 		if hasImage {
 			chip = row.New(emoji, chip).Spacing(1).Width(layout.Shrink).Height(layout.Shrink)
 		}
@@ -128,7 +128,7 @@ func (m Model) formatTimestamp(timestamp discord.Timestamp) string {
 const editedIndicator = "(edited)"
 
 // drawLayout draws the header of message, unless it is grouped, and its content.
-func (m Model) drawLayout(builder *markdown.Builder, message discord.Message, baseStyle tview.Style, grouped bool, content func()) {
+func (m Model) drawLayout(builder *markdown.Builder, message discord.Message, baseStyle tui.Style, grouped bool, content func()) {
 	if m.cfg.UI.MessagesList.Compact {
 		m.drawCompact(builder, message, baseStyle, grouped, content)
 		return
@@ -137,7 +137,7 @@ func (m Model) drawLayout(builder *markdown.Builder, message discord.Message, ba
 	m.drawCozy(builder, message, baseStyle, grouped, content)
 }
 
-func (m Model) drawCompact(builder *markdown.Builder, message discord.Message, baseStyle tview.Style, grouped bool, content func()) {
+func (m Model) drawCompact(builder *markdown.Builder, message discord.Message, baseStyle tui.Style, grouped bool, content func()) {
 	dimStyle := baseStyle.Dim(true)
 	if m.cfg.Timestamps.Enabled {
 		builder.Write(m.formatTimestamp(message.Timestamp), dimStyle)
@@ -160,7 +160,7 @@ func (m Model) drawCompact(builder *markdown.Builder, message discord.Message, b
 	}
 }
 
-func (m Model) drawCozy(builder *markdown.Builder, message discord.Message, baseStyle tview.Style, grouped bool, content func()) {
+func (m Model) drawCozy(builder *markdown.Builder, message discord.Message, baseStyle tui.Style, grouped bool, content func()) {
 	dimStyle := baseStyle.Dim(true)
 	if grouped {
 		if content != nil {
@@ -190,7 +190,7 @@ func (m Model) drawCozy(builder *markdown.Builder, message discord.Message, base
 	}
 }
 
-func (m Model) drawAuthor(builder *markdown.Builder, message discord.Message, baseStyle tview.Style) {
+func (m Model) drawAuthor(builder *markdown.Builder, message discord.Message, baseStyle tui.Style) {
 	name := message.Author.DisplayOrUsername()
 	foreground := tcell.ColorDefault
 
@@ -227,7 +227,7 @@ func (m Model) memberForMessage(message discord.Message) *discord.Member {
 }
 
 // drawContent renders the message body. root is its parsed content, or nil to parse it here.
-func (m Model) drawContent(builder *markdown.Builder, message discord.Message, root ast.Node, baseStyle tview.Style) {
+func (m Model) drawContent(builder *markdown.Builder, message discord.Message, root ast.Node, baseStyle tui.Style) {
 	if root == nil && m.cfg.Markdown.Enabled {
 		root = m.parse(message)
 	}
@@ -250,7 +250,7 @@ func (m Model) drawContent(builder *markdown.Builder, message discord.Message, r
 }
 
 // root is the parsed content of message, or nil to parse it here.
-func (m Model) renderContent(message discord.Message, root ast.Node, baseStyle tview.Style, forceMarkdown bool) []text.Span {
+func (m Model) renderContent(message discord.Message, root ast.Node, baseStyle tui.Style, forceMarkdown bool) []text.Span {
 	// Keep one rendering path for both normal messages and embed fragments so we preserve mention/link parsing behavior consistently across both.
 	if forceMarkdown || m.cfg.Markdown.Enabled {
 		if root == nil {
@@ -265,7 +265,7 @@ func (m Model) renderContent(message discord.Message, root ast.Node, baseStyle t
 	return builder.Finish()
 }
 
-func (m Model) drawSnapshotContent(builder *markdown.Builder, parent discord.Message, snapshot discord.MessageSnapshotMessage, baseStyle tview.Style) {
+func (m Model) drawSnapshotContent(builder *markdown.Builder, parent discord.Message, snapshot discord.MessageSnapshotMessage, baseStyle tui.Style) {
 	// Convert discord.MessageSnapshotMessage to discord.Message with common fields.
 	message := discord.Message{
 		Type:            snapshot.Type,
@@ -285,7 +285,7 @@ func (m Model) drawSnapshotContent(builder *markdown.Builder, parent discord.Mes
 	m.drawContent(builder, message, nil, baseStyle)
 }
 
-func (m Model) drawDefaultMessage(builder *markdown.Builder, message discord.Message, root ast.Node, baseStyle tview.Style, grouped bool) {
+func (m Model) drawDefaultMessage(builder *markdown.Builder, message discord.Message, root ast.Node, baseStyle tui.Style, grouped bool) {
 	content := func() { m.drawContent(builder, message, root, baseStyle) }
 	if message.Content == "" {
 		content = nil
@@ -293,7 +293,7 @@ func (m Model) drawDefaultMessage(builder *markdown.Builder, message discord.Mes
 
 	m.drawLayout(builder, message, baseStyle, grouped, content)
 
-	attachmentStyle := tview.MergeStyle(baseStyle, m.cfg.Theme.MessagesList.AttachmentStyle.Style)
+	attachmentStyle := tui.MergeStyle(baseStyle, m.cfg.Theme.MessagesList.AttachmentStyle.Style)
 	for _, attachment := range message.Attachments {
 		builder.NewLine()
 		if !m.cfg.UI.MessagesList.Attachments.ShowLinks {
@@ -307,7 +307,7 @@ func (m Model) drawDefaultMessage(builder *markdown.Builder, message discord.Mes
 	}
 }
 
-func (m Model) drawForwardedMessage(builder *markdown.Builder, message discord.Message, baseStyle tview.Style, grouped bool) {
+func (m Model) drawForwardedMessage(builder *markdown.Builder, message discord.Message, baseStyle tui.Style, grouped bool) {
 	dimStyle := baseStyle.Dim(true)
 	m.drawLayout(builder, message, baseStyle, grouped, func() {
 		builder.Write(m.cfg.UI.MessagesList.ForwardedIndicator, dimStyle)
@@ -319,7 +319,7 @@ func (m Model) drawForwardedMessage(builder *markdown.Builder, message discord.M
 	})
 }
 
-func (m Model) drawReply(builder *markdown.Builder, message discord.Message, baseStyle tview.Style) {
+func (m Model) drawReply(builder *markdown.Builder, message discord.Message, baseStyle tui.Style) {
 	dimStyle := baseStyle.Dim(true)
 	builder.Write(m.cfg.UI.MessagesList.ReplyIndicator, dimStyle)
 	builder.Write(" ", baseStyle)
@@ -334,7 +334,7 @@ func (m Model) drawReply(builder *markdown.Builder, message discord.Message, bas
 	}
 }
 
-func drawPinnedMessage(builder *markdown.Builder, message discord.Message, baseStyle tview.Style) {
+func drawPinnedMessage(builder *markdown.Builder, message discord.Message, baseStyle tui.Style) {
 	builder.Write(message.Author.DisplayOrUsername()+" pinned a message.", baseStyle)
 }
 

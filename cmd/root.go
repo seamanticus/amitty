@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ayn2op/tview"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/consts"
@@ -17,6 +16,7 @@ import (
 	"github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/logger"
 	"github.com/seamanticus/amitty/internal/tokenstore"
+	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/seamanticus/amitty/internal/ui/root"
 )
 
@@ -85,7 +85,7 @@ func Run() error {
 		screen.EnableFocus()
 	}
 
-	return tview.NewApplication(root.NewModel(cfg, build, network, store, token), tview.WithScreen(screen)).Run()
+	return tui.NewApplication(root.NewModel(cfg, build, network, store, token), tui.WithScreen(screen)).Run()
 }
 
 // loadToken opens the token store of cfg and decrypts its token before the screen starts, so a passphrase prompt owns the terminal. An empty token means none is stored.

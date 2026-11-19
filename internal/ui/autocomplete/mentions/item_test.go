@@ -5,11 +5,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	tviewimage "github.com/ayn2op/tview/image"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/ningen"
+	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
 	"github.com/seamanticus/amitty/internal/ui/autocomplete"
 )
 
@@ -65,7 +65,7 @@ func loadItems(t *testing.T, cfg *config.Config, s *ningen.State, channel *disco
 func TestMentionLine(t *testing.T) {
 	loaded := mention{name: "ann", avatar: "ann.png"}
 	// Only the avatar of loaded is loaded.
-	images := map[discord.URL]tviewimage.Widget{loaded.avatar: tviewimage.New(image.NewAlpha(image.Rect(0, 0, 2, 2))).Width(2)}
+	images := map[discord.URL]tuiimage.Widget{loaded.avatar: tuiimage.New(image.NewAlpha(image.Rect(0, 0, 2, 2))).Width(2)}
 	for _, test := range []struct {
 		name    string
 		mention mention

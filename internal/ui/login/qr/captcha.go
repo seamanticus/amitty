@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
 	"github.com/seamanticus/amitty/internal/captcha"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/ui"
 )
 
@@ -34,8 +34,8 @@ type captchaSolvedMsg struct {
 	solution captcha.Solution
 }
 
-func serveCaptcha(ticket string, challenge captcha.Challenge) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func serveCaptcha(ticket string, challenge captcha.Challenge) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		page, err := captcha.Serve(context.Background(), challenge)
 		if err != nil {
 			return err
@@ -45,8 +45,8 @@ func serveCaptcha(ticket string, challenge captcha.Challenge) tview.Cmd {
 }
 
 // openCaptcha opens page in the browser. It can block until a browser it started exits, so it runs apart from waitCaptcha.
-func openCaptcha(page *captcha.Page) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func openCaptcha(page *captcha.Page) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		if err := ui.OpenExternal(context.Background(), page.URL()); err != nil {
 			return captchaOpenFailedMsg{page: page, err: err}
 		}
@@ -55,8 +55,8 @@ func openCaptcha(page *captcha.Page) tview.Cmd {
 }
 
 // waitCaptcha waits for the answer to page, which closes itself after captcha.AnswerTimeout.
-func waitCaptcha(ticket string, page *captcha.Page) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func waitCaptcha(ticket string, page *captcha.Page) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		solution, err := page.Wait(context.Background())
 		if err != nil {
 			return err
@@ -65,18 +65,18 @@ func waitCaptcha(ticket string, page *captcha.Page) tview.Cmd {
 	})
 }
 
-func closeCaptcha(page *captcha.Page) tview.Cmd {
+func closeCaptcha(page *captcha.Page) tui.Cmd {
 	if page == nil {
 		return nil
 	}
-	return cmd.Task(func() tview.Msg {
+	return cmd.Task(func() tui.Msg {
 		page.Close()
 		return nil
 	})
 }
 
 // updateCaptcha steps the captcha of the ticket exchange in flight; messages of a login that ended are dropped.
-func (m Model) updateCaptcha(msg tview.Msg) (Model, tview.Cmd) {
+func (m Model) updateCaptcha(msg tui.Msg) (Model, tui.Cmd) {
 	switch msg := msg.(type) {
 	case captchaMsg:
 		if m.ended {

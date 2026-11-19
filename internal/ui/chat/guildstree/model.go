@@ -5,16 +5,16 @@ import (
 	"log/slog"
 	"slices"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/keybind"
-	"github.com/ayn2op/tview/tree"
-	"github.com/ayn2op/tview/viewport"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/internal/ningen/states/read"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
+	"github.com/seamanticus/amitty/internal/tui/tree"
+	"github.com/seamanticus/amitty/internal/tui/viewport"
 	"github.com/seamanticus/amitty/internal/ui"
 	uitree "github.com/seamanticus/amitty/internal/ui/tree"
 )
@@ -201,12 +201,12 @@ func (m Model) createFolderNode(folder gateway.GuildFolder, guildsByID map[disco
 	}
 }
 
-func (m Model) guildNodeStyle(guildID discord.GuildID) tview.Style {
+func (m Model) guildNodeStyle(guildID discord.GuildID) tui.Style {
 	indication := m.state.GuildIsUnread(guildID, ningen.GuildUnreadOpts{IncludeMutedCategories: true})
 	return unreadStyle(indication)
 }
 
-func (m Model) channelNodeStyle(channel discord.Channel) tview.Style {
+func (m Model) channelNodeStyle(channel discord.Channel) tui.Style {
 	unread := unreadStyle(m.state.ChannelIsUnread(channel.ID, ningen.UnreadOpts{IncludeMutedCategories: true}))
 	if channel.Type != discord.DirectMessage || len(channel.DMRecipients) != 1 {
 		return unread
@@ -215,10 +215,10 @@ func (m Model) channelNodeStyle(channel discord.Channel) tview.Style {
 	recipient := channel.DMRecipients[0]
 	presence, err := m.state.Cabinet.Presence(discord.NoGuild(), recipient.ID)
 	if err != nil {
-		return tview.MergeStyle(m.cfg.Theme.GuildsTree.StatusStyle(discord.OfflineStatus), unread)
+		return tui.MergeStyle(m.cfg.Theme.GuildsTree.StatusStyle(discord.OfflineStatus), unread)
 	}
 
-	return tview.MergeStyle(m.cfg.Theme.GuildsTree.StatusStyle(presence.Status), unread)
+	return tui.MergeStyle(m.cfg.Theme.GuildsTree.StatusStyle(presence.Status), unread)
 }
 
 func (m Model) createGuildNode(parent *tree.Node, guild discord.Guild) {
@@ -265,7 +265,7 @@ func expandable(node *tree.Node) bool {
 }
 
 // setNodeNameStyle styles the name of node, which is the first span of its text.
-func setNodeNameStyle(node *tree.Node, style tview.Style) {
+func setNodeNameStyle(node *tree.Node, style tui.Style) {
 	spans := node.Spans()
 	spans[0].Style = style
 	node.SetSpans(spans...)
@@ -483,8 +483,8 @@ func (m Model) expandPathToNode(node *tree.Node) {
 	}
 }
 
-func unreadStyle(indication ningen.UnreadIndication) tview.Style {
-	var style tview.Style
+func unreadStyle(indication ningen.UnreadIndication) tui.Style {
+	var style tui.Style
 	switch indication {
 	case ningen.ChannelRead:
 		style = style.Dim(true)
@@ -497,12 +497,12 @@ func unreadStyle(indication ningen.UnreadIndication) tview.Style {
 	return style
 }
 
-var _ tview.Model[Model] = Model{}
+var _ tui.Model[Model] = Model{}
 
-func (Model) Init() tview.Cmd { return nil }
+func (Model) Init() tui.Cmd { return nil }
 
 // Update returns m changed in response to msg and a command to run, or nil.
-func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
+func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	switch msg := msg.(type) {
 	case *gateway.ReadyEvent:
 		m.rebuild(msg)
@@ -533,7 +533,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 	case selectedMsg:
 		m.setCurrentNode(msg.node)
 		return m, m.selectNode(msg.node)
-	case tview.KeyMsg:
+	case tui.KeyMsg:
 		keybinds := m.cfg.Keybinds.GuildsTree
 		switch {
 		case keybind.Matches(msg, keybinds.CollapseAll.Keybind):
@@ -557,9 +557,9 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 }
 
 // View shows the tree in a box titled Guilds.
-func (m Model) View() tview.Widget {
-	onChange := func(current *tree.Node) tview.Msg { return currentMsg{current} }
-	onSelect := func(n *tree.Node) tview.Msg { return selectedMsg{node: n} }
+func (m Model) View() tui.Widget {
+	onChange := func(current *tree.Node) tui.Msg { return currentMsg{current} }
+	onSelect := func(n *tree.Node) tui.Msg { return selectedMsg{node: n} }
 	return uitree.New(
 		m.root,
 		m.current,

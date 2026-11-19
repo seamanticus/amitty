@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/ayn2op/tview/keybind"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
 )
 
 type Keybind struct {

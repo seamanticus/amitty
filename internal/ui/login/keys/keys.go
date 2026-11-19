@@ -1,7 +1,7 @@
 // Package keys holds the keybinds of the login screen, shared by its tabs.
 package keys
 
-import "github.com/ayn2op/tview/keybind"
+import "github.com/seamanticus/amitty/internal/tui/keybind"
 
 func PreviousTab() keybind.Keybind { return keybind.NewSingleKeybind("ctrl+h", "prev tab") }
 func NextTab() keybind.Keybind     { return keybind.NewSingleKeybind("ctrl+l", "next tab") }

@@ -3,15 +3,15 @@ package password
 import (
 	"strings"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/button"
-	"github.com/ayn2op/tview/column"
-	"github.com/ayn2op/tview/keybind"
-	"github.com/ayn2op/tview/layout"
-	"github.com/ayn2op/tview/row"
-	"github.com/ayn2op/tview/text"
-	"github.com/ayn2op/tview/textinput"
 	"github.com/gdamore/tcell/v3"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/button"
+	"github.com/seamanticus/amitty/internal/tui/column"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
+	"github.com/seamanticus/amitty/internal/tui/layout"
+	"github.com/seamanticus/amitty/internal/tui/row"
+	"github.com/seamanticus/amitty/internal/tui/text"
+	"github.com/seamanticus/amitty/internal/tui/textinput"
 	"github.com/seamanticus/amitty/internal/ui/login/keys"
 )
 
@@ -70,13 +70,13 @@ func (c codeForm) keybinds() []keybind.Keybind {
 	return append(binds, keys.Back("back"))
 }
 
-func (m Model) updateCode(msg tview.Msg) (Model, tview.Cmd) {
+func (m Model) updateCode(msg tui.Msg) (Model, tui.Cmd) {
 	switch msg := msg.(type) {
 	case codeMsg:
 		m.code.text, m.code.cursor = msg.text, msg.cursor
 	case codeFocusMsg:
 		m.code.focus = codeFocus(msg)
-	case tview.KeyMsg:
+	case tui.KeyMsg:
 		switch {
 		case keybind.Matches(msg, keys.FocusNext()):
 			m.code.focus = m.code.moveFocus(1)
@@ -109,7 +109,7 @@ func (m Model) updateCode(msg tview.Msg) (Model, tview.Cmd) {
 	return m, nil
 }
 
-func (m Model) viewCode() tview.Widget {
+func (m Model) viewCode() tui.Widget {
 	c := m.code
 	methods := row.New().Spacing(2)
 	for method := range methodCount {
@@ -128,7 +128,7 @@ func (m Model) viewCode() tview.Widget {
 
 	input := textinput.New(c.text, c.cursor).
 		Focused(c.focus == codeFocusInput).
-		OnInput(func(text string, cursor int) tview.Msg { return codeMsg{text, cursor} }).
+		OnInput(func(text string, cursor int) tui.Msg { return codeMsg{text, cursor} }).
 		OnSubmit(verifyMsg{})
 
 	label := "Verify"
@@ -148,7 +148,7 @@ func (m Model) viewCode() tview.Widget {
 		status = append(status, "Code sent to "+c.phone)
 	}
 	status = append(status, keys.Back("").Help().Key+": back")
-	var warning tview.Widget
+	var warning tui.Widget
 	if m.retryIn > 0 {
 		warning = retryWarning(m.retryIn, m.retryReason)
 	}
@@ -159,11 +159,11 @@ func (m Model) viewCode() tview.Widget {
 		buttons,
 		text.New(strings.Join(status, " - ")),
 		warning,
-	).Spacing(1).AlignX(tview.HorizontalAlignmentCenter)
+	).Spacing(1).AlignX(tui.HorizontalAlignmentCenter)
 }
 
 // codeButton is a button of the code form that sends onClick.
-func codeButton(label string, focused bool, onClick tview.Msg) tview.Widget {
+func codeButton(label string, focused bool, onClick tui.Msg) tui.Widget {
 	return button.New(text.New(label)).
 		Style(buttonStyle(focused, false)).
 		Width(layout.Fixed(len(label) + 4)).

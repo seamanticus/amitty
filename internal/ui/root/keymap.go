@@ -1,8 +1,8 @@
 package root
 
 import (
-	"github.com/ayn2op/tview/help"
-	"github.com/ayn2op/tview/keybind"
+	"github.com/seamanticus/amitty/internal/tui/help"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
 	"github.com/seamanticus/amitty/internal/ui/chat"
 	"github.com/seamanticus/amitty/internal/ui/login"
 )

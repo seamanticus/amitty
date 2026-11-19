@@ -5,10 +5,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ayn2op/tview"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
+	"github.com/seamanticus/amitty/internal/tui"
 )
 
 // codeHeight fits the code form.
@@ -27,7 +27,7 @@ func codingModel(t *testing.T, methods ...method) Model {
 	return m
 }
 
-func sendCode(m *Model, msg tview.Msg) { send(m, msg) }
+func sendCode(m *Model, msg tui.Msg) { send(m, msg) }
 
 func TestModelMFA(t *testing.T) {
 	t.Run("the code step clears the password and unlocks", func(t *testing.T) {

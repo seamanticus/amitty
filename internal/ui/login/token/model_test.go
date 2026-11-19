@@ -4,24 +4,24 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/discordtest"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 )
 
-var area = tview.Rectangle{Width: 40, Height: 5}
+var area = tui.Rectangle{Width: 40, Height: 5}
 
 // send delivers msg the way the application does: through the view, then Update.
-func send(m *Model, msg tview.Msg) (tview.Msg, tview.Cmd) {
-	var command tview.Cmd
+func send(m *Model, msg tui.Msg) (tui.Msg, tui.Cmd) {
+	var command tui.Cmd
 	if msg = m.View().Handle(msg, area); msg != nil {
 		*m, command = m.Update(msg)
 	}
 	return msg, command
 }
 
-func key(k tcell.Key, str string) tview.KeyMsg { return tcell.NewEventKey(k, str, tcell.ModNone) }
+func key(k tcell.Key, str string) tui.KeyMsg { return tcell.NewEventKey(k, str, tcell.ModNone) }
 
 func TestModelUpdate(t *testing.T) {
 	t.Run("typing fills the token and Enter moves to the button", func(t *testing.T) {

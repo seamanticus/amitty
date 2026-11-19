@@ -1,23 +1,23 @@
 package root
 
 import (
-	"github.com/ayn2op/tview/layout"
+	"github.com/seamanticus/amitty/internal/tui/layout"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/backdrop"
-	"github.com/ayn2op/tview/box"
-	"github.com/ayn2op/tview/cmd"
-	"github.com/ayn2op/tview/column"
-	"github.com/ayn2op/tview/dialog"
-	"github.com/ayn2op/tview/help"
-	"github.com/ayn2op/tview/inert"
-	"github.com/ayn2op/tview/keybind"
-	"github.com/ayn2op/tview/stack"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/consts"
 	"github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/tokenstore"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/backdrop"
+	"github.com/seamanticus/amitty/internal/tui/box"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
+	"github.com/seamanticus/amitty/internal/tui/column"
+	"github.com/seamanticus/amitty/internal/tui/dialog"
+	"github.com/seamanticus/amitty/internal/tui/help"
+	"github.com/seamanticus/amitty/internal/tui/inert"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
+	"github.com/seamanticus/amitty/internal/tui/stack"
 	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/amitty/internal/ui/chat"
 	"github.com/seamanticus/amitty/internal/ui/login"
@@ -34,7 +34,7 @@ type Model struct {
 	dialog      *ui.DialogMsg
 	dialogFocus int
 	// resize is the last size of the window, or nil before the first, kept for the models shown later.
-	resize tview.ResizeMsg
+	resize tui.ResizeMsg
 
 	cfg *config.Config
 	// build is what every request and the gateway identify as, fetched once at startup.
@@ -59,11 +59,11 @@ func NewModel(cfg *config.Config, build http.Build, network http.Network, store 
 // step is a screen changed by a message and the command it returned.
 type step struct {
 	screen screen
-	cmd    tview.Cmd
+	cmd    tui.Cmd
 }
 
 // updateScreen updates the model shown above help with msg.
-func (m *Model) updateScreen(msg tview.Msg) tview.Cmd {
+func (m *Model) updateScreen(msg tui.Msg) tui.Cmd {
 	next := m.screen.Match(
 		func(l login.Model) step {
 			l, c := l.Update(msg)
@@ -97,7 +97,7 @@ type (
 )
 
 // dialogView returns the view of the open dialog.
-func (m Model) dialogView() tview.Widget {
+func (m Model) dialogView() tui.Widget {
 	labels := make([]string, len(m.dialog.Buttons))
 	for i, button := range m.dialog.Buttons {
 		labels[i] = button.Label
@@ -109,8 +109,8 @@ func (m Model) dialogView() tview.Widget {
 		Focus(m.dialogFocus).
 		ButtonStyle(style).
 		ActivatedStyle(style.Reverse(true)).
-		OnFocus(func(i int) tview.Msg { return dialogFocusMsg(i) }).
-		OnDone(func(i int, _ string) tview.Msg { return dialogDoneMsg(i) })
+		OnFocus(func(i int) tui.Msg { return dialogFocusMsg(i) }).
+		OnDone(func(i int, _ string) tui.Msg { return dialogDoneMsg(i) })
 	if bg := style.GetBackground(); bg != tcell.ColorDefault {
 		widget = widget.Background(bg)
 	}
@@ -128,9 +128,9 @@ func (m *Model) toggleHelp() {
 	}
 }
 
-var _ tview.Model[Model] = Model{}
+var _ tui.Model[Model] = Model{}
 
-func (m Model) Init() tview.Cmd {
+func (m Model) Init() tui.Cmd {
 	return cmd.Batch{
 		cmd.SetTitle(consts.Name),
 		initClipboard(),
@@ -139,7 +139,7 @@ func (m Model) Init() tview.Cmd {
 }
 
 // Update returns m changed in response to msg and a command to run, or nil.
-func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
+func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	switch msg := msg.(type) {
 	case storedMsg:
 		command := m.showChat(msg.token)
@@ -181,7 +181,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 	case dialogDoneMsg:
 		return m, m.finishDialog(int(msg))
 
-	case tview.KeyMsg:
+	case tui.KeyMsg:
 		// The dialog takes all input while it is open, so nothing behind it reacts.
 		if m.dialog != nil {
 			return m, nil
@@ -206,11 +206,11 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 				ui.DialogButton{Label: "Yes", Cmd: m.quit()},
 			)
 		}
-	case tview.PasteMsg:
+	case tui.PasteMsg:
 		if m.dialog != nil {
 			return m, nil
 		}
-	case tview.ResizeMsg:
+	case tui.ResizeMsg:
 		m.resize = msg
 	}
 
@@ -218,11 +218,11 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 }
 
 // View shows the inner model above help, with the dialog on top of both when one is open.
-func (m Model) View() tview.Widget {
-	var helpView tview.Widget
+func (m Model) View() tui.Widget {
+	var helpView tui.Widget
 	innerView := m.screen.Match(
-		func(l login.Model) tview.Widget { return l.View() },
-		func(c chat.Model) tview.Widget { return c.View() },
+		func(l login.Model) tui.Widget { return l.View() },
+		func(c chat.Model) tui.Widget { return c.View() },
 	)
 	if m.helpVisible {
 		helpView = box.New(m.helpView()).Padding(0, 0, m.cfg.Help.Padding[0], m.cfg.Help.Padding[1]).Height(layout.Shrink)

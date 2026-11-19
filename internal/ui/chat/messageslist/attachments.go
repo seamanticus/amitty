@@ -10,15 +10,15 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
-	"github.com/ayn2op/tview/picker"
-	"github.com/ayn2op/tview/text"
 	fhttp "github.com/bogdanfinn/fhttp"
 	"github.com/seamanticus/amitty/internal/consts"
 	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
+	"github.com/seamanticus/amitty/internal/tui/picker"
+	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/amitty/internal/ui/chat/pathprompt"
 )
@@ -26,15 +26,15 @@ import (
 // ShowAttachmentsMsg asks to pick one of the attachments and links of the selected message.
 type ShowAttachmentsMsg picker.Items
 
-func (m Model) open() tview.Cmd {
+func (m Model) open() tui.Cmd {
 	return m.openWith(m.openAttachment)
 }
 
-func (m Model) openInBrowser() tview.Cmd {
-	return m.openWith(func(attachment discord.Attachment) tview.Cmd { return openURL(attachment.URL) })
+func (m Model) openInBrowser() tui.Cmd {
+	return m.openWith(func(attachment discord.Attachment) tui.Cmd { return openURL(attachment.URL) })
 }
 
-func (m Model) openWith(openAttachment func(discord.Attachment) tview.Cmd) tview.Cmd {
+func (m Model) openWith(openAttachment func(discord.Attachment) tui.Cmd) tui.Cmd {
 	selectedMessage, ok := m.selectedMessage()
 	if !ok {
 		return nil
@@ -53,7 +53,7 @@ func (m Model) openWith(openAttachment func(discord.Attachment) tview.Cmd) tview
 	return openAttachment(selectedMessage.Attachments[0])
 }
 
-func (m Model) download() tview.Cmd {
+func (m Model) download() tui.Cmd {
 	selectedMessage, ok := m.selectedMessage()
 	if !ok || len(selectedMessage.Attachments) == 0 {
 		return nil
@@ -70,7 +70,7 @@ func (m Model) download() tview.Cmd {
 	return showAttachmentsPicker(items)
 }
 
-func (m Model) showAttachmentsList(urls []string, attachments []discord.Attachment, openAttachment func(discord.Attachment) tview.Cmd) tview.Cmd {
+func (m Model) showAttachmentsList(urls []string, attachments []discord.Attachment, openAttachment func(discord.Attachment) tui.Cmd) tui.Cmd {
 	var items picker.Items
 	for _, attachment := range attachments {
 		items = append(items, picker.Item{Content: text.New(attachment.Filename), FilterText: attachment.Filename, Reference: openAttachment(attachment)})
@@ -81,15 +81,15 @@ func (m Model) showAttachmentsList(urls []string, attachments []discord.Attachme
 	return showAttachmentsPicker(items)
 }
 
-func showAttachmentsPicker(items picker.Items) tview.Cmd {
-	return cmd.Task(func() tview.Msg { return ShowAttachmentsMsg(items) })
+func showAttachmentsPicker(items picker.Items) tui.Cmd {
+	return cmd.Task(func() tui.Msg { return ShowAttachmentsMsg(items) })
 }
 
-func (m Model) openAttachment(attachment discord.Attachment) tview.Cmd {
+func (m Model) openAttachment(attachment discord.Attachment) tui.Cmd {
 	return m.confirmAttachment(attachment, m.openDownloadedAttachment(attachment))
 }
 
-func (m Model) confirmAttachment(attachment discord.Attachment, action tview.Cmd) tview.Cmd {
+func (m Model) confirmAttachment(attachment discord.Attachment, action tui.Cmd) tui.Cmd {
 	if !m.cfg.UI.MessagesList.Attachments.AllowedMIMETypes.Has(attachment.ContentType) {
 		return ui.ShowDialog(
 			"This attachment type is not allowed and may be unsafe. Continue anyway?",
@@ -114,8 +114,8 @@ func attachmentExtension(attachment discord.Attachment) string {
 	return ""
 }
 
-func (m Model) openDownloadedAttachment(attachment discord.Attachment) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func (m Model) openDownloadedAttachment(attachment discord.Attachment) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		dir := filepath.Join(consts.CacheDir(), "attachments")
 		if err := os.MkdirAll(dir, 0o700); err != nil {
 			return ui.ErrorDialog("create attachments dir", err)
@@ -142,11 +142,11 @@ func (m Model) openDownloadedAttachment(attachment discord.Attachment) tview.Cmd
 	})
 }
 
-func (m Model) saveAttachment(attachment discord.Attachment) tview.Cmd {
+func (m Model) saveAttachment(attachment discord.Attachment) tui.Cmd {
 	show := pathprompt.ShowMsg{
 		Title: "Save as",
 		Path:  filepath.Base(attachment.Filename),
-		Submit: func(destination string) tview.Cmd {
+		Submit: func(destination string) tui.Cmd {
 			info, err := os.Stat(destination)
 			if err == nil && info.IsDir() {
 				destination = filepath.Join(destination, filepath.Base(attachment.Filename))
@@ -159,11 +159,11 @@ func (m Model) saveAttachment(attachment discord.Attachment) tview.Cmd {
 			return save
 		},
 	}
-	return cmd.Task(func() tview.Msg { return show })
+	return cmd.Task(func() tui.Msg { return show })
 }
 
-func (m Model) downloadTo(attachment discord.Attachment, destination string) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func (m Model) downloadTo(attachment discord.Attachment, destination string) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		if err := m.downloadAttachment(attachment, destination); err != nil {
 			return ui.ErrorDialog("download attachment", err)
 		}
@@ -171,8 +171,8 @@ func (m Model) downloadTo(attachment discord.Attachment, destination string) tvi
 	})
 }
 
-func openURL(url string) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func openURL(url string) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		if err := ui.OpenExternal(context.Background(), url); err != nil {
 			return ui.ErrorDialog("open URL", err)
 		}

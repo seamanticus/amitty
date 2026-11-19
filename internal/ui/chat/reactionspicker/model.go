@@ -3,14 +3,14 @@ package reactionspicker
 import (
 	"strings"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
-	tviewimage "github.com/ayn2op/tview/image"
-	"github.com/ayn2op/tview/picker"
-	"github.com/ayn2op/tview/text"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/ningen"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
+	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
+	"github.com/seamanticus/amitty/internal/tui/picker"
+	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/seamanticus/amitty/internal/ui/emojis"
 	"github.com/seamanticus/amitty/internal/ui/images"
 	uipicker "github.com/seamanticus/amitty/internal/ui/picker"
@@ -22,7 +22,7 @@ type Model struct {
 	state *ningen.State
 	// reactions are those of the items, and images the chat model's, which loads them, by URL.
 	reactions []reaction
-	images    map[discord.URL]tviewimage.Widget
+	images    map[discord.URL]tuiimage.Widget
 	// channelID and messageID are of the message reacted to.
 	channelID discord.ChannelID
 	messageID discord.MessageID
@@ -49,9 +49,9 @@ func (m Model) items() picker.Items {
 	return items
 }
 
-var _ tview.Model[Model] = Model{}
+var _ tui.Model[Model] = Model{}
 
-func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
+func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	switch msg := msg.(type) {
 	case ShowMsg:
 		m.channelID, m.messageID, m.reactions = msg.ChannelID, msg.MessageID, nil
@@ -77,7 +77,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 }
 
 // loadImages requests the images of the shown custom emojis not loaded yet.
-func (m Model) loadImages() tview.Cmd {
+func (m Model) loadImages() tui.Cmd {
 	load := images.RequestedMsg{Squares: map[discord.URL]uint{}}
 	for _, item := range m.Visible() {
 		emoji := item.Reference.(discord.Emoji)
@@ -90,12 +90,12 @@ func (m Model) loadImages() tview.Cmd {
 	if len(load.Squares) == 0 {
 		return nil
 	}
-	return cmd.Task(func() tview.Msg { return load })
+	return cmd.Task(func() tui.Msg { return load })
 }
 
 // View shows the picker in a box titled Reactions.
-func (m Model) View() tview.Widget {
-	return m.Model.View(func(item picker.Item) tview.Msg {
+func (m Model) View() tui.Widget {
+	return m.Model.View(func(item picker.Item) tui.Msg {
 		emoji, ok := item.Reference.(discord.Emoji)
 		if !ok {
 			return nil

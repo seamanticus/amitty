@@ -1,0 +1,63 @@
+package stack
+
+import (
+	"testing"
+
+	"github.com/seamanticus/amitty/internal/tui/layout"
+
+	"github.com/gdamore/tcell/v3"
+	"github.com/seamanticus/amitty/internal/tui"
+)
+
+// letter fills its area with str, records that it saw a message, and drops Escape.
+type letter struct {
+	str  string
+	seen *[]string
+}
+
+func (l letter) Draw(screen tui.Screen, area tui.Rectangle) {
+	for y := area.Y; y < area.Y+area.Height; y++ {
+		for x := area.X; x < area.X+area.Width; x++ {
+			screen.Put(x, y, l.str, tcell.StyleDefault)
+		}
+	}
+}
+
+func (l letter) Handle(msg tui.Msg, area tui.Rectangle) tui.Msg {
+	*l.seen = append(*l.seen, l.str)
+	if key, ok := msg.(tui.KeyMsg); ok && key.Key() == tcell.KeyEscape {
+		return nil
+	}
+	return msg
+}
+
+var area = tui.Rectangle{Width: 4, Height: 2}
+
+func TestWidgetHandle(t *testing.T) {
+	t.Run("top first", func(t *testing.T) {
+		var seen []string
+		enter := tcell.NewEventKey(tcell.KeyEnter, "", tcell.ModNone)
+		if got := New(letter{"a", &seen}, letter{"b", &seen}).Handle(enter, area); got != enter {
+			t.Fatalf("got %v", got)
+		}
+		if len(seen) != 2 || seen[0] != "b" || seen[1] != "a" {
+			t.Fatalf("order = %v", seen)
+		}
+	})
+	t.Run("stops when dropped", func(t *testing.T) {
+		var seen []string
+		escape := tcell.NewEventKey(tcell.KeyEscape, "", tcell.ModNone)
+		if got := New(letter{"a", &seen}, letter{"b", &seen}).Handle(escape, area); got != nil {
+			t.Fatalf("got %v", got)
+		}
+		if len(seen) != 1 {
+			t.Fatalf("seen = %v", seen)
+		}
+	})
+}
+
+func (letter) Size() (width, height layout.Length) { return layout.Fill, layout.Fill }
+
+func (letter) Layout(limits layout.Limits) layout.Size {
+	return layout.Atomic(limits, layout.Fill, layout.Fill)
+}

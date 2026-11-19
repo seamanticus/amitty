@@ -1,0 +1,287 @@
+// Package tabs provides a row of tab labels.
+package tabs
+
+import (
+	"github.com/gdamore/tcell/v3"
+	"github.com/rockorager/go-uucode"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/layout"
+)
+
+// Widget draws the tab labels on a row. Labels too wide for the row scroll to center the active one. The model owns the tabs and shows the content of the active one.
+type Widget struct {
+	labels                         []string
+	active                         int
+	width                          layout.Length
+	style, activeStyle, arrowStyle tui.Style
+	alignment                      tui.HorizontalAlignment
+	separator                      string
+	paddingLeft, paddingRight      string
+	arrowStart, arrowEnd           string
+	clickableArrows, wrap          bool
+	keybind                        func(tui.KeyMsg) Action
+	onSelect                       func(index int) tui.Msg
+}
+
+var _ tui.Widget = Widget{}
+
+// New returns tabs as wide as their labels, separated by a space, centered in a wider row, the active one reversed, and no arrows.
+func New(labels ...string) Widget {
+	return Widget{
+		labels:          labels,
+		width:           layout.Shrink,
+		activeStyle:     tcell.StyleDefault.Reverse(true),
+		arrowStyle:      tcell.StyleDefault.Dim(true),
+		alignment:       tui.HorizontalAlignmentCenter,
+		separator:       " ",
+		clickableArrows: true,
+		keybind:         DefaultKeybind,
+	}
+}
+
+// Active sets the index of the active tab.
+func (w Widget) Active(index int) Widget {
+	w.active = index
+	return w
+}
+
+// Width sets the width of the row, as wide as the labels unless set. Fill takes the whole row.
+func (w Widget) Width(width layout.Length) Widget {
+	w.width = width
+	return w
+}
+
+// Style sets the style of the row and of the labels of inactive tabs.
+func (w Widget) Style(style tui.Style) Widget {
+	w.style = style
+	return w
+}
+
+// ActiveStyle sets the style of the label of the active tab.
+func (w Widget) ActiveStyle(style tui.Style) Widget {
+	w.activeStyle = style
+	return w
+}
+
+// Alignment sets where labels that fit are placed in the row.
+func (w Widget) Alignment(align tui.HorizontalAlignment) Widget {
+	w.alignment = align
+	return w
+}
+
+// Separator sets the text drawn between labels.
+func (w Widget) Separator(separator string) Widget {
+	w.separator = separator
+	return w
+}
+
+// Padding sets the text drawn on either side of each label, in the style of the label.
+func (w Widget) Padding(left, right string) Widget {
+	w.paddingLeft, w.paddingRight = left, right
+	return w
+}
+
+// Arrows sets the arrows drawn at the start and end of the row while labels are hidden past them, such as "◀" and "▶". An empty string draws no arrow at that end.
+func (w Widget) Arrows(start, end string) Widget {
+	w.arrowStart, w.arrowEnd = start, end
+	return w
+}
+
+// ClickableArrows sets whether clicking an arrow selects the neighbor of the active tab, true unless set.
+func (w Widget) ClickableArrows(clickable bool) Widget {
+	w.clickableArrows = clickable
+	return w
+}
+
+// ArrowStyle sets the style of the arrows.
+func (w Widget) ArrowStyle(style tui.Style) Widget {
+	w.arrowStyle = style
+	return w
+}
+
+// Wrap sets whether moving past the last tab selects the first and past the first selects the last.
+func (w Widget) Wrap(wrap bool) Widget {
+	w.wrap = wrap
+	return w
+}
+
+// Keybind sets the function that turns keys into Actions, or ActionNone for keys it does not bind, DefaultKeybind unless set.
+func (w Widget) Keybind(f func(tui.KeyMsg) Action) Widget {
+	w.keybind = f
+	return w
+}
+
+// OnSelect sets the function that turns the index of a tab to switch to into a message.
+func (w Widget) OnSelect(onSelect func(index int) tui.Msg) Widget {
+	w.onSelect = onSelect
+	return w
+}
+
+// Size returns the width and a height of one row.
+func (w Widget) Size() (width, height layout.Length) {
+	return w.width, layout.Fixed(1)
+}
+
+// Layout returns the size of the labels within limits.
+func (w Widget) Layout(limits layout.Limits) layout.Size {
+	return layout.Sized(limits, w.width, layout.Fixed(1), func(layout.Limits) layout.Size {
+		width := -uucode.StringWidth(w.separator)
+		for _, label := range w.labels {
+			width += uucode.StringWidth(w.paddingLeft+label+w.paddingRight) + uucode.StringWidth(w.separator)
+		}
+		return layout.Size{Width: max(width, 0), Height: 1}
+	})
+}
+
+// Draw draws the labels on the first row of area, highlighting the active one.
+func (w Widget) Draw(screen tui.Screen, area tui.Rectangle) {
+	l := w.layout(area)
+	for x := area.X; x < area.X+area.Width; x++ {
+		screen.Put(x, area.Y, " ", w.style)
+	}
+	for i, label := range w.labels {
+		style := w.style
+		if i == w.active {
+			style = w.activeStyle
+		}
+		l.print(screen, w.paddingLeft+label+w.paddingRight, l.xs[i], l.widths[i], area.Y, style)
+		if i < len(w.labels)-1 {
+			l.print(screen, w.separator, l.xs[i+1]-l.spacing, l.spacing, area.Y, w.style)
+		}
+	}
+	if l.startArrow {
+		tui.Print(screen, w.arrowStart, area.X, area.Y, l.left-area.X, tui.HorizontalAlignmentLeft, w.arrowStyle)
+	}
+	if l.endArrow {
+		tui.Print(screen, w.arrowEnd, l.right, area.Y, area.X+area.Width-l.right, tui.HorizontalAlignmentLeft, w.arrowStyle)
+	}
+}
+
+// Handle turns tab Actions, clicks on the labels, and scrolling over them into the OnSelect message. Other messages pass through unchanged.
+func (w Widget) Handle(msg tui.Msg, area tui.Rectangle) tui.Msg {
+	switch msg := msg.(type) {
+	case tui.KeyMsg:
+		if action := w.keybind(msg); action != ActionNone {
+			delta := 1
+			if action == ActionPrevious {
+				delta = -1
+			}
+			if tab, ok := w.step(delta); ok {
+				return w.selectTab(tab)
+			}
+		}
+	case tui.MouseMsg:
+		x, y := msg.Position()
+		if y != area.Y || !area.Contains(x, y) {
+			break
+		}
+		switch msg.Action {
+		case tui.MouseLeftDown:
+			if tab, ok := w.tabAt(area, x); ok {
+				return w.selectTab(tab)
+			}
+		case tui.MouseScrollUp, tui.MouseScrollLeft:
+			if tab, ok := w.step(-1); ok {
+				return w.selectTab(tab)
+			}
+		case tui.MouseScrollDown, tui.MouseScrollRight:
+			if tab, ok := w.step(1); ok {
+				return w.selectTab(tab)
+			}
+		}
+		return nil
+	}
+	return msg
+}
+
+// step returns the tab delta tabs from the active one, wrapping around the ends when Wrap is set, and whether there is one.
+func (w Widget) step(delta int) (int, bool) {
+	next := w.active + delta
+	if w.wrap && len(w.labels) > 0 {
+		return (next + len(w.labels)) % len(w.labels), true
+	}
+	return next, next >= 0 && next < len(w.labels)
+}
+
+// selectTab returns the OnSelect message for index, or nil if index is already active.
+func (w Widget) selectTab(index int) tui.Msg {
+	if index == w.active || w.onSelect == nil {
+		return nil
+	}
+	return w.onSelect(index)
+}
+
+// layout is where the labels are drawn on the first row of an area.
+type labelLayout struct {
+	// xs and widths are where each padded label starts and how wide it is, with spacing cells between labels for the separator.
+	xs, widths []int
+	spacing    int
+	// left and right bound the columns the labels are drawn in, the rest of the row is kept for the arrows.
+	left, right int
+	// startArrow and endArrow are set while labels are hidden past an arrow.
+	startArrow, endArrow bool
+}
+
+// layout places the labels in area by the alignment, or when they do not fit, centers the active one without scrolling past the first or last label.
+func (w Widget) layout(area tui.Rectangle) labelLayout {
+	l := labelLayout{spacing: uucode.StringWidth(w.separator), left: area.X, right: area.X + area.Width}
+	stripWidth := -l.spacing // no separator after the last label
+	for _, label := range w.labels {
+		width := uucode.StringWidth(w.paddingLeft + label + w.paddingRight)
+		l.xs, l.widths = append(l.xs, stripWidth+l.spacing), append(l.widths, width)
+		stripWidth += width + l.spacing
+	}
+	offset := l.left
+	switch {
+	case stripWidth > area.Width:
+		l.left += uucode.StringWidth(w.arrowStart)
+		l.right -= uucode.StringWidth(w.arrowEnd)
+		width := l.right - l.left
+		center := l.xs[w.active] + l.widths[w.active]/2
+		offset = l.left - min(max(center-width/2, 0), stripWidth-width)
+	case w.alignment == tui.HorizontalAlignmentCenter:
+		offset += (area.Width - stripWidth) / 2
+	case w.alignment == tui.HorizontalAlignmentRight:
+		offset += area.Width - stripWidth
+	}
+	for i := range l.xs {
+		l.xs[i] += offset
+	}
+	if last := len(l.xs) - 1; last >= 0 {
+		l.startArrow = l.xs[0] < l.left
+		l.endArrow = l.xs[last]+l.widths[last] > l.right
+	}
+	return l
+}
+
+// print draws text, width cells wide from x, on row y, cut to the columns the labels are drawn in.
+func (l labelLayout) print(screen tui.Screen, text string, x, width, y int, style tui.Style) {
+	// Right alignment cuts the start of text that begins before the columns, center alignment both ends.
+	end := x + width
+	align := tui.HorizontalAlignmentLeft
+	switch {
+	case x < l.left && end > l.right:
+		align = tui.HorizontalAlignmentCenter
+	case x < l.left:
+		align = tui.HorizontalAlignmentRight
+	}
+	from, to := max(x, l.left), min(end, l.right)
+	tui.Print(screen, text, from, y, to-from, align, style)
+}
+
+// tabAt returns the tab whose label is at column x of the first row of area, or the neighbor of the active tab past an arrow.
+func (w Widget) tabAt(area tui.Rectangle, x int) (int, bool) {
+	l := w.layout(area)
+	switch {
+	case x < l.left:
+		return w.active - 1, l.startArrow && w.clickableArrows
+	case x >= l.right:
+		return w.active + 1, l.endArrow && w.clickableArrows
+	}
+	for i, start := range l.xs {
+		if x >= start && x < start+l.widths[i] {
+			return i, true
+		}
+	}
+	return 0, false
+}

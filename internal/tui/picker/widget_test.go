@@ -1,0 +1,94 @@
+package picker
+
+import (
+	"testing"
+
+	"github.com/gdamore/tcell/v3"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/text"
+)
+
+type cancelMsg struct{}
+
+// itemText returns the filter text of msg if it is an item, or "".
+func itemText(msg tui.Msg) string {
+	item, _ := msg.(Item)
+	return item.FilterText
+}
+
+func TestWidgetHandle(t *testing.T) {
+	area := tui.Rectangle{Width: 20, Height: 5}
+	items := Items{{Content: text.New("apple"), FilterText: "apple"}, {Content: text.New("banana"), FilterText: "banana"}}
+	// send handles msg the way a model does: it takes the search state the picker produced and returns any other message.
+	send := func(s *SearchState, msg tui.Msg) tui.Msg {
+		msg = New(items, s).
+			OnChange(func(s *SearchState) tui.Msg { return s }).
+			OnSelect(func(item Item) tui.Msg { return item }).
+			OnCancel(cancelMsg{}).
+			Handle(msg, area)
+		if next, ok := msg.(*SearchState); ok {
+			*s = *next
+			return nil
+		}
+		return msg
+	}
+	typed := func(str string) tui.KeyMsg { return tcell.NewEventKey(tcell.KeyRune, str, tcell.ModNone) }
+	enter := tcell.NewEventKey(tcell.KeyEnter, "", tcell.ModNone)
+
+	t.Run("typing filters items", func(t *testing.T) {
+		s := NewSearchState()
+		send(&s, typed("b"))
+		if got := send(&s, enter); itemText(got) != items[1].FilterText {
+			t.Fatalf("selected %v, want banana", got)
+		}
+	})
+	t.Run("select picks the item enter returns", func(t *testing.T) {
+		s := NewSearchState()
+		s.Select(1)
+		if got := send(&s, enter); itemText(got) != items[1].FilterText {
+			t.Fatalf("selected %v, want banana", got)
+		}
+	})
+	t.Run("no matches selects nothing", func(t *testing.T) {
+		s := NewSearchState()
+		send(&s, typed("z"))
+		if got := send(&s, enter); got != nil {
+			t.Fatalf("selected %v", got)
+		}
+	})
+	t.Run("clearing the query shows every item", func(t *testing.T) {
+		s := NewSearchState()
+		send(&s, typed("b"))
+		send(&s, tcell.NewEventKey(tcell.KeyBackspace, "", tcell.ModNone))
+		if got := s.count(items); got != 2 {
+			t.Fatalf("count = %d, want 2", got)
+		}
+	})
+	t.Run("list keybinds move the list, not the query", func(t *testing.T) {
+		s := NewSearchState()
+		send(&s, tcell.NewEventKey(tcell.KeyEnd, "", tcell.ModNone))
+		if s.cursor != 1 {
+			t.Fatalf("list cursor = %d, want 1", s.cursor)
+		}
+	})
+	t.Run("select returns the item under the cursor", func(t *testing.T) {
+		s := NewSearchState()
+		if got := send(&s, enter); itemText(got) != items[0].FilterText {
+			t.Fatalf("got %v", got)
+		}
+	})
+	t.Run("cancel", func(t *testing.T) {
+		s := NewSearchState()
+		if got := send(&s, tcell.NewEventKey(tcell.KeyEscape, "", tcell.ModNone)); got != (cancelMsg{}) {
+			t.Fatalf("got %v", got)
+		}
+	})
+	t.Run("reset clears the query", func(t *testing.T) {
+		s := NewSearchState()
+		send(&s, typed("z"))
+		s.Reset()
+		if got := send(&s, enter); itemText(got) != items[0].FilterText {
+			t.Fatalf("got %v", got)
+		}
+	})
+}

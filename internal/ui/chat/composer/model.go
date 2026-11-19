@@ -12,13 +12,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/ayn2op/tview/layout"
+	"github.com/seamanticus/amitty/internal/tui/layout"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/box"
-	"github.com/ayn2op/tview/cmd"
-	"github.com/ayn2op/tview/keybind"
-	"github.com/ayn2op/tview/textarea"
 	"github.com/rockorager/go-uucode"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/consts"
@@ -29,6 +24,11 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/sendpart"
 	"github.com/seamanticus/amitty/internal/ningen"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/box"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
+	"github.com/seamanticus/amitty/internal/tui/textarea"
 	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/amitty/internal/ui/autocomplete"
 	"github.com/seamanticus/amitty/internal/ui/autocomplete/mentions"
@@ -141,7 +141,7 @@ func (m *Model) box(focused bool) box.Widget {
 		Placeholder(m.placeholder()).
 		Keybind(m.keybind).
 		Focused(focused && !m.disabled).
-		OnInput(func(text string, cursor int) tview.Msg { return editMsg{text, cursor} }).
+		OnInput(func(text string, cursor int) tui.Msg { return editMsg{text, cursor} }).
 		Height(layout.Shrink.Max(m.cfg.Composer.MaxHeight))
 	return ui.Box(text, m.cfg, focused).
 		Title(ui.Label(m.title(), m.cfg.Theme.Title, focused)).
@@ -176,7 +176,7 @@ func (m Model) footer() string {
 }
 
 // isBound reports whether key is one of the composer's keybinds.
-func (m Model) isBound(key tview.KeyMsg) bool {
+func (m Model) isBound(key tui.KeyMsg) bool {
 	keybinds := m.cfg.Keybinds.Composer
 	if keybind.Matches(key,
 		keybinds.Paste.Keybind,
@@ -418,14 +418,14 @@ func (m Model) query() (rune, string) {
 }
 
 // CacheMemberSearch returns the command that refreshes the autocomplete with the members found.
-func (m Model) CacheMemberSearch(event *gateway.GuildMembersChunkEvent) tview.Cmd {
+func (m Model) CacheMemberSearch(event *gateway.GuildMembersChunkEvent) tui.Cmd {
 	key, ok := strings.CutPrefix(event.Nonce, memberSearchNonce)
 	if !ok {
 		return nil
 	}
 
 	m.memberSearchCache[key] = uint(len(event.Members))
-	return cmd.Task(func() tview.Msg {
+	return cmd.Task(func() tui.Msg {
 		return RefreshAutocompleteMsg{}
 	})
 }
@@ -446,7 +446,7 @@ func (m Model) OnGuildMemberRemove(event *gateway.GuildMemberRemoveEvent) {
 }
 
 // AutocompleteView returns the autocomplete popup, or nil if it is hidden or the composer is not focused.
-func (m Model) AutocompleteView() tview.Widget {
+func (m Model) AutocompleteView() tui.Widget {
 	if !m.focused || !m.autocomplete.Visible() {
 		return nil
 	}
@@ -466,27 +466,27 @@ func (autocompletePopup) Layout(limits layout.Limits) layout.Size {
 	return layout.Atomic(limits, layout.Fill, layout.Fill)
 }
 
-func (p autocompletePopup) Draw(screen tview.Screen, area tview.Rectangle) {
+func (p autocompletePopup) Draw(screen tui.Screen, area tui.Rectangle) {
 	p.model.autocomplete.View().Draw(screen, p.area(area))
 }
 
-func (p autocompletePopup) Handle(msg tview.Msg, area tview.Rectangle) tview.Msg {
+func (p autocompletePopup) Handle(msg tui.Msg, area tui.Rectangle) tui.Msg {
 	return p.model.autocomplete.View().Handle(msg, p.area(area))
 }
 
 // area returns where the list goes in area: at its bottom, at the column of the cursor where it fits.
-func (p autocompletePopup) area(area tview.Rectangle) tview.Rectangle {
+func (p autocompletePopup) area(area tui.Rectangle) tui.Rectangle {
 	model := p.model
 	size := model.autocomplete.View().Layout(layout.Limits{Max: layout.Size{Width: area.Width, Height: area.Height}})
 	value, cursor := model.text, model.cursor
 	column := uucode.StringWidth(value[strings.LastIndex(value[:cursor], "\n")+1 : cursor])
-	x := min(model.box(false).InnerArea(tview.Rectangle{}).X+column, area.Width-size.Width)
-	return tview.Rectangle{X: area.X + x, Y: area.Y + area.Height - size.Height, Width: size.Width, Height: size.Height}
+	x := min(model.box(false).InnerArea(tui.Rectangle{}).X+column, area.Width-size.Width)
+	return tui.Rectangle{X: area.X + x, Y: area.Y + area.Height - size.Height, Width: size.Width, Height: size.Height}
 }
 
 // showCompletions hides the autocomplete if items is empty.
-func (m *Model) showCompletions(title string, items []autocomplete.Item) tview.Cmd {
-	var cmd tview.Cmd
+func (m *Model) showCompletions(title string, items []autocomplete.Item) tui.Cmd {
+	var cmd tui.Cmd
 	m.autocomplete, cmd = m.autocomplete.Update(autocomplete.SetItemsMsg{Title: title, Items: items})
 	return cmd
 }
@@ -513,12 +513,12 @@ func humanJoin(items []string) string {
 	}
 }
 
-var _ tview.Model[Model] = Model{}
+var _ tui.Model[Model] = Model{}
 
-func (m Model) Init() tview.Cmd { return nil }
+func (m Model) Init() tui.Cmd { return nil }
 
 // Update returns m changed in response to msg and a command to run, or nil.
-func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
+func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	switch msg := msg.(type) {
 	case RefreshAutocompleteMsg:
 		return m, m.showAutocomplete()
@@ -546,7 +546,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 		typingCmd := m.sendTyping()
 		return m, cmd.Batch{typingCmd, m.showAutocomplete()}
 
-	case tview.KeyMsg:
+	case tui.KeyMsg:
 		keybinds := m.cfg.Keybinds.Composer
 		switch {
 		case keybind.Matches(msg, keybinds.EditLast.Keybind) && m.canEditLastMessage():
@@ -583,7 +583,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 			return m, nil
 		}
 	case autocomplete.Msg, images.ChangedMsg:
-		var cmd tview.Cmd
+		var cmd tui.Cmd
 		m.autocomplete, cmd = m.autocomplete.Update(msg)
 		return m, cmd
 	}
@@ -591,4 +591,4 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 }
 
 // View shows the text area in a box, taking keys if focused.
-func (m Model) View() tview.Widget { return m.box(m.focused) }
+func (m Model) View() tui.Widget { return m.box(m.focused) }

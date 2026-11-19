@@ -1,14 +1,14 @@
 package picker
 
 import (
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/keybind"
-	"github.com/ayn2op/tview/picker"
 	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
+	"github.com/seamanticus/amitty/internal/tui/picker"
 )
 
-func pickerKeybind(keybinds config.PickerKeybinds) func(tview.KeyMsg) picker.Action {
-	return func(key tview.KeyMsg) picker.Action {
+func pickerKeybind(keybinds config.PickerKeybinds) func(tui.KeyMsg) picker.Action {
+	return func(key tui.KeyMsg) picker.Action {
 		switch {
 		case keybind.Matches(key, keybinds.Select.Keybind):
 			return picker.ActionSelect

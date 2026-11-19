@@ -4,19 +4,19 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/button"
-	"github.com/ayn2op/tview/column"
-	"github.com/ayn2op/tview/help"
-	"github.com/ayn2op/tview/keybind"
-	"github.com/ayn2op/tview/layout"
-	"github.com/ayn2op/tview/row"
-	"github.com/ayn2op/tview/text"
-	"github.com/ayn2op/tview/textinput"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
 	"github.com/seamanticus/amitty/internal/captcha"
 	dhttp "github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/button"
+	"github.com/seamanticus/amitty/internal/tui/column"
+	"github.com/seamanticus/amitty/internal/tui/help"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
+	"github.com/seamanticus/amitty/internal/tui/layout"
+	"github.com/seamanticus/amitty/internal/tui/row"
+	"github.com/seamanticus/amitty/internal/tui/text"
+	"github.com/seamanticus/amitty/internal/tui/textinput"
 	"github.com/seamanticus/amitty/internal/ui/login/keys"
 )
 
@@ -73,7 +73,7 @@ func (Model) Label() string {
 	return "Password"
 }
 
-var _ tview.Model[Model] = Model{}
+var _ tui.Model[Model] = Model{}
 
 var _ help.KeyMap = Model{}
 
@@ -89,9 +89,9 @@ func (m Model) ShortHelp() []keybind.Keybind {
 
 func (m Model) FullHelp() [][]keybind.Keybind { return [][]keybind.Keybind{m.ShortHelp()} }
 
-func (Model) Init() tview.Cmd { return nil }
+func (Model) Init() tui.Cmd { return nil }
 
-func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
+func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	switch msg := msg.(type) {
 	case MFAMsg:
 		// The password is not needed for the second step, so it is not kept.
@@ -150,7 +150,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 		m.focus = focus(msg)
 	case hoverMsg:
 		m.buttonHovered = bool(msg)
-	case tview.KeyMsg:
+	case tui.KeyMsg:
 		switch {
 		case keybind.Matches(msg, keys.FocusNext()):
 			m.focus = (m.focus + 1) % focusCount
@@ -172,7 +172,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 }
 
 // submit logs in with the form, first fetching the fingerprint if there is none yet.
-func (m Model) submit(final bool) tview.Cmd {
+func (m Model) submit(final bool) tui.Cmd {
 	if m.fingerprint == "" {
 		return fetchFingerprint(m.build, m.network, final)
 	}
@@ -182,19 +182,19 @@ func (m Model) submit(final bool) tview.Cmd {
 // coding reports whether the code form is shown.
 func (m Model) coding() bool { return m.code.ticket.id != "" }
 
-func (m Model) View() tview.Widget {
+func (m Model) View() tui.Widget {
 	if m.coding() {
 		return m.viewCode()
 	}
 	labelWidth := layout.Fixed(len("Password") + 1)
 	login := textinput.New(m.login, m.loginCursor).
 		Focused(m.focus == focusLogin).
-		OnInput(func(text string, cursor int) tview.Msg { return loginMsg{text, cursor} }).
+		OnInput(func(text string, cursor int) tui.Msg { return loginMsg{text, cursor} }).
 		OnSubmit(focusMsg(focusPassword))
 	password := textinput.New(m.password, m.passwordCursor).
 		Mask("*").
 		Focused(m.focus == focusPassword).
-		OnInput(func(text string, cursor int) tview.Msg { return passwordMsg{text, cursor} }).
+		OnInput(func(text string, cursor int) tui.Msg { return passwordMsg{text, cursor} }).
 		OnSubmit(focusMsg(focusButton))
 	label := "Login"
 	switch {
@@ -210,9 +210,9 @@ func (m Model) View() tview.Widget {
 		Width(layout.Fixed(len(label) + 4)).
 		Focused(m.focus == focusButton).
 		Hovered(m.buttonHovered).
-		OnHover(func(hovered bool) tview.Msg { return hoverMsg(hovered) }).
+		OnHover(func(hovered bool) tui.Msg { return hoverMsg(hovered) }).
 		OnClick(submitMsg{})
-	var warning tview.Widget
+	var warning tui.Widget
 	switch {
 	case m.captcha != nil:
 		warning = text.New(m.captcha.Prompt(m.captchaTries, m.captchaOpenErr)).Style(tcell.StyleDefault.Foreground(color.Yellow))
@@ -224,7 +224,7 @@ func (m Model) View() tview.Widget {
 		row.New(text.New("Password").Width(labelWidth), password).Height(layout.Shrink),
 		submit,
 		warning,
-	).Spacing(1).AlignX(tview.HorizontalAlignmentCenter)
+	).Spacing(1).AlignX(tui.HorizontalAlignmentCenter)
 }
 
 // buttonStyle is reversed when focused, else underlined when hovered.
@@ -239,7 +239,7 @@ func buttonStyle(focused, hovered bool) tcell.Style {
 }
 
 // retryWarning says that the one retry starts in left seconds and why.
-func retryWarning(left int, reason string) tview.Widget {
+func retryWarning(left int, reason string) tui.Widget {
 	return text.New(fmt.Sprintf("Connection failed, retrying once in %d s: %s", left, reason)).
 		Style(tcell.StyleDefault.Foreground(color.Yellow))
 }

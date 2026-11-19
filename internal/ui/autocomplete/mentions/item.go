@@ -6,16 +6,16 @@ import (
 	"log/slog"
 	"slices"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
-	tviewimage "github.com/ayn2op/tview/image"
-	"github.com/ayn2op/tview/text"
 	"github.com/gdamore/tcell/v3"
 	"github.com/sahilm/fuzzy"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/state"
 	"github.com/seamanticus/amitty/internal/ningen"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
+	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
+	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/seamanticus/amitty/internal/ui/autocomplete"
 	"github.com/seamanticus/amitty/internal/ui/images"
 )
@@ -32,12 +32,12 @@ const (
 type mention struct {
 	username, name string
 	avatar         discord.URL
-	style          tview.Style
+	style          tui.Style
 }
 
 func (m mention) Insert() string { return "@" + m.username }
 
-func (m mention) Line(images map[discord.URL]tviewimage.Widget) []text.Span {
+func (m mention) Line(images map[discord.URL]tuiimage.Widget) []text.Span {
 	line := []text.Span{{Text: m.name, Style: m.style}}
 	if image, ok := images[m.avatar]; ok {
 		if lines := image.Lines(); len(lines) > 0 {
@@ -48,7 +48,7 @@ func (m mention) Line(images map[discord.URL]tviewimage.Widget) []text.Span {
 }
 
 // Items returns up to limit users in channel matching query, best first, or its recent authors if query is empty, and the command that loads their avatars, or nil.
-func Items(cfg *config.Config, s *ningen.State, channel *discord.Channel, query string, limit int) ([]autocomplete.Item, tview.Cmd) {
+func Items(cfg *config.Config, s *ningen.State, channel *discord.Channel, query string, limit int) ([]autocomplete.Item, tui.Cmd) {
 	var items []autocomplete.Item
 	images := images.RequestedMsg{Squares: map[discord.URL]uint{}}
 	for _, mention := range mentions(s, channel, query, limit) {
@@ -59,7 +59,7 @@ func Items(cfg *config.Config, s *ningen.State, channel *discord.Channel, query 
 	if !cfg.UI.Autocomplete.Mentions.Preview || len(images.Squares) == 0 {
 		return items, nil
 	}
-	return items, cmd.Task(func() tview.Msg { return images })
+	return items, cmd.Task(func() tui.Msg { return images })
 }
 
 func mentions(s *ningen.State, channel *discord.Channel, query string, limit int) []mention {
@@ -155,7 +155,7 @@ func avatarURL(user discord.User) discord.URL {
 }
 
 // presenceStyle dims offline users.
-func presenceStyle(s *ningen.State, gID discord.GuildID, userID discord.UserID) tview.Style {
+func presenceStyle(s *ningen.State, gID discord.GuildID, userID discord.UserID) tui.Style {
 	presence, err := s.Cabinet.Presence(gID, userID)
 	if err != nil {
 		slog.Info("failed to get presence from state", "guild_id", gID, "user_id", userID, "err", err)

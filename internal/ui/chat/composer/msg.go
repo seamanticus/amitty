@@ -10,14 +10,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/sendpart"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/amitty/internal/ui/autocomplete/emojis"
 	"github.com/seamanticus/amitty/internal/ui/autocomplete/mentions"
@@ -45,14 +45,14 @@ type edit struct {
 // editMsg is the text and cursor that typing in the composer left.
 type editMsg edit
 
-func editLastMessage() tview.Cmd {
-	return cmd.Task(func() tview.Msg { return EditLastMsg{} })
+func editLastMessage() tui.Cmd {
+	return cmd.Task(func() tui.Msg { return EditLastMsg{} })
 }
 
 type imagePastedMsg []byte
 
-func pasteImage() tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func pasteImage() tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		data, err := clipboard.Read(context.Background(), clipboard.FmtImage)
 		if err != nil {
 			slog.Error("failed to read from clipboard", "err", err)
@@ -67,7 +67,7 @@ type filesPickedMsg struct {
 	files     []sendpart.File
 }
 
-func (m Model) pickFiles() tview.Cmd {
+func (m Model) pickFiles() tui.Cmd {
 	selectedChannel := m.channel
 	if selectedChannel == nil {
 		return nil
@@ -76,8 +76,8 @@ func (m Model) pickFiles() tview.Cmd {
 
 	show := pathprompt.ShowMsg{
 		Title: "Attach",
-		Submit: func(path string) tview.Cmd {
-			return cmd.Task(func() tview.Msg {
+		Submit: func(path string) tui.Cmd {
+			return cmd.Task(func() tui.Msg {
 				file, err := os.Open(path)
 				if err != nil {
 					return ui.ErrorDialog("attach file", err)
@@ -86,11 +86,11 @@ func (m Model) pickFiles() tview.Cmd {
 			})
 		},
 	}
-	return cmd.Task(func() tview.Msg { return show })
+	return cmd.Task(func() tui.Msg { return show })
 }
 
 func closeFiles(files []sendpart.File) cmd.Task {
-	return cmd.Task(func() tview.Msg {
+	return cmd.Task(func() tui.Msg {
 		for _, file := range files {
 			closeFile(file)
 		}
@@ -110,7 +110,7 @@ func closeFile(file sendpart.File) {
 	}
 }
 
-func (m *Model) sendTyping() tview.Cmd {
+func (m *Model) sendTyping() tui.Cmd {
 	if !m.cfg.TypingIndicator.Send {
 		return nil
 	}
@@ -126,7 +126,7 @@ func (m *Model) sendTyping() tview.Cmd {
 		return nil
 	}
 	channelID := selectedChannel.ID
-	return cmd.Task(func() tview.Msg {
+	return cmd.Task(func() tui.Msg {
 		if err := m.state.Typing(channelID); err != nil {
 			slog.Error("failed to send typing indicator", "err", err)
 		}
@@ -134,7 +134,7 @@ func (m *Model) sendTyping() tview.Cmd {
 	})
 }
 
-func (m *Model) send() tview.Cmd {
+func (m *Model) send() tui.Cmd {
 	selectedChannel := m.channel
 	if selectedChannel == nil {
 		return nil
@@ -153,8 +153,8 @@ func (m *Model) send() tview.Cmd {
 	m.typingUntil = time.Time{}
 	m.reset()
 
-	sent := cmd.Task(func() tview.Msg { return SentMsg{} })
-	return cmd.Batch{sent, cmd.Task(func() tview.Msg {
+	sent := cmd.Task(func() tui.Msg { return SentMsg{} })
+	return cmd.Batch{sent, cmd.Task(func() tui.Msg {
 		defer closeFiles(data.Files)()
 		if editing != nil {
 			m.editMessage(*editing, text)
@@ -180,7 +180,7 @@ func (m Model) sendMessage(channelID discord.ChannelID, data api.SendMessageData
 	}
 }
 
-func (m *Model) complete() tview.Cmd {
+func (m *Model) complete() tui.Cmd {
 	if item, ok := m.autocomplete.Selected(); ok {
 		_, name := m.query()
 		m.replace(m.cursor-len(name)-1, m.cursor, item.Insert()+" ")
@@ -189,7 +189,7 @@ func (m *Model) complete() tview.Cmd {
 	return m.showCompletions("", nil)
 }
 
-func (m *Model) showAutocomplete() tview.Cmd {
+func (m *Model) showAutocomplete() tui.Cmd {
 	trigger, name := m.query()
 	if trigger == 0 || m.channel == nil {
 		return m.showCompletions("", nil)
@@ -206,7 +206,7 @@ func (m *Model) showAutocomplete() tview.Cmd {
 }
 
 // searchMember asks Discord for members matching name; they arrive later as a gateway event.
-func (m *Model) searchMember(guildID discord.GuildID, name string) tview.Cmd {
+func (m *Model) searchMember(guildID discord.GuildID, name string) tui.Cmd {
 	if name == "" || !guildID.IsValid() {
 		return nil
 	}
@@ -230,7 +230,7 @@ func (m *Model) searchMember(guildID discord.GuildID, name string) tview.Cmd {
 
 	m.lastSearch = now
 	nonce := memberSearchNonce + key
-	return cmd.Task(func() tview.Msg {
+	return cmd.Task(func() tui.Msg {
 		if err := m.state.SendGateway(context.Background(), &gateway.RequestGuildMembersCommand{
 			GuildIDs:  []discord.GuildID{guildID},
 			Query:     option.Some(name),
@@ -244,21 +244,21 @@ func (m *Model) searchMember(guildID discord.GuildID, name string) tview.Cmd {
 	})
 }
 
-func (m Model) openEditor() tview.Cmd {
+func (m Model) openEditor() tui.Cmd {
 	if m.cfg.Editor == "" {
-		return cmd.Task(func() tview.Msg {
+		return cmd.Task(func() tui.Msg {
 			slog.Warn("Attempt to open file with editor, but no editor is set")
 			return nil
 		})
 	}
 	text, cfg := m.text, m.cfg
-	return cmd.Suspend(func() tview.Msg {
+	return cmd.Suspend(func() tui.Msg {
 		return runEditor(cfg, text)
 	})
 }
 
 // runEditor opens text in the editor and returns what it was edited to.
-func runEditor(cfg *config.Config, text string) tview.Msg {
+func runEditor(cfg *config.Config, text string) tui.Msg {
 	file, err := os.CreateTemp("", tmpFilePattern)
 	if err != nil {
 		slog.Error("failed to create tmp file", "err", err)

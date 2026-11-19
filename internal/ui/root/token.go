@@ -5,9 +5,9 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
 	"github.com/seamanticus/amitty/internal/tokenstore"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/ui"
 )
 
@@ -15,8 +15,8 @@ import (
 const storeTimeout = time.Minute
 
 // storeToken saves token, then sends it on to open the chat. A failed save is shown over the chat, which opens anyway: the session needs no stored copy.
-func storeToken(store tokenstore.Store, token string) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func storeToken(store tokenstore.Store, token string) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		if err := saveToken(store, token); err != nil {
 			return storedMsg{token: token, err: err}
 		}
@@ -31,8 +31,8 @@ type storedMsg struct {
 }
 
 // saveRefreshed saves a token the gateway sent to replace the stored one, reporting only a failure.
-func saveRefreshed(store tokenstore.Store, token string) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func saveRefreshed(store tokenstore.Store, token string) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		if err := saveToken(store, token); err != nil {
 			return ui.ErrorDialog("store the refreshed token", err)
 		}
@@ -48,8 +48,8 @@ func saveToken(store tokenstore.Store, token string) error {
 }
 
 // deleteToken removes the stored token, reporting only a failure.
-func deleteToken(store tokenstore.Store) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func deleteToken(store tokenstore.Store) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		if err := store.Delete(); err != nil {
 			return ui.ErrorDialog("delete the stored token", err)
 		}

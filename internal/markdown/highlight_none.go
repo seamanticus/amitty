@@ -2,9 +2,9 @@
 
 package markdown
 
-import "github.com/ayn2op/tview"
+import "github.com/seamanticus/amitty/internal/tui"
 
-func (r *Renderer) writeCodeBlock(builder *Builder, code string, language string, base tview.Style) {
+func (r *Renderer) writeCodeBlock(builder *Builder, code string, language string, base tui.Style) {
 	header := "code"
 	if language != "" {
 		header += ": " + language

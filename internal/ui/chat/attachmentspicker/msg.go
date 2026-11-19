@@ -1,9 +1,9 @@
 package attachmentspicker
 
-import "github.com/ayn2op/tview"
+import "github.com/seamanticus/amitty/internal/tui"
 
 type SelectedMsg struct {
-	Action tview.Cmd
+	Action tui.Cmd
 }
 
 type CancelMsg struct{}

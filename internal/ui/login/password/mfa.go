@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
 	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	dhttp "github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 )
 
 // method is a second factor that a two-factor login accepts.
@@ -103,8 +103,8 @@ func failed(err error) FailedMsg {
 }
 
 // submitCode posts the code once, with the same retry rule as the password.
-func submitCode(build dhttp.Build, network dhttp.Network, t ticket, m method, code string, final bool) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func submitCode(build dhttp.Build, network dhttp.Network, t ticket, m method, code string, final bool) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), dhttp.AuthTimeout)
 		defer cancel()
 		return countdownOr(requestCode(ctx, authClient(dhttp.NewClient(network, ""), build, t.fingerprint), t, m, code), final)
@@ -122,7 +122,7 @@ func normalizeCode(code string) string {
 }
 
 // requestCode posts code for method m of t with client and returns a TokenMsg or a FailedMsg.
-func requestCode(ctx context.Context, client *api.Client, t ticket, m method, code string) tview.Msg {
+func requestCode(ctx context.Context, client *api.Client, t ticket, m method, code string) tui.Msg {
 	body := struct {
 		Code            string `json:"code"`
 		Ticket          string `json:"ticket"`
@@ -139,8 +139,8 @@ func requestCode(ctx context.Context, client *api.Client, t ticket, m method, co
 }
 
 // sendSMS asks Discord once to text a code for t; a failure is not retried, so no second SMS is sent.
-func sendSMS(build dhttp.Build, network dhttp.Network, t ticket) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func sendSMS(build dhttp.Build, network dhttp.Network, t ticket) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), dhttp.AuthTimeout)
 		defer cancel()
 		return requestSMS(ctx, authClient(dhttp.NewClient(network, ""), build, t.fingerprint), t)
@@ -148,7 +148,7 @@ func sendSMS(build dhttp.Build, network dhttp.Network, t ticket) tview.Cmd {
 }
 
 // requestSMS asks with client for an SMS code for t and returns an SMSSentMsg or a FailedMsg.
-func requestSMS(ctx context.Context, client *api.Client, t ticket) tview.Msg {
+func requestSMS(ctx context.Context, client *api.Client, t ticket) tui.Msg {
 	phone, err := client.WithContext(ctx).SendMFASMS(t.id)
 	if err != nil {
 		return failed(err)

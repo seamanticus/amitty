@@ -15,10 +15,10 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
-	tviewimage "github.com/ayn2op/tview/image"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
+	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
 	"github.com/seamanticus/amitty/internal/ui/images"
 	_ "golang.org/x/image/webp"
 )
@@ -73,7 +73,7 @@ func (m Model) imageCell() image.Point {
 }
 
 // reloadImages loads the shown images again if the cell size is no longer cell, as they were sized for it.
-func (m *Model) reloadImages(cell image.Point) tview.Cmd {
+func (m *Model) reloadImages(cell image.Point) tui.Cmd {
 	if m.imageCell() == cell || len(m.images) == 0 {
 		return nil
 	}
@@ -82,8 +82,8 @@ func (m *Model) reloadImages(cell image.Point) tview.Cmd {
 }
 
 // clearImages drops the images and returns a command that frees them in the terminal.
-func (m *Model) clearImages() tview.Cmd {
-	var cmds []tview.Cmd
+func (m *Model) clearImages() tui.Cmd {
+	var cmds []tui.Cmd
 	for _, image := range m.images {
 		cmds = append(cmds, image.Delete())
 	}
@@ -93,22 +93,22 @@ func (m *Model) clearImages() tview.Cmd {
 }
 
 // sendImages passes a copy of the images to the models that draw them.
-func (m *Model) sendImages() tview.Cmd {
+func (m *Model) sendImages() tui.Cmd {
 	images := images.ChangedMsg(maps.Clone(m.images))
-	var command tview.Cmd
+	var command tui.Cmd
 	m.reactionsPicker, command = m.reactionsPicker.Update(images)
 	return cmd.Batch{command, m.updatePane(paneMessagesList, images), m.updatePane(paneComposer, images)}
 }
 
-func (m *Model) loadImages(msg images.RequestedMsg) tview.Cmd {
+func (m *Model) loadImages(msg images.RequestedMsg) tui.Cmd {
 	cell := m.imageCell()
 	cellWidth, cellHeight := uint(cell.X), uint(cell.Y)
-	var cmds []tview.Cmd
+	var cmds []tui.Cmd
 	for url, rows := range msg.Squares {
 		cols := squareCols(rows, cell)
 		bounds := image.Rect(0, 0, int(cols*cellWidth), int(cols*cellWidth))
-		cmds = append(cmds, m.loadImage(url, bounds, func(img image.Image) tviewimage.Widget {
-			return tviewimage.New(square(img)).Width(int(cols)).CellSize(int(cellWidth), int(cellHeight))
+		cmds = append(cmds, m.loadImage(url, bounds, func(img image.Image) tuiimage.Widget {
+			return tuiimage.New(square(img)).Width(int(cols)).CellSize(int(cellWidth), int(cellHeight))
 		}))
 	}
 
@@ -116,8 +116,8 @@ func (m *Model) loadImages(msg images.RequestedMsg) tview.Cmd {
 		cols := previewCols(uint(size.X), uint(size.Y), cellWidth, cellHeight)
 		width := min(uint(size.X), uint(cols)*cellWidth)
 		bounds := image.Rect(0, 0, int(width), int(uint(size.Y)*width/uint(size.X)))
-		cmds = append(cmds, m.loadImage(url, bounds, func(img image.Image) tviewimage.Widget {
-			return tviewimage.New(img).Width(cols).CellSize(int(cellWidth), int(cellHeight))
+		cmds = append(cmds, m.loadImage(url, bounds, func(img image.Image) tuiimage.Widget {
+			return tuiimage.New(img).Width(cols).CellSize(int(cellWidth), int(cellHeight))
 		}))
 	}
 
@@ -125,14 +125,14 @@ func (m *Model) loadImages(msg images.RequestedMsg) tview.Cmd {
 }
 
 // A blank image holds the place until it loads, so nothing shifts.
-func (m *Model) loadImage(url discord.URL, bounds image.Rectangle, widget func(image.Image) tviewimage.Widget) tview.Cmd {
+func (m *Model) loadImage(url discord.URL, bounds image.Rectangle, widget func(image.Image) tuiimage.Widget) tui.Cmd {
 	if _, ok := m.images[url]; ok {
 		return nil
 	}
 
 	m.images[url] = widget(image.NewAlpha(bounds))
 	cell := m.imageCell()
-	return cmd.Task(func() tview.Msg {
+	return cmd.Task(func() tui.Msg {
 		img, err := m.downloadImage(url, bounds)
 		if err != nil {
 			slog.Error("failed to load image", "url", url, "err", err)

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ayn2op/tview"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/vt"
+	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/skip2/go-qrcode"
 )
 
@@ -31,7 +31,7 @@ func TestModelView(t *testing.T) {
 		}
 		m.qrCode = code.Image(-1)
 		m.status = "status"
-		m.View().Draw(screen, tview.Rectangle{Width: width, Height: height})
+		m.View().Draw(screen, tui.Rectangle{Width: width, Height: height})
 
 		var drawn strings.Builder
 		for y := range height {

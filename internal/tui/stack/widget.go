@@ -1,0 +1,60 @@
+// Package stack draws widgets on top of each other, for overlays such as modal dialogs.
+package stack
+
+import (
+	"slices"
+
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/layout"
+)
+
+// Widget draws its children on top of each other in the same area.
+type Widget struct {
+	children []tui.Widget
+}
+
+var _ tui.Widget = Widget{}
+
+// New returns a stack of children, the first at the bottom, skipping nil ones.
+func New(children ...tui.Widget) Widget {
+	var w Widget
+	for _, child := range children {
+		w = w.Push(child)
+	}
+	return w
+}
+
+// Push adds child on top of the others, unless it is nil.
+func (w Widget) Push(child tui.Widget) Widget {
+	if child != nil {
+		w.children = append(w.children[:len(w.children):len(w.children)], child)
+	}
+	return w
+}
+
+// Size returns Fill, as the stack takes its whole area.
+func (Widget) Size() (width, height layout.Length) {
+	return layout.Fill, layout.Fill
+}
+
+// Layout returns the size of limits, as the stack takes its whole area.
+func (Widget) Layout(limits layout.Limits) layout.Size {
+	return layout.Atomic(limits, layout.Fill, layout.Fill)
+}
+
+// Draw draws the children from bottom to top.
+func (w Widget) Draw(screen tui.Screen, area tui.Rectangle) {
+	for _, child := range w.children {
+		child.Draw(screen, area)
+	}
+}
+
+// Handle passes msg through the children from top to bottom. It stops when a child drops the message.
+func (w Widget) Handle(msg tui.Msg, area tui.Rectangle) tui.Msg {
+	for _, v := range slices.Backward(w.children) {
+		if msg = v.Handle(msg, area); msg == nil {
+			return nil
+		}
+	}
+	return msg
+}

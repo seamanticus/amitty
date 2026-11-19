@@ -1,11 +1,11 @@
 package tree
 
 import (
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/keybind"
-	"github.com/ayn2op/tview/tree"
-	"github.com/ayn2op/tview/viewport"
 	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
+	"github.com/seamanticus/amitty/internal/tui/tree"
+	"github.com/seamanticus/amitty/internal/tui/viewport"
 	"github.com/seamanticus/amitty/internal/ui"
 )
 
@@ -36,8 +36,8 @@ func canSelectDown(root, current *tree.Node) bool {
 	return last != root && current != last
 }
 
-func treeKeybind(keybinds config.TreeKeybinds) func(tview.KeyMsg) tree.Action {
-	return func(key tview.KeyMsg) tree.Action {
+func treeKeybind(keybinds config.TreeKeybinds) func(tui.KeyMsg) tree.Action {
+	return func(key tui.KeyMsg) tree.Action {
 		switch {
 		case keybind.Matches(key, keybinds.SelectUp.Keybind):
 			return tree.ActionUp
@@ -56,9 +56,9 @@ func treeKeybind(keybinds config.TreeKeybinds) func(tview.KeyMsg) tree.Action {
 	}
 }
 
-func scrollKeybind(keybinds config.TreeKeybinds) func(tview.KeyMsg) viewport.Action {
+func scrollKeybind(keybinds config.TreeKeybinds) func(tui.KeyMsg) viewport.Action {
 	scroll := ui.ScrollKeybind(keybinds.ScrollKeybinds)
-	return func(key tview.KeyMsg) viewport.Action {
+	return func(key tui.KeyMsg) viewport.Action {
 		switch {
 		case keybind.Matches(key, keybinds.ScrollLeft.Keybind):
 			return viewport.ActionLeft

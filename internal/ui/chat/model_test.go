@@ -7,14 +7,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
-	tviewimage "github.com/ayn2op/tview/image"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
+	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
 	"github.com/seamanticus/amitty/internal/ui/images"
 )
 
@@ -32,7 +32,7 @@ func TestModelView(t *testing.T) {
 	t.Run("typing in the channels picker", func(t *testing.T) {
 		m := newTestModel(t)
 		m.openPicker()
-		area := tview.Rectangle{Width: 120, Height: 40}
+		area := tui.Rectangle{Width: 120, Height: 40}
 		// The picker's action passes through the panes below it, which must leave it alone.
 		msg := m.View().Handle(tcell.NewEventKey(tcell.KeyRune, "a", tcell.ModNone), area)
 		if msg == nil {
@@ -93,7 +93,7 @@ func TestModelAddMessageOrNotify(t *testing.T) {
 }
 
 // empty reports whether command does nothing.
-func empty(command tview.Cmd) bool {
+func empty(command tui.Cmd) bool {
 	batch, ok := command.(cmd.Batch)
 	if !ok {
 		return command == nil
@@ -137,7 +137,7 @@ func TestModelReloadImages(t *testing.T) {
 	const url = "avatar.png"
 	m := newTestModel(t)
 	m.kitty, m.cellWidth, m.cellHeight = true, 9, 18
-	m.images[url] = tviewimage.New(image.NewAlpha(image.Rect(0, 0, 1, 1)))
+	m.images[url] = tuiimage.New(image.NewAlpha(image.Rect(0, 0, 1, 1)))
 	cell := m.imageCell()
 
 	t.Run("same cell size", func(t *testing.T) {
@@ -156,7 +156,7 @@ func TestModelReloadImages(t *testing.T) {
 	})
 
 	t.Run("stale download", func(t *testing.T) {
-		m.images[url] = tviewimage.New(image.NewAlpha(image.Rect(0, 0, 1, 1)))
+		m.images[url] = tuiimage.New(image.NewAlpha(image.Rect(0, 0, 1, 1)))
 		// Only an accepted image is sent to kitty.
 		t.Run("for the old cell size", func(t *testing.T) {
 			*m, _ = m.Update(images.LoadedMsg{URL: url, Image: m.images[url], Cell: cell})

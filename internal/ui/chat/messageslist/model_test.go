@@ -9,9 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ayn2op/tview"
-	tviewimage "github.com/ayn2op/tview/image"
-	"github.com/ayn2op/tview/layout"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/vt"
 	"github.com/seamanticus/amitty/internal/config"
@@ -19,6 +16,9 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	dhttp "github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/ningen"
+	"github.com/seamanticus/amitty/internal/tui"
+	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
+	"github.com/seamanticus/amitty/internal/tui/layout"
 	"github.com/seamanticus/amitty/internal/ui/emojis"
 )
 
@@ -122,8 +122,8 @@ func TestModelBuildItem(t *testing.T) {
 		limits := layout.Limits{Max: layout.Size{Width: 80}, Infinite: layout.Axes{Height: true}}
 
 		// The avatar is 2 rows, below the row of a reply.
-		avatar := tviewimage.New(image.NewAlpha(image.Rect(0, 0, 4, 4))).Width(4).CellSize(1, 2)
-		ml.images = map[discord.URL]tviewimage.Widget{avatarURL(discord.User{}): avatar}
+		avatar := tuiimage.New(image.NewAlpha(image.Rect(0, 0, 4, 4))).Width(4).CellSize(1, 2)
+		ml.images = map[discord.URL]tuiimage.Widget{avatarURL(discord.User{}): avatar}
 		for _, test := range []struct {
 			name        string
 			messageType discord.MessageType
@@ -305,7 +305,7 @@ func TestModelDrawLayout(t *testing.T) {
 			cfg.UI.MessagesList.Compact = test.compact
 
 			var got strings.Builder
-			for _, span := range ml.renderMessage(message, nil, tview.Style{}, false) {
+			for _, span := range ml.renderMessage(message, nil, tui.Style{}, false) {
 				got.WriteString(span.Text)
 			}
 
@@ -315,7 +315,7 @@ func TestModelDrawLayout(t *testing.T) {
 		})
 		t.Run(test.name+" spaces around dimmed text in the base style", func(t *testing.T) {
 			cfg.UI.MessagesList.Compact = test.compact
-			for _, span := range ml.renderMessage(message, nil, tview.Style{}, false) {
+			for _, span := range ml.renderMessage(message, nil, tui.Style{}, false) {
 				if span.Style.HasDim() && strings.TrimSpace(span.Text) != span.Text {
 					t.Fatalf("dimmed span %q has spaces around it", span.Text)
 				}
@@ -369,7 +369,7 @@ func TestModelShouldGroup(t *testing.T) {
 		}
 	})
 	t.Run("grouped content", func(t *testing.T) {
-		if got := ml.renderMessage(ml.items[newest].message, nil, tview.Style{}, true); len(got) != 1 || got[0].Text != "hi" {
+		if got := ml.renderMessage(ml.items[newest].message, nil, tui.Style{}, true); len(got) != 1 || got[0].Text != "hi" {
 			t.Fatalf("grouped message = %v, want only its content", got)
 		}
 	})
@@ -395,16 +395,16 @@ func TestModelUpdate(t *testing.T) {
 		messages[i] = discord.Message{ID: discord.MessageID(len(messages) + 10 - i), Content: "hi"}
 	}
 	ml.setMessages(messages)
-	area := tview.Rectangle{Width: 40, Height: 5}
-	up := tview.MouseMsg{EventMouse: tcell.NewEventMouse(0, 0, tcell.ButtonNone, tcell.ModNone), Action: tview.MouseScrollUp}
+	area := tui.Rectangle{Width: 40, Height: 5}
+	up := tui.MouseMsg{EventMouse: tcell.NewEventMouse(0, 0, tcell.ButtonNone, tcell.ModNone), Action: tui.MouseScrollUp}
 	// scrollUp scrolls up a row and returns what fetching older messages that does, and whether it scrolled.
-	scrollUp := func() (tview.Cmd, bool) {
+	scrollUp := func() (tui.Cmd, bool) {
 		t.Helper()
 		msg, ok := ml.listView().Handle(up, area).(scrollMsg)
 		if !ok {
 			return nil, false
 		}
-		var cmd tview.Cmd
+		var cmd tui.Cmd
 		*ml, cmd = ml.Update(msg)
 		return cmd, true
 	}
@@ -464,7 +464,7 @@ func TestModelReactionsView(t *testing.T) {
 		}
 		defer screen.Fini()
 
-		ml.reactionsView(reactions).Draw(screen, tview.Rectangle{Width: 20, Height: 1})
+		ml.reactionsView(reactions).Draw(screen, tui.Rectangle{Width: 20, Height: 1})
 		var row strings.Builder
 		for x := range 20 {
 			str, _, _ := screen.Get(x, 0)
@@ -479,7 +479,7 @@ func TestModelReactionsView(t *testing.T) {
 		}
 	})
 	t.Run("emoji image", func(t *testing.T) {
-		ml.images = map[discord.URL]tviewimage.Widget{emojis.URLFromID(custom.ID): tviewimage.New(image.NewAlpha(image.Rect(0, 0, 2, 2))).Width(2)}
+		ml.images = map[discord.URL]tuiimage.Widget{emojis.URLFromID(custom.ID): tuiimage.New(image.NewAlpha(image.Rect(0, 0, 2, 2))).Width(2)}
 		// The blank image takes two cells before the count.
 		if got := draw(); got != "ok 2 •    1" {
 			t.Fatalf("reactions = %q", got)

@@ -1,7 +1,7 @@
 package root
 
 import (
-	"github.com/ayn2op/tview/cmd"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"path/filepath"
 	"testing"
 

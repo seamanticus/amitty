@@ -5,12 +5,12 @@ import (
 	"errors"
 	"time"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
 	"github.com/seamanticus/amitty/internal/captcha"
 	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	dhttp "github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 )
 
 type TokenMsg string
@@ -39,8 +39,8 @@ type (
 )
 
 // submitLogin posts the credentials once with fingerprint and, if set, the captcha solution. A first attempt whose connection failed starts the countdown to a retry; a final one fails.
-func submitLogin(build dhttp.Build, network dhttp.Network, fingerprint string, solution captcha.Solution, login, password string, final bool) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func submitLogin(build dhttp.Build, network dhttp.Network, fingerprint string, solution captcha.Solution, login, password string, final bool) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), dhttp.AuthTimeout)
 		defer cancel()
 		return countdownOr(requestLogin(ctx, withSolution(authClient(dhttp.NewClient(network, ""), build, fingerprint), solution), login, password), final)
@@ -54,7 +54,7 @@ func withSolution(client *api.Client, solution captcha.Solution) *api.Client {
 }
 
 // countdownOr returns msg, or the countdown to a retry when msg is a first attempt whose connection failed.
-func countdownOr(msg tview.Msg, final bool) tview.Msg {
+func countdownOr(msg tui.Msg, final bool) tui.Msg {
 	if failed, ok := msg.(FailedMsg); ok && !final && dhttp.Retryable(failed.Err) {
 		return CountdownMsg{left: dhttp.RetryDelay, err: failed.Err}
 	}
@@ -62,8 +62,8 @@ func countdownOr(msg tview.Msg, final bool) tview.Msg {
 }
 
 // tick sends the countdown one second later.
-func tick(msg CountdownMsg) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func tick(msg CountdownMsg) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		time.Sleep(time.Second)
 		return CountdownMsg{left: msg.left - 1, err: msg.err}
 	})
@@ -83,7 +83,7 @@ func authClient(client *api.Client, build dhttp.Build, fingerprint string) *api.
 }
 
 // requestLogin posts the credentials with client and returns a TokenMsg, an MFAMsg, a CaptchaMsg or a FailedMsg.
-func requestLogin(ctx context.Context, client *api.Client, login, password string) tview.Msg {
+func requestLogin(ctx context.Context, client *api.Client, login, password string) tui.Msg {
 	loginResp, err := client.WithContext(ctx).Login(login, password)
 	if challenge, ok := captcha.FromError(err); ok {
 		return CaptchaMsg{challenge}

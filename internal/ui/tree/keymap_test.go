@@ -3,7 +3,7 @@ package tree
 import (
 	"testing"
 
-	"github.com/ayn2op/tview/tree"
+	"github.com/seamanticus/amitty/internal/tui/tree"
 )
 
 // selectTree returns a root with first, then last, which holds child and is collapsed if collapsed is set.

@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ayn2op/tview/text"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
 	md "github.com/seamanticus/amitty/internal/dmwire/markdown"
+	"github.com/seamanticus/amitty/internal/tui/text"
 )
 
 func TestRendererRenderText(t *testing.T) {

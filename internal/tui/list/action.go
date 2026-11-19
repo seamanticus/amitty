@@ -1,0 +1,32 @@
+package list
+
+import (
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
+)
+
+// Action is what a key makes a list do.
+type Action int
+
+const (
+	ActionNone Action = iota
+	ActionSelectUp
+	ActionSelectDown
+	ActionSelectTop
+	ActionSelectBottom
+)
+
+// DefaultKeybind is the default keybind.
+func DefaultKeybind(key tui.KeyMsg) Action {
+	switch keybind.String(key) {
+	case "up":
+		return ActionSelectUp
+	case "down":
+		return ActionSelectDown
+	case "home":
+		return ActionSelectTop
+	case "end":
+		return ActionSelectBottom
+	}
+	return ActionNone
+}

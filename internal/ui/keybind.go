@@ -1,16 +1,16 @@
 package ui
 
 import (
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/keybind"
-	"github.com/ayn2op/tview/list"
-	"github.com/ayn2op/tview/viewport"
 	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
+	"github.com/seamanticus/amitty/internal/tui/list"
+	"github.com/seamanticus/amitty/internal/tui/viewport"
 )
 
 // SelectionKeybind binds keybinds to moving a list's selection.
-func SelectionKeybind(keybinds config.SelectionKeybinds) func(tview.KeyMsg) list.Action {
-	return func(key tview.KeyMsg) list.Action {
+func SelectionKeybind(keybinds config.SelectionKeybinds) func(tui.KeyMsg) list.Action {
+	return func(key tui.KeyMsg) list.Action {
 		switch {
 		case keybind.Matches(key, keybinds.SelectUp.Keybind):
 			return list.ActionSelectUp
@@ -26,8 +26,8 @@ func SelectionKeybind(keybinds config.SelectionKeybinds) func(tview.KeyMsg) list
 }
 
 // ScrollKeybind binds keybinds to scrolling a viewport.
-func ScrollKeybind(keybinds config.ScrollKeybinds) func(tview.KeyMsg) viewport.Action {
-	return func(key tview.KeyMsg) viewport.Action {
+func ScrollKeybind(keybinds config.ScrollKeybinds) func(tui.KeyMsg) viewport.Action {
+	return func(key tui.KeyMsg) viewport.Action {
 		switch {
 		case keybind.Matches(key, keybinds.ScrollUp.Keybind):
 			return viewport.ActionUp

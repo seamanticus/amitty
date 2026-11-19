@@ -6,10 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
-	tviewimage "github.com/ayn2op/tview/image"
-	"github.com/ayn2op/tview/keybind"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/discordtest"
@@ -17,6 +13,10 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/sendpart"
 	"github.com/seamanticus/amitty/internal/ningen"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
+	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
 	"github.com/seamanticus/amitty/internal/ui/images"
 )
 
@@ -117,26 +117,26 @@ func TestModelUpdate(t *testing.T) {
 	up := tcell.NewEventKey(tcell.KeyUp, "", tcell.ModNone)
 	for _, tt := range []struct {
 		name  string
-		setup func(*Model, *config.Config) tview.KeyMsg
+		setup func(*Model, *config.Config) tui.KeyMsg
 		want  bool
 	}{
-		{"empty", func(*Model, *config.Config) tview.KeyMsg { return up }, true},
-		{"draft", func(c *Model, _ *config.Config) tview.KeyMsg { c.setText("draft", len("draft")); return up }, false},
-		{"reply", func(c *Model, _ *config.Config) tview.KeyMsg {
+		{"empty", func(*Model, *config.Config) tui.KeyMsg { return up }, true},
+		{"draft", func(c *Model, _ *config.Config) tui.KeyMsg { c.setText("draft", len("draft")); return up }, false},
+		{"reply", func(c *Model, _ *config.Config) tui.KeyMsg {
 			c.StartReply(discord.Message{ID: 3}, "name", false)
 			return up
 		}, false},
-		{"attachment", func(c *Model, _ *config.Config) tview.KeyMsg {
+		{"attachment", func(c *Model, _ *config.Config) tui.KeyMsg {
 			c.sendMessageData.Files = []sendpart.File{{Name: "file"}}
 			return up
 		}, false},
-		{"editing", func(c *Model, _ *config.Config) tview.KeyMsg { c.StartEdit(discord.Message{}); return up }, false},
-		{"disabled", func(c *Model, _ *config.Config) tview.KeyMsg { c.disabled = true; return up }, false},
-		{"remapped", func(_ *Model, cfg *config.Config) tview.KeyMsg {
+		{"editing", func(c *Model, _ *config.Config) tui.KeyMsg { c.StartEdit(discord.Message{}); return up }, false},
+		{"disabled", func(c *Model, _ *config.Config) tui.KeyMsg { c.disabled = true; return up }, false},
+		{"remapped", func(_ *Model, cfg *config.Config) tui.KeyMsg {
 			cfg.Keybinds.Composer.EditLast.Keybind = keybind.New("ctrl+p")
 			return tcell.NewEventKey(tcell.KeyCtrlP, "", tcell.ModNone)
 		}, true},
-		{"unbound", func(_ *Model, cfg *config.Config) tview.KeyMsg {
+		{"unbound", func(_ *Model, cfg *config.Config) tui.KeyMsg {
 			cfg.Keybinds.Composer.EditLast.Keybind = keybind.New()
 			return up
 		}, false},
@@ -145,7 +145,7 @@ func TestModelUpdate(t *testing.T) {
 			c, cfg := newTestModel(t)
 			// setup changes c, so it runs before Update copies it.
 			msg := tt.setup(c, cfg)
-			var command tview.Cmd
+			var command tui.Cmd
 			*c, command = c.Update(msg)
 			task, ok := command.(cmd.Task)
 			if got := ok && task() == (EditLastMsg{}); got != tt.want {
@@ -156,14 +156,14 @@ func TestModelUpdate(t *testing.T) {
 
 	t.Run("images before completing", func(t *testing.T) {
 		c, _ := newTestModel(t)
-		c.Update(images.ChangedMsg{"cat": tviewimage.New(image.NewAlpha(image.Rect(0, 0, 2, 2)))})
+		c.Update(images.ChangedMsg{"cat": tuiimage.New(image.NewAlpha(image.Rect(0, 0, 2, 2)))})
 	})
 }
 
 func TestModelView(t *testing.T) {
 	c, _ := newTestModel(t)
 	c.SetFocused(true)
-	area := tview.Rectangle{Width: 20, Height: 3}
+	area := tui.Rectangle{Width: 20, Height: 3}
 
 	t.Run("typing edits the text", func(t *testing.T) {
 		msg := c.View().Handle(tcell.NewEventKey(tcell.KeyRune, "a", tcell.ModNone), area)
@@ -202,7 +202,7 @@ func TestModelView(t *testing.T) {
 		}
 	})
 	t.Run("shift reaches readline keys bound elsewhere", func(t *testing.T) {
-		for _, key := range []tview.KeyMsg{
+		for _, key := range []tui.KeyMsg{
 			tcell.NewEventKey(tcell.KeyRune, "k", tcell.ModCtrl|tcell.ModShift),
 			tcell.NewEventKey(tcell.KeyRune, "e", tcell.ModCtrl|tcell.ModShift),
 			tcell.NewEventKey(tcell.KeyRune, "d", tcell.ModCtrl|tcell.ModShift),

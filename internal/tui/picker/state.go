@@ -1,0 +1,79 @@
+package picker
+
+import (
+	"github.com/seamanticus/amitty/internal/tui/viewport"
+)
+
+// SearchState is a picker's query, the items that match it, and the selection among them. The model owns it and replaces it with the one a picker produces.
+type SearchState struct {
+	query string
+	// queryCursor is the byte offset of the cursor in query.
+	queryCursor int
+	// cursor is the selected match.
+	cursor int
+	// scroll is how far the list is scrolled.
+	scroll viewport.ScrollState
+	// matches are the indexes of the items that match the query, used while the query is not empty.
+	matches []int
+}
+
+// NewSearchState returns an empty query with the first item selected.
+func NewSearchState() SearchState {
+	var s SearchState
+	s.Reset()
+	return s
+}
+
+// Reset clears the query and selects the first item. Call it when the items change, since matches refer to them by index.
+func (s *SearchState) Reset() {
+	s.query, s.queryCursor = "", 0
+	s.cursor = 0
+	s.scroll = viewport.ScrollState{}
+	s.matches = nil
+}
+
+// Select selects the ith match, which is the ith item while the query is empty, and scrolls it into view.
+func (s *SearchState) Select(i int) {
+	s.cursor = i
+	s.scroll.ScrollToTarget()
+}
+
+// Selected returns the selected item of items.
+func (s *SearchState) Selected(items Items) (Item, bool) {
+	i := s.cursor
+	if i < 0 || i >= s.count(items) {
+		return Item{}, false
+	}
+	return items[s.index(i)], true
+}
+
+// Visible returns the matches shown in a list rows tall, of items one row tall.
+func (s *SearchState) Visible(items Items, rows int) Items {
+	top := s.scroll.Viewport().AbsoluteOffset().Y
+	if s.scroll.Targeted() {
+		top = s.cursor - rows/2
+	}
+	count := s.count(items)
+	top = min(max(top, 0), max(count-rows, 0))
+	var visible Items
+	for i := top; i < min(top+rows, count); i++ {
+		visible = append(visible, items[s.index(i)])
+	}
+	return visible
+}
+
+// count returns the number of items that match the query.
+func (s *SearchState) count(items Items) int {
+	if s.query == "" {
+		return len(items)
+	}
+	return len(s.matches)
+}
+
+// index returns the index in items of the ith match.
+func (s *SearchState) index(i int) int {
+	if s.query == "" {
+		return i
+	}
+	return s.matches[i]
+}

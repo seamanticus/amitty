@@ -7,11 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/tokenstore"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/amitty/internal/ui/chat"
 	"github.com/seamanticus/amitty/internal/ui/login/password"
@@ -19,7 +19,7 @@ import (
 	"github.com/seamanticus/amitty/internal/ui/login/token"
 )
 
-func run(t *testing.T, command tview.Cmd) tview.Msg {
+func run(t *testing.T, command tui.Cmd) tui.Msg {
 	t.Helper()
 	task, ok := command.(cmd.Task)
 	if !ok {
@@ -29,16 +29,16 @@ func run(t *testing.T, command tview.Cmd) tview.Msg {
 }
 
 // runAll runs every task in command, batches flattened, and returns their messages.
-func runAll(command tview.Cmd) []tview.Msg {
+func runAll(command tui.Cmd) []tui.Msg {
 	switch c := command.(type) {
 	case cmd.Batch:
-		var all []tview.Msg
+		var all []tui.Msg
 		for _, inner := range c {
 			all = append(all, runAll(inner)...)
 		}
 		return all
 	case cmd.Task:
-		return []tview.Msg{c()}
+		return []tui.Msg{c()}
 	}
 	return nil
 }
@@ -107,7 +107,7 @@ func TestModelTokens(t *testing.T) {
 	// Every login method stores its token before the chat opens with it.
 	for _, tt := range []struct {
 		name string
-		msg  tview.Msg
+		msg  tui.Msg
 	}{
 		{"password login", password.TokenMsg("t")},
 		{"QR login", qr.TokenMsg("t")},

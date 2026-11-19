@@ -5,10 +5,10 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
 	"github.com/seamanticus/amitty/internal/dmwire/api"
 	dhttp "github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 )
 
 // FingerprintMsg carries the fingerprint that the login of final attempt is sent with.
@@ -18,8 +18,8 @@ type FingerprintMsg struct {
 }
 
 // fetchFingerprint gets the fingerprint that ties a login to its two-factor step, as the web client does before it posts credentials.
-func fetchFingerprint(build dhttp.Build, network dhttp.Network, final bool) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func fetchFingerprint(build dhttp.Build, network dhttp.Network, final bool) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), dhttp.AuthTimeout)
 		defer cancel()
 		msg := requestFingerprint(ctx, authClient(dhttp.NewClient(network, ""), build, ""))
@@ -32,7 +32,7 @@ func fetchFingerprint(build dhttp.Build, network dhttp.Network, final bool) tvie
 }
 
 // requestFingerprint asks with client, which must send no fingerprint or token, for a new one and returns a FingerprintMsg or a FailedMsg.
-func requestFingerprint(ctx context.Context, client *api.Client) tview.Msg {
+func requestFingerprint(ctx context.Context, client *api.Client) tui.Msg {
 	resp, err := client.WithContext(ctx).RequestJSON[struct {
 		Fingerprint string `json:"fingerprint"`
 	}](http.MethodGet, api.Endpoint+"experiments")

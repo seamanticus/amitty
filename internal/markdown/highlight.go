@@ -6,11 +6,11 @@ import (
 	"github.com/alecthomas/chroma/v2"
 	"github.com/alecthomas/chroma/v2/lexers"
 	"github.com/alecthomas/chroma/v2/styles"
-	"github.com/ayn2op/tview"
 	"github.com/gdamore/tcell/v3"
+	"github.com/seamanticus/amitty/internal/tui"
 )
 
-func (r *Renderer) writeCodeBlock(builder *Builder, code string, language string, base tview.Style) {
+func (r *Renderer) writeCodeBlock(builder *Builder, code string, language string, base tui.Style) {
 	lexer := lexers.Get(language)
 	declaredLanguageSupported := lexer != nil
 
@@ -60,7 +60,7 @@ func (r *Renderer) writeCodeBlock(builder *Builder, code string, language string
 	}
 }
 
-func applyChromaStyle(base tview.Style, entry chroma.StyleEntry) tview.Style {
+func applyChromaStyle(base tui.Style, entry chroma.StyleEntry) tui.Style {
 	style := base
 	if entry.Colour.IsSet() {
 		style = style.Foreground(tcell.NewRGBColor(

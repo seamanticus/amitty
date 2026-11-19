@@ -6,17 +6,17 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/keybind"
-	"github.com/ayn2op/tview/text"
-	"github.com/ayn2op/tview/tree"
-	"github.com/ayn2op/tview/viewport"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/state"
 	"github.com/seamanticus/amitty/internal/ningen"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/keybind"
+	"github.com/seamanticus/amitty/internal/tui/text"
+	"github.com/seamanticus/amitty/internal/tui/tree"
+	"github.com/seamanticus/amitty/internal/tui/viewport"
 	"github.com/seamanticus/amitty/internal/ui"
 	uitree "github.com/seamanticus/amitty/internal/ui/tree"
 )
@@ -82,7 +82,7 @@ func (m Model) Shown() bool {
 }
 
 // SetChannel shows the members of channel and requests its member list.
-func (m *Model) SetChannel(channel *discord.Channel) tview.Cmd {
+func (m *Model) SetChannel(channel *discord.Channel) tui.Cmd {
 	m.channel = channel
 	m.rebuild()
 	return m.requestMembers(0)
@@ -190,25 +190,25 @@ func (m Model) addGroup(guildID discord.GuildID, group gateway.GuildMemberListGr
 }
 
 // groupName returns the name of the group with groupID, in the color of its role if it is one.
-func (m Model) groupName(guildID discord.GuildID, groupID string) (string, tview.Style) {
+func (m Model) groupName(guildID discord.GuildID, groupID string) (string, tui.Style) {
 	switch groupID {
 	case "online":
-		return "Online", tview.Style{}
+		return "Online", tui.Style{}
 	case "offline":
-		return "Offline", tview.Style{}
+		return "Offline", tui.Style{}
 	}
 
 	roleID, err := discord.ParseSnowflake(groupID)
 	if err != nil {
-		return defaultGroupName, tview.Style{}
+		return defaultGroupName, tui.Style{}
 	}
 
 	role, err := m.state.Cabinet.Role(guildID, discord.RoleID(roleID))
 	if err != nil {
-		return defaultGroupName, tview.Style{}
+		return defaultGroupName, tui.Style{}
 	}
 
-	var style tview.Style
+	var style tui.Style
 	if role.Color != 0 {
 		style = style.Foreground(tcell.NewHexColor(int32(role.Color)))
 	}
@@ -229,7 +229,7 @@ func isGroup(node *tree.Node) bool {
 // addMember adds a member as Discord shows it: a status dot, then the name in the color of their highest colored role, dimmed when offline.
 func (m Model) addMember(group *tree.Node, guildID discord.GuildID, member discord.Member, index int) {
 	name := cmp.Or(member.Nick, member.User.DisplayName, member.User.Username)
-	var nameStyle tview.Style
+	var nameStyle tui.Style
 	color, ok := state.MemberColor(&member, func(id discord.RoleID) *discord.Role {
 		role, _ := m.state.Cabinet.Role(guildID, id)
 		return role
@@ -293,12 +293,12 @@ func (m Model) parent(node *tree.Node) *tree.Node {
 	return path[len(path)-2]
 }
 
-var _ tview.Model[Model] = Model{}
+var _ tui.Model[Model] = Model{}
 
-func (m Model) Init() tview.Cmd { return nil }
+func (m Model) Init() tui.Cmd { return nil }
 
 // Update returns m changed in response to msg and a command to run, or nil.
-func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
+func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	switch msg := msg.(type) {
 	case *gateway.ReadyEvent:
 		// ningen drops its member lists on READY, so request the list again.
@@ -329,7 +329,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 			msg.node.SetExpanded(!msg.node.Expanded())
 		}
 		return m, m.requestSelectedMembers()
-	case tview.KeyMsg:
+	case tui.KeyMsg:
 		keybinds := m.cfg.Keybinds.MembersTree
 		switch {
 		case keybind.Matches(msg, keybinds.CollapseAll.Keybind):
@@ -354,9 +354,9 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 }
 
 // View shows the tree in a box titled Members.
-func (m Model) View() tview.Widget {
-	onChange := func(current *tree.Node) tview.Msg { return currentMsg{current} }
-	onSelect := func(n *tree.Node) tview.Msg { return selectedMsg{node: n} }
+func (m Model) View() tui.Widget {
+	onChange := func(current *tree.Node) tui.Msg { return currentMsg{current} }
+	onSelect := func(n *tree.Node) tui.Msg { return selectedMsg{node: n} }
 	return uitree.New(
 		m.root,
 		m.current,

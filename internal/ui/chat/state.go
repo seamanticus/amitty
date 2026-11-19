@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 	"github.com/seamanticus/amitty/internal/ningen/states/read"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/ui"
 )
 
@@ -22,13 +22,13 @@ func onRequest(req httpdriver.Request) error {
 	return nil
 }
 
-func (m *Model) loadGuildsTree(event *gateway.ReadyEvent) tview.Cmd {
+func (m *Model) loadGuildsTree(event *gateway.ReadyEvent) tui.Cmd {
 	cmd := m.updatePane(paneGuildsTree, event)
 	m.setFocus(paneGuildsTree)
 	return cmd
 }
 
-func (m *Model) addMessageOrNotify(message *gateway.MessageCreateEvent) tview.Cmd {
+func (m *Model) addMessageOrNotify(message *gateway.MessageCreateEvent) tui.Cmd {
 	command := m.updatePane(paneGuildsTree, message)
 
 	if channel := m.selectedChannel; channel != nil && channel.ID == message.ChannelID {
@@ -41,14 +41,14 @@ func (m *Model) addMessageOrNotify(message *gateway.MessageCreateEvent) tview.Cm
 	return cmd.Batch{command, m.notify(*message)}
 }
 
-func (m Model) notify(message gateway.MessageCreateEvent) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
+func (m Model) notify(message gateway.MessageCreateEvent) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
 		return m.notification(message)
 	})
 }
 
 // notification shows a desktop notification for message if it mentions the user.
-func (m Model) notification(message gateway.MessageCreateEvent) tview.Msg {
+func (m Model) notification(message gateway.MessageCreateEvent) tui.Msg {
 	if !m.cfg.Notifications.Enabled || m.cfg.Status == discord.DoNotDisturbStatus {
 		return nil
 	}
@@ -99,12 +99,12 @@ func (m Model) notificationTitle(message gateway.MessageCreateEvent) (string, er
 	return title + " (#" + channel.Name + ", " + guild.Name + ")", nil
 }
 
-func (m Model) refreshMemberNames(event *gateway.GuildMembersChunkEvent) tview.Cmd {
+func (m Model) refreshMemberNames(event *gateway.GuildMembersChunkEvent) tui.Cmd {
 	m.messagesList.InvalidateRendered()
 	return m.composer.CacheMemberSearch(event)
 }
 
-func (m Model) showTypingIndicator(event *gateway.TypingStartEvent) tview.Cmd {
+func (m Model) showTypingIndicator(event *gateway.TypingStartEvent) tui.Cmd {
 	if channel := m.selectedChannel; channel == nil || channel.ID != event.ChannelID || ui.IsMe(m.state, event.UserID) {
 		return nil
 	}
@@ -112,7 +112,7 @@ func (m Model) showTypingIndicator(event *gateway.TypingStartEvent) tview.Cmd {
 }
 
 // applyEvent updates the model with a gateway event and returns what the event needs done.
-func (m *Model) applyEvent(event gateway.Event) tview.Cmd {
+func (m *Model) applyEvent(event gateway.Event) tui.Cmd {
 	switch event := event.(type) {
 	case *ws.RawEvent:
 		slog.Debug("new raw event", "code", event.OriginalCode, "type", event.OriginalType)

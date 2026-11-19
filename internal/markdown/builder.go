@@ -3,8 +3,8 @@ package markdown
 import (
 	"strings"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/text"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/text"
 )
 
 // Builder builds the spans of a text.
@@ -13,7 +13,7 @@ type Builder struct {
 }
 
 // Write appends value in style.
-func (b *Builder) Write(value string, style tview.Style) {
+func (b *Builder) Write(value string, style tui.Style) {
 	if value != "" {
 		b.spans = append(b.spans, text.Span{Text: value, Style: style})
 	}
@@ -31,7 +31,7 @@ func (b *Builder) LineEmpty() bool {
 
 // NewLine starts a new line.
 func (b *Builder) NewLine() {
-	b.Write("\n", tview.Style{})
+	b.Write("\n", tui.Style{})
 }
 
 // Finish returns the spans, without a line break at the end, which would add an empty line.

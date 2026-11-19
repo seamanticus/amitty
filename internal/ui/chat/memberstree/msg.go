@@ -1,10 +1,10 @@
 package memberstree
 
 import (
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
-	"github.com/ayn2op/tview/tree"
 	"github.com/seamanticus/amitty/internal/ningen/states/member"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
+	"github.com/seamanticus/amitty/internal/tui/tree"
 )
 
 // currentMsg makes a node of the tree the current one.
@@ -18,7 +18,7 @@ type selectedMsg struct {
 }
 
 // requestSelectedMembers requests the chunk of the member list after the selected member, so that the members below it load before they are reached.
-func (m Model) requestSelectedMembers() tview.Cmd {
+func (m Model) requestSelectedMembers() tui.Cmd {
 	node := m.current
 	if node == nil {
 		return nil
@@ -31,13 +31,13 @@ func (m Model) requestSelectedMembers() tview.Cmd {
 }
 
 // requestMembers requests the member list of the selected guild channel up to chunk.
-func (m Model) requestMembers(chunk int) tview.Cmd {
+func (m Model) requestMembers(chunk int) tui.Cmd {
 	channel := m.channel
 	if !m.Shown() || !channel.GuildID.IsValid() {
 		return nil
 	}
 	state := m.state
-	return cmd.Task(func() tview.Msg {
+	return cmd.Task(func() tui.Msg {
 		state.MemberState.RequestMemberList(channel.GuildID, channel.ID, chunk)
 		return nil
 	})

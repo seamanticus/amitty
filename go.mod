@@ -2,12 +2,9 @@ module github.com/seamanticus/amitty
 
 go 1.27.0
 
-// replace github.com/ayn2op/tview => ../tview
-
 require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/alecthomas/chroma/v2 v2.27.0
-	github.com/ayn2op/tview v0.0.0-20261113213513-aa6cbbecdc63
 	github.com/bogdanfinn/fhttp v0.7.3
 	github.com/bogdanfinn/tls-client v1.18.1
 	github.com/gdamore/tcell/v3 v3.6.1-0.20261105165643-4cedad629677

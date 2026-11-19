@@ -6,11 +6,11 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/ayn2op/tview"
-	"github.com/ayn2op/tview/cmd"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/amitty/internal/ui/login/password"
 )
@@ -25,12 +25,12 @@ func newModel(t *testing.T) Model {
 }
 
 // dialogs runs the tasks in command, one level of batches deep, and returns the dialogs they show.
-func dialogs(command tview.Cmd) []ui.DialogMsg {
-	var commands []tview.Cmd
+func dialogs(command tui.Cmd) []ui.DialogMsg {
+	var commands []tui.Cmd
 	if batch, ok := command.(cmd.Batch); ok {
 		commands = batch
 	} else {
-		commands = []tview.Cmd{command}
+		commands = []tui.Cmd{command}
 	}
 	var shown []ui.DialogMsg
 	for _, c := range commands {
@@ -102,13 +102,13 @@ func TestModelUpdate(t *testing.T) {
 	})
 }
 
-var area = tview.Rectangle{Width: 60, Height: 15}
+var area = tui.Rectangle{Width: 60, Height: 15}
 
-func key(k tcell.Key) tview.KeyMsg { return tcell.NewEventKey(k, "", tcell.ModNone) }
+func key(k tcell.Key) tui.KeyMsg { return tcell.NewEventKey(k, "", tcell.ModNone) }
 
 // press delivers msgs the way the application does, through the view then Update, and returns the last command.
-func press(m *Model, msgs ...tview.Msg) tview.Cmd {
-	var command tview.Cmd
+func press(m *Model, msgs ...tui.Msg) tui.Cmd {
+	var command tui.Cmd
 	for _, msg := range msgs {
 		if msg = m.View().Handle(msg, area); msg != nil {
 			*m, command = m.Update(msg)
@@ -118,7 +118,7 @@ func press(m *Model, msgs ...tview.Msg) tview.Cmd {
 }
 
 // fillAndSubmit types a login and password on the password tab and presses the button, returning the submit's command.
-func fillAndSubmit(m *Model) tview.Cmd {
+func fillAndSubmit(m *Model) tui.Cmd {
 	m.active = tabPassword
 	return press(m,
 		tcell.NewEventKey(tcell.KeyRune, "u", tcell.ModNone), key(tcell.KeyEnter),
@@ -128,7 +128,7 @@ func fillAndSubmit(m *Model) tview.Cmd {
 }
 
 // hasTask reports whether command, or a command in its batch, is a task: work that would reach the network. It does not run it.
-func hasTask(command tview.Cmd) bool {
+func hasTask(command tui.Cmd) bool {
 	if batch, ok := command.(cmd.Batch); ok {
 		return slices.ContainsFunc(batch, hasTask)
 	}
