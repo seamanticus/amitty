@@ -15,7 +15,7 @@ import (
 
 func TestAll(t *testing.T) {
 	var names []string
-	for name, emoji := range All(ningen.FromState(state.New("")), discord.NullGuildID) {
+	for name, emoji := range All(ningen.FromState(state.New("")), discord.NoGuild()) {
 		if emoji.Name == "👍" {
 			names = append(names, name)
 		}
@@ -74,7 +74,7 @@ func TestUsableEmojis(t *testing.T) {
 	}{
 		{"without nitro", discord.NoUserNitro, guild, []discord.EmojiID{10, 12}},
 		{"with nitro", discord.NitroFull, guild, []discord.EmojiID{10, 11, 12, 20}},
-		{"without nitro in dms", discord.NoUserNitro, discord.NullGuildID, nil},
+		{"without nitro in dms", discord.NoUserNitro, discord.NoGuild(), nil},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			s := ningen.FromState(state.NewWithStore("", defaultstore.New()))

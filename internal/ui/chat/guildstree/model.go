@@ -213,7 +213,7 @@ func (m Model) channelNodeStyle(channel discord.Channel) tview.Style {
 	}
 
 	recipient := channel.DMRecipients[0]
-	presence, err := m.state.Cabinet.Presence(discord.NullGuildID, recipient.ID)
+	presence, err := m.state.Cabinet.Presence(discord.NoGuild(), recipient.ID)
 	if err != nil {
 		return tview.MergeStyle(m.cfg.Theme.GuildsTree.StatusStyle(discord.OfflineStatus), unread)
 	}

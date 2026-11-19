@@ -85,10 +85,6 @@ const (
 // ExplicitFilter is the explicit content filter level of a guild.
 type ExplicitFilter enum.Enum
 
-// NullExplicitFilter serialized to JSON null.
-// This should only be used on nullable fields.
-const NullExplicitFilter ExplicitFilter = enum.Null
-
 // https://discord.com/developers/docs/resources/guild#guild-object-explicit-content-filter-level
 const (
 	// NoContentFilter disables content filtering for the guild.
@@ -113,10 +109,6 @@ func (f ExplicitFilter) MarshalJSON() ([]byte, error) {
 // Notification is the default message notification level of a guild.
 type Notification enum.Enum
 
-// NullNotification serialized to JSON null.
-// This should only be used on nullable fields.
-const NullNotification Notification = enum.Null
-
 // https://discord.com/developers/docs/resources/guild#guild-object-default-message-notification-level
 const (
 	// AllMessages sends notifications for all messages.
@@ -136,10 +128,6 @@ func (n Notification) MarshalJSON() ([]byte, error) { return enum.ToJSON(enum.En
 
 // Verification is the verification level required for a guild.
 type Verification enum.Enum
-
-// NullVerification serialized to JSON null.
-// This should only be used on nullable fields.
-const NullVerification Verification = enum.Null
 
 // https://discord.com/developers/docs/resources/guild#guild-object-verification-level
 const (

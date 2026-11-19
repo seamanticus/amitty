@@ -160,16 +160,16 @@ func (m Model) addRecipients(recipients []discord.User) {
 	if me, err := m.state.Cabinet.Me(); err == nil {
 		recipients = append(recipients, *me)
 	}
-	rank := func(user discord.User) int { return statusRank(m.status(discord.NullGuildID, user.ID)) }
+	rank := func(user discord.User) int { return statusRank(m.status(discord.NoGuild(), user.ID)) }
 	name := func(user discord.User) string { return strings.ToLower(user.DisplayOrUsername()) }
 	// By status, online first, then by name.
 	slices.SortFunc(recipients, func(a, b discord.User) int {
 		return cmp.Or(cmp.Compare(rank(a), rank(b)), strings.Compare(name(a), name(b)))
 	})
 
-	group := m.addGroup(discord.NullGuildID, gateway.GuildMemberListGroup{ID: "members", Count: uint64(len(recipients))})
+	group := m.addGroup(discord.NoGuild(), gateway.GuildMemberListGroup{ID: "members", Count: uint64(len(recipients))})
 	for _, recipient := range recipients {
-		m.addMember(group, discord.NullGuildID, discord.Member{User: recipient}, -1)
+		m.addMember(group, discord.NoGuild(), discord.Member{User: recipient}, -1)
 	}
 }
 

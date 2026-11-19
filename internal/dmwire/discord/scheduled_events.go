@@ -40,7 +40,7 @@ type GuildScheduledEvent struct {
 	// GuildID is the guild id of where the scheduled event belongs to.
 	GuildID GuildID `json:"guild_id"`
 	// ChannelID is the channel id in which the scheduled event will be
-	// hosted at, this may be NullChannelID if the EntityType is set
+	// hosted at, this may be invalid if the EntityType is set
 	// to ExternalEntity.
 	ChannelID ChannelID `json:"channel_id"`
 	// CreatorID is the user id of who created the scheduled event.

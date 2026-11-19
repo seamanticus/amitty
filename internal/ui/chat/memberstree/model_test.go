@@ -115,7 +115,7 @@ func TestModelRebuild(t *testing.T) {
 		if err := m.state.MyselfSet(discord.User{ID: 13, Username: "me"}, false); err != nil {
 			t.Fatal(err)
 		}
-		if err := m.state.PresenceSet(discord.NullGuildID, &discord.Presence{User: discord.User{ID: 11}, Status: discord.OnlineStatus}, false); err != nil {
+		if err := m.state.PresenceSet(discord.NoGuild(), &discord.Presence{User: discord.User{ID: 11}, Status: discord.OnlineStatus}, false); err != nil {
 			t.Fatal(err)
 		}
 		m.channel = &discord.Channel{Type: discord.GroupDM, DMRecipients: []discord.User{

@@ -7,9 +7,6 @@ import "time"
 // AppID is the snowflake type for a AppID.
 type AppID Snowflake
 
-// NullAppID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullAppID = AppID(NullSnowflake)
-
 func (s AppID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *AppID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
 
@@ -30,9 +27,6 @@ func (s AppID) Increment() uint16 { return Snowflake(s).Increment() }
 
 // AttachmentID is the snowflake type for a AttachmentID.
 type AttachmentID Snowflake
-
-// NullAttachmentID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullAttachmentID = AttachmentID(NullSnowflake)
 
 func (s AttachmentID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *AttachmentID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
@@ -55,9 +49,6 @@ func (s AttachmentID) Increment() uint16 { return Snowflake(s).Increment() }
 // AuditLogEntryID is the snowflake type for a AuditLogEntryID.
 type AuditLogEntryID Snowflake
 
-// NullAuditLogEntryID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullAuditLogEntryID = AuditLogEntryID(NullSnowflake)
-
 func (s AuditLogEntryID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *AuditLogEntryID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
 
@@ -78,9 +69,6 @@ func (s AuditLogEntryID) Increment() uint16 { return Snowflake(s).Increment() }
 
 // ChannelID is the snowflake type for a ChannelID.
 type ChannelID Snowflake
-
-// NullChannelID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullChannelID = ChannelID(NullSnowflake)
 
 func (s ChannelID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *ChannelID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
@@ -103,9 +91,6 @@ func (s ChannelID) Increment() uint16 { return Snowflake(s).Increment() }
 // CommandID is the snowflake type for a CommandID.
 type CommandID Snowflake
 
-// NullCommandID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullCommandID = CommandID(NullSnowflake)
-
 func (s CommandID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *CommandID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
 
@@ -126,9 +111,6 @@ func (s CommandID) Increment() uint16 { return Snowflake(s).Increment() }
 
 // EmojiID is the snowflake type for a EmojiID.
 type EmojiID Snowflake
-
-// NullEmojiID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullEmojiID = EmojiID(NullSnowflake)
 
 func (s EmojiID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *EmojiID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
@@ -151,9 +133,6 @@ func (s EmojiID) Increment() uint16 { return Snowflake(s).Increment() }
 // GuildID is the snowflake type for a GuildID.
 type GuildID Snowflake
 
-// NullGuildID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullGuildID = GuildID(NullSnowflake)
-
 func (s GuildID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *GuildID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
 
@@ -174,9 +153,6 @@ func (s GuildID) Increment() uint16 { return Snowflake(s).Increment() }
 
 // IntegrationID is the snowflake type for a IntegrationID.
 type IntegrationID Snowflake
-
-// NullIntegrationID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullIntegrationID = IntegrationID(NullSnowflake)
 
 func (s IntegrationID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *IntegrationID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
@@ -199,9 +175,6 @@ func (s IntegrationID) Increment() uint16 { return Snowflake(s).Increment() }
 // InteractionID is the snowflake type for a InteractionID.
 type InteractionID Snowflake
 
-// NullInteractionID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullInteractionID = InteractionID(NullSnowflake)
-
 func (s InteractionID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *InteractionID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
 
@@ -222,9 +195,6 @@ func (s InteractionID) Increment() uint16 { return Snowflake(s).Increment() }
 
 // MessageID is the snowflake type for a MessageID.
 type MessageID Snowflake
-
-// NullMessageID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullMessageID = MessageID(NullSnowflake)
 
 func (s MessageID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *MessageID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
@@ -247,9 +217,6 @@ func (s MessageID) Increment() uint16 { return Snowflake(s).Increment() }
 // RoleID is the snowflake type for a RoleID.
 type RoleID Snowflake
 
-// NullRoleID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullRoleID = RoleID(NullSnowflake)
-
 func (s RoleID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *RoleID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
 
@@ -270,9 +237,6 @@ func (s RoleID) Increment() uint16 { return Snowflake(s).Increment() }
 
 // StageID is the snowflake type for a StageID.
 type StageID Snowflake
-
-// NullStageID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullStageID = StageID(NullSnowflake)
 
 func (s StageID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *StageID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
@@ -295,9 +259,6 @@ func (s StageID) Increment() uint16 { return Snowflake(s).Increment() }
 // StickerID is the snowflake type for a StickerID.
 type StickerID Snowflake
 
-// NullStickerID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullStickerID = StickerID(NullSnowflake)
-
 func (s StickerID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *StickerID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
 
@@ -318,9 +279,6 @@ func (s StickerID) Increment() uint16 { return Snowflake(s).Increment() }
 
 // StickerPackID is the snowflake type for a StickerPackID.
 type StickerPackID Snowflake
-
-// NullStickerPackID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullStickerPackID = StickerPackID(NullSnowflake)
 
 func (s StickerPackID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *StickerPackID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
@@ -343,9 +301,6 @@ func (s StickerPackID) Increment() uint16 { return Snowflake(s).Increment() }
 // TagID is the snowflake type for a TagID.
 type TagID Snowflake
 
-// NullTagID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullTagID = TagID(NullSnowflake)
-
 func (s TagID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *TagID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
 
@@ -366,9 +321,6 @@ func (s TagID) Increment() uint16 { return Snowflake(s).Increment() }
 
 // TeamID is the snowflake type for a TeamID.
 type TeamID Snowflake
-
-// NullTeamID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullTeamID = TeamID(NullSnowflake)
 
 func (s TeamID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *TeamID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
@@ -391,9 +343,6 @@ func (s TeamID) Increment() uint16 { return Snowflake(s).Increment() }
 // UserID is the snowflake type for a UserID.
 type UserID Snowflake
 
-// NullUserID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullUserID = UserID(NullSnowflake)
-
 func (s UserID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *UserID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
 
@@ -414,9 +363,6 @@ func (s UserID) Increment() uint16 { return Snowflake(s).Increment() }
 
 // WebhookID is the snowflake type for a WebhookID.
 type WebhookID Snowflake
-
-// NullWebhookID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullWebhookID = WebhookID(NullSnowflake)
 
 func (s WebhookID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *WebhookID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
@@ -439,9 +385,6 @@ func (s WebhookID) Increment() uint16 { return Snowflake(s).Increment() }
 // EventID is the snowflake type for a EventID.
 type EventID Snowflake
 
-// NullEventID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullEventID = EventID(NullSnowflake)
-
 func (s EventID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *EventID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
 
@@ -462,9 +405,6 @@ func (s EventID) Increment() uint16 { return Snowflake(s).Increment() }
 
 // EntityID is the snowflake type for a EntityID.
 type EntityID Snowflake
-
-// NullEntityID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullEntityID = EntityID(NullSnowflake)
 
 func (s EntityID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *EntityID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
@@ -487,9 +427,6 @@ func (s EntityID) Increment() uint16 { return Snowflake(s).Increment() }
 // AutoModerationRuleID is the snowflake type for a AutoModerationRuleID.
 type AutoModerationRuleID Snowflake
 
-// NullAutoModerationRuleID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullAutoModerationRuleID = AutoModerationRuleID(NullSnowflake)
-
 func (s AutoModerationRuleID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *AutoModerationRuleID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }
 
@@ -510,9 +447,6 @@ func (s AutoModerationRuleID) Increment() uint16 { return Snowflake(s).Increment
 
 // SKUID is the snowflake type for a SKUID.
 type SKUID Snowflake
-
-// NullSKUID gets encoded into a null. This is used for optional and nullable snowflake fields.
-const NullSKUID = SKUID(NullSnowflake)
 
 func (s SKUID) MarshalJSON() ([]byte, error)  { return Snowflake(s).MarshalJSON() }
 func (s *SKUID) UnmarshalJSON(v []byte) error { return (*Snowflake)(s).UnmarshalJSON(v) }

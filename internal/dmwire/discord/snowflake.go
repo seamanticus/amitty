@@ -34,6 +34,9 @@ type Snowflake uint64
 // optional and nullable snowflake fields.
 const NullSnowflake = ^Snowflake(0)
 
+// NoGuild is the guild of what belongs to none, such as a direct message or a presence outside any guild.
+func NoGuild() GuildID { return 0 }
+
 // NewSnowflake creates a new snowflake from the given time.
 func NewSnowflake(t time.Time) Snowflake {
 	return Snowflake((DurationSinceEpoch(t) / time.Millisecond) << 22)

@@ -202,9 +202,6 @@ const (
 
 type MessageFlags enum.Enum
 
-// NullMessage is the JSON null value of MessageFlags.
-const NullMessage MessageFlags = enum.Null
-
 // https://discord.com/developers/docs/resources/channel#message-object-message-flags
 const (
 	// CrosspostedMessage specifies whether the message has been published to

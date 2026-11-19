@@ -147,7 +147,7 @@ func memberMention(s *ningen.State, gID discord.GuildID, member *discord.Member)
 }
 
 func userMention(s *ningen.State, user *discord.User) mention {
-	return mention{user.Username, user.DisplayOrUsername(), avatarURL(*user), presenceStyle(s, discord.NullGuildID, user.ID)}
+	return mention{user.Username, user.DisplayOrUsername(), avatarURL(*user), presenceStyle(s, discord.NoGuild(), user.ID)}
 }
 
 func avatarURL(user discord.User) discord.URL {

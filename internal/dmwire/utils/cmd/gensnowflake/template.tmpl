@@ -16,9 +16,6 @@ import "time"
 // {{ .TypeName }} is the snowflake type for a {{ .TypeName }}.
 type {{.TypeName}} {{$dot}}Snowflake
 
-// Null{{.TypeName}} gets encoded into a null. This is used for optional and nullable snowflake fields.
-const Null{{.TypeName}} = {{.TypeName}}({{$dot}}NullSnowflake)
-
 func (s {{.TypeName}}) MarshalJSON() ([]byte, error)  { return {{$dot}}Snowflake(s).MarshalJSON() }
 func (s *{{.TypeName}}) UnmarshalJSON(v []byte) error { return (*{{$dot}}Snowflake)(s).UnmarshalJSON(v) }
 
