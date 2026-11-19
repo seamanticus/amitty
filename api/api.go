@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ayn2op/arikawa/v3/api/rate"
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/utils/httputil"
-	"github.com/ayn2op/arikawa/v3/utils/httputil/httpdriver"
+	"github.com/seamanticus/dmwire/api/rate"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/utils/httputil"
+	"github.com/seamanticus/dmwire/utils/httputil/httpdriver"
 )
 
 var (
@@ -23,7 +23,7 @@ var (
 	EndpointGatewayBot = EndpointGateway + "/bot"
 )
 
-var UserAgent = "DiscordBot (https://github.com/ayn2op/arikawa/v3)"
+var UserAgent = "DiscordBot (https://github.com/seamanticus/dmwire)"
 
 type Client struct {
 	*httputil.Client

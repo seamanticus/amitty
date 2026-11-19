@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/internal/moreatomic"
+	"github.com/seamanticus/dmwire/internal/moreatomic"
 )
 
 // ExtraDelay because Discord is trash. I've seen this in both litcord and

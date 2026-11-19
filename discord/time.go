@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/utils/json"
+	"github.com/seamanticus/dmwire/utils/json"
 )
 
 // Timestamp has a valid zero-value, which can be checked using the IsValid()

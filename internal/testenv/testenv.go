@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/discord"
+	"github.com/seamanticus/dmwire/discord"
 )
 
 const PerseveranceTime = 50 * time.Minute

@@ -4,7 +4,7 @@ package option
 import (
 	"bytes"
 
-	"github.com/ayn2op/arikawa/v3/utils/json"
+	"github.com/seamanticus/dmwire/utils/json"
 )
 
 // Option wraps a type to make it omittable.

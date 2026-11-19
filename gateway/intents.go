@@ -1,8 +1,8 @@
 package gateway
 
 import (
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/utils/ws"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/utils/ws"
 )
 
 // Intents for the new Discord API feature, documented at

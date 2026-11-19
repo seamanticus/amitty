@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/api"
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/utils/json/option"
+	"github.com/seamanticus/dmwire/api"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/utils/json/option"
 	"golang.org/x/time/rate"
 )
 
@@ -104,8 +104,8 @@ const (
 // Gateway.
 var DefaultIdentity = IdentifyProperties{
 	IdentifyOS:      runtime.GOOS,
-	IdentifyBrowser: "Arikawa",
-	IdentifyDevice:  "Arikawa",
+	IdentifyBrowser: "dmwire",
+	IdentifyDevice:  "dmwire",
 }
 
 type (

@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/internal/lazytime"
-	"github.com/ayn2op/arikawa/v3/utils/json"
+	"github.com/seamanticus/dmwire/internal/lazytime"
+	"github.com/seamanticus/dmwire/utils/json"
 )
 
 // ConnectionError is given to the user if the gateway fails to connect to the

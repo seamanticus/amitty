@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ayn2op/arikawa/v3/utils/json"
+	"github.com/seamanticus/dmwire/utils/json"
 )
 
 var ErrInvalidImageCT = errors.New("unknown image content-type")

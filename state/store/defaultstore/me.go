@@ -3,8 +3,8 @@ package defaultstore
 import (
 	"sync"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/state/store"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/state/store"
 )
 
 type Me struct {

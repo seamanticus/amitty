@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/utils/json"
-	"github.com/ayn2op/arikawa/v3/utils/json/option"
+	"github.com/seamanticus/dmwire/utils/json"
+	"github.com/seamanticus/dmwire/utils/json/option"
 )
 
 // ChannelFlags are the channel flags combined as a bitfield.

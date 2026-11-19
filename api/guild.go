@@ -4,9 +4,9 @@ import (
 	"io"
 	"net/url"
 
-	"github.com/ayn2op/arikawa/v3/discord" // for clarity
-	"github.com/ayn2op/arikawa/v3/utils/httputil"
-	"github.com/ayn2op/arikawa/v3/utils/json/option"
+	"github.com/seamanticus/dmwire/discord" // for clarity
+	"github.com/seamanticus/dmwire/utils/httputil"
+	"github.com/seamanticus/dmwire/utils/json/option"
 )
 
 // MaxGuildFetchLimit is the limit of max guilds per request, as imposed by

@@ -3,10 +3,10 @@ package api
 import (
 	"mime/multipart"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/utils/httputil"
-	"github.com/ayn2op/arikawa/v3/utils/json/option"
-	"github.com/ayn2op/arikawa/v3/utils/sendpart"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/utils/httputil"
+	"github.com/seamanticus/dmwire/utils/json/option"
+	"github.com/seamanticus/dmwire/utils/sendpart"
 )
 
 const (

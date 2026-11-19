@@ -9,12 +9,12 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/ayn2op/arikawa/v3/api"
-	"github.com/ayn2op/arikawa/v3/gateway"
-	"github.com/ayn2op/arikawa/v3/utils/handler"
-	"github.com/ayn2op/arikawa/v3/utils/json/option"
-	"github.com/ayn2op/arikawa/v3/utils/ws"
-	"github.com/ayn2op/arikawa/v3/utils/ws/ophandler"
+	"github.com/seamanticus/dmwire/api"
+	"github.com/seamanticus/dmwire/gateway"
+	"github.com/seamanticus/dmwire/utils/handler"
+	"github.com/seamanticus/dmwire/utils/json/option"
+	"github.com/seamanticus/dmwire/utils/ws"
+	"github.com/seamanticus/dmwire/utils/ws/ophandler"
 )
 
 // ErrMFA is returned if the account requires a 2FA code to log in.

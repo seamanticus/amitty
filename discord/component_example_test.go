@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ayn2op/arikawa/v3/discord"
+	"github.com/seamanticus/dmwire/discord"
 )
 
 func ExampleTopLevelComponents_Unmarshal() {

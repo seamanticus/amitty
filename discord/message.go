@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/utils/json/enum"
-	"github.com/ayn2op/arikawa/v3/utils/json/option"
+	"github.com/seamanticus/dmwire/utils/json/enum"
+	"github.com/seamanticus/dmwire/utils/json/option"
 )
 
 // https://discord.com/developers/docs/resources/channel#message-object

@@ -2,7 +2,7 @@
 
 package gateway
 
-import "github.com/ayn2op/arikawa/v3/utils/ws"
+import "github.com/seamanticus/dmwire/utils/ws"
 
 func init() {
 	OpUnmarshalers.Add(

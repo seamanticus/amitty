@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ayn2op/arikawa/v3/internal/rfutil"
-	"github.com/ayn2op/arikawa/v3/utils/json"
+	"github.com/seamanticus/dmwire/internal/rfutil"
+	"github.com/seamanticus/dmwire/utils/json"
 )
 
 // ComponentType is the type of a component.

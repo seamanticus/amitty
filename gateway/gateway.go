@@ -15,9 +15,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/api"
-	"github.com/ayn2op/arikawa/v3/internal/lazytime"
-	"github.com/ayn2op/arikawa/v3/utils/ws"
+	"github.com/seamanticus/dmwire/api"
+	"github.com/seamanticus/dmwire/internal/lazytime"
+	"github.com/seamanticus/dmwire/utils/ws"
 )
 
 var (

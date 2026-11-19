@@ -6,8 +6,8 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/state/store"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/state/store"
 )
 
 type atomicMap[K comparable, V any] struct {

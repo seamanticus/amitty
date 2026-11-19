@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/utils/json"
-	"github.com/ayn2op/arikawa/v3/utils/json/option"
-	"github.com/ayn2op/arikawa/v3/utils/ws"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/utils/json"
+	"github.com/seamanticus/dmwire/utils/json/option"
+	"github.com/seamanticus/dmwire/utils/ws"
 )
 
 func TestRequestGuildMembersCommand(t *testing.T) {

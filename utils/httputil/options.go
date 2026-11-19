@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/ayn2op/arikawa/v3/utils/httputil/httpdriver"
-	"github.com/ayn2op/arikawa/v3/utils/json"
+	"github.com/seamanticus/dmwire/utils/httputil/httpdriver"
+	"github.com/seamanticus/dmwire/utils/json"
 )
 
 type RequestOption func(httpdriver.Request) error

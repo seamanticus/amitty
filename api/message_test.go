@@ -3,7 +3,7 @@ package api
 import (
 	"testing"
 
-	"github.com/ayn2op/arikawa/v3/utils/httputil"
+	"github.com/seamanticus/dmwire/utils/httputil"
 )
 
 func TestMessagesRangeParamsOmitEmptyBoundaries(t *testing.T) {

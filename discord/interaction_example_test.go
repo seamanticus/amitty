@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	internaljson "github.com/ayn2op/arikawa/v3/utils/json"
+	"github.com/seamanticus/dmwire/discord"
+	internaljson "github.com/seamanticus/dmwire/utils/json"
 )
 
 func ExampleCommandInteractionOptions_Unmarshal() {

@@ -3,7 +3,7 @@ package httputil
 import (
 	"io"
 
-	"github.com/ayn2op/arikawa/v3/utils/httputil/httpdriver"
+	"github.com/seamanticus/dmwire/utils/httputil/httpdriver"
 )
 
 // This file contains mistakes.

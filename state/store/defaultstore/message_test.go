@@ -3,7 +3,7 @@ package defaultstore
 import (
 	"testing"
 
-	"github.com/ayn2op/arikawa/v3/discord"
+	"github.com/seamanticus/dmwire/discord"
 )
 
 func populate12Store() *Message {

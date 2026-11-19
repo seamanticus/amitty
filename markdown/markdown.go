@@ -3,8 +3,8 @@ package markdown
 import (
 	"sync"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/state/store"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/state/store"
 	"github.com/yuin/goldmark/v2/ast"
 	"github.com/yuin/goldmark/v2/parser"
 )

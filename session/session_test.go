@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/gateway"
-	"github.com/ayn2op/arikawa/v3/internal/testenv"
+	"github.com/seamanticus/dmwire/gateway"
+	"github.com/seamanticus/dmwire/internal/testenv"
 )
 
 func TestAuthTokenRefresh(t *testing.T) {

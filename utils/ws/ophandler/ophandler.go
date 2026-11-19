@@ -5,8 +5,8 @@ package ophandler
 import (
 	"context"
 
-	"github.com/ayn2op/arikawa/v3/utils/handler"
-	"github.com/ayn2op/arikawa/v3/utils/ws"
+	"github.com/seamanticus/dmwire/utils/handler"
+	"github.com/seamanticus/dmwire/utils/ws"
 )
 
 // Loop starts a background goroutine that starts reading from src and

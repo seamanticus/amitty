@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/utils/json"
-	"github.com/ayn2op/arikawa/v3/utils/sendpart"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/utils/json"
+	"github.com/seamanticus/dmwire/utils/sendpart"
 )
 
 func TestMarshalAllowedMentions(t *testing.T) {

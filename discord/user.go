@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/utils/json/option"
+	"github.com/seamanticus/dmwire/utils/json/option"
 )
 
 type User struct {

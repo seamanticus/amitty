@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/api"
-	"github.com/ayn2op/arikawa/v3/internal/testenv"
-	"github.com/ayn2op/arikawa/v3/utils/ws"
+	"github.com/seamanticus/dmwire/api"
+	"github.com/seamanticus/dmwire/internal/testenv"
+	"github.com/seamanticus/dmwire/utils/ws"
 )
 
 func doLog(t *testing.T) {

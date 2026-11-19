@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/ayn2op/arikawa/v3/utils/httputil"
-	"github.com/ayn2op/arikawa/v3/utils/json"
+	"github.com/seamanticus/dmwire/utils/httputil"
+	"github.com/seamanticus/dmwire/utils/json"
 )
 
 // File represents a file to be uploaded to Discord.
