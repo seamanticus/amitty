@@ -14,13 +14,15 @@ import (
 //go:generate go run generator.go
 
 const (
-	osName    = "Windows"
-	osVersion = "10"
+	osName = "Linux"
+	// The web client reads the OS version from the user agent, which on Linux has none.
+	osVersion = ""
 	locale    = discord.EnglishUS
 )
 
+// BrowserUserAgent is Chrome's reduced user agent on Linux, which names x86_64 on every architecture.
 func BrowserUserAgent() string {
-	return "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) " + tls.BrowserName() + "/" + tls.BrowserVersion() + " Safari/537.36"
+	return "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) " + tls.BrowserName() + "/" + tls.BrowserVersion() + " Safari/537.36"
 }
 
 func browserBrands() string {

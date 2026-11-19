@@ -20,6 +20,8 @@ func TestCommonProperties(t *testing.T) {
 		{"properties browser", properties[gateway.IdentifyBrowser], tls.BrowserName()},
 		{"properties version", properties["browser_version"], tls.BrowserVersion()},
 		{"properties user agent", properties["browser_user_agent"], BrowserUserAgent()},
+		{"properties os", properties[gateway.IdentifyOS], "Linux"},
+		{"properties os version", properties["os_version"], ""},
 	}
 
 	for _, test := range tests {
@@ -32,8 +34,12 @@ func TestCommonProperties(t *testing.T) {
 }
 
 func TestBrowserUserAgent(t *testing.T) {
-	if product := tls.BrowserName() + "/" + tls.BrowserVersion(); !strings.Contains(BrowserUserAgent(), product) {
+	ua := BrowserUserAgent()
+	if product := tls.BrowserName() + "/" + tls.BrowserVersion(); !strings.Contains(ua, product) {
 		t.Fatalf("user agent does not contain %q", product)
+	}
+	if !strings.HasPrefix(ua, "Mozilla/5.0 (X11; Linux x86_64) ") {
+		t.Fatalf("user agent %q is not Linux's", ua)
 	}
 }
 
@@ -46,7 +52,7 @@ func TestHeaders(t *testing.T) {
 	}{
 		{"Sec-Ch-Ua", brands("Chrome", version)},
 		{"Sec-Ch-Ua-Mobile", "?0"},
-		{"Sec-Ch-Ua-Platform", `"Windows"`},
+		{"Sec-Ch-Ua-Platform", `"Linux"`},
 	}
 
 	for _, test := range tests {
