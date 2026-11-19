@@ -39,6 +39,7 @@ import (
 	"github.com/seamanticus/amitty/internal/ui/chat/guildstree"
 	"github.com/seamanticus/amitty/internal/ui/chat/memberstree"
 	"github.com/seamanticus/amitty/internal/ui/chat/messageslist"
+	"github.com/seamanticus/amitty/internal/ui/chat/pathprompt"
 	"github.com/seamanticus/amitty/internal/ui/chat/reactionspicker"
 	"github.com/seamanticus/amitty/internal/ui/images"
 )
@@ -62,6 +63,8 @@ type Model struct {
 	attachmentsPicker attachmentspicker.Model
 	// reactionsPicker picks an emoji to react to the selected message with.
 	reactionsPicker reactionspicker.Model
+	// pathPrompt asks for a file path to attach or to save to.
+	pathPrompt pathprompt.Model
 
 	selectedChannel *discord.Channel
 	// windowUnfocused reports whether the terminal window lost focus.
@@ -142,7 +145,7 @@ func NewModel(cfg *config.Config, build http.Build, token string) Model {
 	return m
 }
 
-// overlay is the picker shown on top of the panes, if any.
+// overlay is the picker or prompt shown on top of the panes, if any.
 type overlay int
 
 const (
@@ -150,9 +153,10 @@ const (
 	overlayChannelsPicker
 	overlayAttachmentsPicker
 	overlayReactionsPicker
+	overlayPathPrompt
 )
 
-// pickerView returns the view of the picker shown on top, or nil if none is open.
+// pickerView returns the view of the picker or prompt shown on top, or nil if none is open.
 func (m Model) pickerView() tview.Widget {
 	switch m.overlay {
 	case overlayChannelsPicker:
@@ -161,6 +165,8 @@ func (m Model) pickerView() tview.Widget {
 		return m.attachmentsPicker.View()
 	case overlayReactionsPicker:
 		return m.reactionsPicker.View()
+	case overlayPathPrompt:
+		return m.pathPrompt.View()
 	case overlayNone:
 		return nil
 	}
@@ -313,6 +319,17 @@ func (m Model) update(msg tview.Msg) (Model, tview.Cmd) {
 	case reactionspicker.CancelMsg:
 		m.overlay = overlayNone
 		return m, nil
+	case pathprompt.ShowMsg:
+		var command tview.Cmd
+		m.pathPrompt, command = pathprompt.New(m.cfg, msg)
+		m.overlay = overlayPathPrompt
+		return m, command
+	case pathprompt.SubmittedMsg:
+		m.overlay = overlayNone
+		return m, msg.Cmd
+	case pathprompt.CancelMsg:
+		m.overlay = overlayNone
+		return m, nil
 	case messageslist.ReplyMsg:
 		m.composer.StartReply(msg.Message, msg.Name, msg.Mention)
 		m.setFocus(paneComposer)
@@ -394,6 +411,8 @@ func (m *Model) route(msg tview.Msg) tview.Cmd {
 		m.attachmentsPicker, cmd = m.attachmentsPicker.Update(msg)
 	case overlayReactionsPicker:
 		m.reactionsPicker, cmd = m.reactionsPicker.Update(msg)
+	case overlayPathPrompt:
+		m.pathPrompt, cmd = m.pathPrompt.Update(msg)
 	case overlayNone:
 		cmd = m.updatePane(m.focused, msg)
 	default:

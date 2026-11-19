@@ -1,6 +1,7 @@
 package messageslist
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -13,13 +14,12 @@ import (
 	"github.com/ayn2op/tview/cmd"
 	"github.com/ayn2op/tview/picker"
 	"github.com/ayn2op/tview/text"
-	"github.com/ncruces/zenity"
 	"github.com/seamanticus/amitty/internal/consts"
 	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	"github.com/seamanticus/amitty/internal/ui"
-	"github.com/skratchdot/open-golang/open"
+	"github.com/seamanticus/amitty/internal/ui/chat/pathprompt"
 )
 
 // ShowAttachmentsMsg asks to pick one of the attachments and links of the selected message.
@@ -133,7 +133,7 @@ func (m Model) openDownloadedAttachment(attachment discord.Attachment) tview.Cmd
 			return ui.ErrorDialog("download attachment", errors.Join(err, os.Remove(path)))
 		}
 
-		if err := open.Start(path); err != nil {
+		if err := ui.OpenExternal(context.Background(), path); err != nil {
 			return ui.ErrorDialog("open attachment file", err)
 		}
 
@@ -142,15 +142,27 @@ func (m Model) openDownloadedAttachment(attachment discord.Attachment) tview.Cmd
 }
 
 func (m Model) saveAttachment(attachment discord.Attachment) tview.Cmd {
-	return cmd.Task(func() tview.Msg {
-		destination, err := zenity.SelectFileSave(zenity.Filename(filepath.Base(attachment.Filename)), zenity.ConfirmOverwrite())
-		if errors.Is(err, zenity.ErrCanceled) {
-			return nil
-		}
-		if err != nil {
-			return ui.ErrorDialog("select attachment destination", err)
-		}
+	show := pathprompt.ShowMsg{
+		Title: "Save as",
+		Path:  filepath.Base(attachment.Filename),
+		Submit: func(destination string) tview.Cmd {
+			info, err := os.Stat(destination)
+			if err == nil && info.IsDir() {
+				destination = filepath.Join(destination, filepath.Base(attachment.Filename))
+				_, err = os.Lstat(destination)
+			}
+			save := m.downloadTo(attachment, destination)
+			if err == nil {
+				return ui.ShowDialog(destination+" exists. Replace it?", ui.DialogButton{Label: "No"}, ui.DialogButton{Label: "Yes", Cmd: save})
+			}
+			return save
+		},
+	}
+	return cmd.Task(func() tview.Msg { return show })
+}
 
+func (m Model) downloadTo(attachment discord.Attachment, destination string) tview.Cmd {
+	return cmd.Task(func() tview.Msg {
 		if err := m.downloadAttachment(attachment, destination); err != nil {
 			return ui.ErrorDialog("download attachment", err)
 		}
@@ -160,7 +172,7 @@ func (m Model) saveAttachment(attachment discord.Attachment) tview.Cmd {
 
 func openURL(url string) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
-		if err := open.Start(url); err != nil {
+		if err := ui.OpenExternal(context.Background(), url); err != nil {
 			return ui.ErrorDialog("open URL", err)
 		}
 		return nil

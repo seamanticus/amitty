@@ -668,6 +668,24 @@ Default: `"enter"`
 
 Default: `"esc"`
 
+## keybinds.path_prompt
+
+Only while asked for a file path, to attach or to save to.
+
+### keybinds.path_prompt.complete
+
+Extend the name typed by what every matching entry shares.
+
+Default: `"tab"`
+
+### keybinds.path_prompt.submit
+
+Default: `"enter"`
+
+### keybinds.path_prompt.cancel
+
+Default: `"esc"`
+
 ## keybinds.guilds_tree
 
 Only while focusing on the guilds tree.

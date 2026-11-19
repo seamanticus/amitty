@@ -17,3 +17,13 @@ func (k PickerKeybinds) FullHelp() [][]keybind.Keybind {
 		{k.Select.Keybind, k.Cancel.Keybind},
 	}
 }
+
+var _ help.KeyMap = PathPromptKeybinds{}
+
+func (k PathPromptKeybinds) ShortHelp() []keybind.Keybind {
+	return []keybind.Keybind{k.Complete.Keybind, k.Submit.Keybind, k.Cancel.Keybind}
+}
+
+func (k PathPromptKeybinds) FullHelp() [][]keybind.Keybind {
+	return [][]keybind.Keybind{k.ShortHelp()}
+}

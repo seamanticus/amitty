@@ -26,8 +26,12 @@ func (m Model) FullHelp() [][]keybind.Keybind {
 }
 
 func (m Model) activeKeyMap() help.KeyMap {
-	if m.overlay != overlayNone {
+	switch m.overlay {
+	case overlayPathPrompt:
+		return m.cfg.Keybinds.PathPrompt
+	case overlayChannelsPicker, overlayAttachmentsPicker, overlayReactionsPicker:
 		return m.cfg.Keybinds.Picker
+	case overlayNone:
 	}
 
 	switch m.focused {

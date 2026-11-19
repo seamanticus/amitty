@@ -12,15 +12,16 @@ import (
 
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
-	"github.com/ncruces/zenity"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/sendpart"
+	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/amitty/internal/ui/autocomplete/emojis"
 	"github.com/seamanticus/amitty/internal/ui/autocomplete/mentions"
+	"github.com/seamanticus/amitty/internal/ui/chat/pathprompt"
 	"golang.design/x/clipboard"
 )
 
@@ -73,36 +74,19 @@ func (m Model) pickFiles() tview.Cmd {
 	}
 	channelID := selectedChannel.ID
 
-	return cmd.Task(func() tview.Msg {
-		paths, err := zenity.SelectFileMultiple()
-		if err != nil {
-			slog.Error("failed to open file dialog", "err", err)
-			return nil
-		}
-
-		files := openFiles(paths)
-		if len(files) == 0 {
-			return nil
-		}
-
-		return filesPickedMsg{channelID: channelID, files: files}
-	})
-}
-
-// openFiles opens the files at paths, skipping those that fail to open.
-func openFiles(paths []string) []sendpart.File {
-	files := make([]sendpart.File, 0, len(paths))
-	for _, path := range paths {
-		file, err := os.Open(path)
-		if err != nil {
-			slog.Error("failed to open file", "path", path, "err", err)
-			continue
-		}
-
-		files = append(files, sendpart.File{Name: filepath.Base(path), Reader: file})
+	show := pathprompt.ShowMsg{
+		Title: "Attach",
+		Submit: func(path string) tview.Cmd {
+			return cmd.Task(func() tview.Msg {
+				file, err := os.Open(path)
+				if err != nil {
+					return ui.ErrorDialog("attach file", err)
+				}
+				return filesPickedMsg{channelID: channelID, files: []sendpart.File{{Name: filepath.Base(path), Reader: file}}}
+			})
+		},
 	}
-
-	return files
+	return cmd.Task(func() tview.Msg { return show })
 }
 
 func closeFiles(files []sendpart.File) cmd.Task {

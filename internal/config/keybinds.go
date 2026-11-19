@@ -99,6 +99,13 @@ type PickerKeybinds struct {
 	Cancel Keybind `toml:"cancel"`
 }
 
+type PathPromptKeybinds struct {
+	// Extend the name typed by what every matching entry shares.
+	Complete Keybind `toml:"complete"`
+	Submit   Keybind `toml:"submit"`
+	Cancel   Keybind `toml:"cancel"`
+}
+
 type TreeKeybinds struct {
 	ScrollKeybinds
 	// Scroll sideways to read names that are cut off.
@@ -229,6 +236,8 @@ type Keybinds struct {
 	FocusNext     Keybind `toml:"focus_next"`
 
 	Picker PickerKeybinds `toml:"picker"`
+	// Only while asked for a file path, to attach or to save to.
+	PathPrompt PathPromptKeybinds `toml:"path_prompt"`
 	// Only while focusing on the guilds tree.
 	GuildsTree GuildsTreeKeybinds `toml:"guilds_tree"`
 	// Only while focusing on the members tree.
@@ -299,6 +308,11 @@ func defaultKeybinds() Keybinds {
 			SelectionKeybinds: emacs,
 			Select:            key("sel", "enter"),
 			Cancel:            key("cancel", "esc"),
+		},
+		PathPrompt: PathPromptKeybinds{
+			Complete: key("complete", "tab"),
+			Submit:   key("ok", "enter"),
+			Cancel:   key("cancel", "esc"),
 		},
 		GuildsTree: GuildsTreeKeybinds{
 			TreeKeybinds:         tree,
