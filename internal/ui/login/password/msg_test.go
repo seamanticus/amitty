@@ -16,16 +16,18 @@ import (
 	dhttp "github.com/seamanticus/discordo/internal/http"
 )
 
+// reply answers with status and a JSON body.
+func reply(status int, body string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(status)
+		_, _ = w.Write([]byte(body))
+	}
+}
+
 // evidence: witnesses
 func TestRequestLogin(t *testing.T) {
 	const path = "/api/v9/auth/login"
-	reply := func(status int, body string) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(status)
-			_, _ = w.Write([]byte(body))
-		}
-	}
 
 	t.Run("posts the credentials as JSON to the login endpoint", func(t *testing.T) {
 		var got struct{ method, path, contentType, auth, body string }
@@ -66,7 +68,10 @@ func TestRequestLogin(t *testing.T) {
 	}{
 		{"token", `{"token":"t"}`, TokenMsg("t"), ""},
 		{"token wins over an mfa flag", `{"token":"t","mfa":true}`, TokenMsg("t"), ""},
-		{"mfa required", `{"mfa":true,"ticket":"x","totp":true}`, nil, "multi-factor authentication is required"},
+		{"mfa starts the code step", `{"mfa":true,"ticket":"x","login_instance_id":"i","totp":true,"backup":true}`,
+			MFAMsg{ticket{id: "x", instance: "i", allowed: [methodCount]bool{methodTOTP: true, methodBackup: true}}}, ""},
+		{"mfa with only a security key", `{"mfa":true,"ticket":"x","webauthn":"{}"}`, nil, "security key"},
+		{"mfa without a ticket", `{"mfa":true,"totp":true}`, nil, "two-factor ticket"},
 		{"no token and no mfa", `{"user_id":"1"}`, nil, "did not include a token"},
 		{"empty object", `{}`, nil, "did not include a token"},
 		{"required actions only", `{"required_actions":["update_password"]}`, nil, "did not include a token"},

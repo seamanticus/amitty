@@ -1,6 +1,7 @@
 package password
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/ayn2op/tview"
@@ -25,7 +26,7 @@ const (
 	focusCount
 )
 
-// Model is a login and a password input above a button. Tab and the arrow keys move the focus, Enter in an input moves to the next one, and Enter on the button or clicking it logs in.
+// Model is a login and a password input above a button. Tab and the arrow keys move the focus, Enter in an input moves to the next one, and Enter on the button or clicking it logs in. A login that needs a second factor replaces the form with a code form until it ends or Esc goes back.
 type Model struct {
 	// build is what the login requests identify as.
 	build dhttp.Build
@@ -42,6 +43,9 @@ type Model struct {
 	// retryIn is the seconds left before the one retry of a login whose connection failed, and retryReason why; 0 when no retry is pending.
 	retryIn     int
 	retryReason string
+
+	// code is the second step; its zero value means the form is shown.
+	code codeForm
 }
 
 // NewModel returns an empty form whose login requests identify as build.
@@ -58,6 +62,45 @@ var _ tview.Model[Model] = Model{}
 func (Model) Init() tview.Cmd { return nil }
 
 func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
+	switch msg := msg.(type) {
+	case MFAMsg:
+		// The password is not needed for the second step, so it is not kept.
+		m.password, m.passwordCursor = "", 0
+		m.submitting = false
+		m.code = codeForm{ticket: msg.ticket, method: msg.ticket.first(), focus: codeFocusInput}
+		return m, nil
+	case SMSSentMsg:
+		m.submitting = false
+		m.code.phone = msg.phone
+		return m, nil
+	case CountdownMsg:
+		if !m.submitting {
+			return m, nil
+		}
+		if msg.left > 0 {
+			m.retryIn, m.retryReason = msg.left, msg.err.Error()
+			return m, tick(msg)
+		}
+		m.retryIn, m.retryReason = 0, ""
+		if m.coding() {
+			return m, submitCode(m.build, m.code.ticket, m.code.method, m.code.text, true)
+		}
+		return m, submitLogin(m.build, m.login, m.password, true)
+	case FailedMsg:
+		m.submitting = false
+		m.retryIn, m.retryReason = 0, ""
+		if _, expired := errors.AsType[expiredError](msg.Err); expired {
+			m.code = codeForm{}
+			m.focus = focusPassword
+		} else if m.coding() {
+			m.code.text, m.code.cursor = "", 0
+		}
+		return m, nil
+	}
+	if m.coding() {
+		return m.updateCode(msg)
+	}
+
 	switch msg := msg.(type) {
 	case loginMsg:
 		m.login, m.loginCursor = msg.text, msg.cursor
@@ -80,24 +123,17 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 		}
 		m.submitting = true
 		return m, submitLogin(m.build, m.login, m.password, false)
-	case CountdownMsg:
-		if !m.submitting {
-			return m, nil
-		}
-		if msg.left > 0 {
-			m.retryIn, m.retryReason = msg.left, msg.err.Error()
-			return m, tick(msg)
-		}
-		m.retryIn, m.retryReason = 0, ""
-		return m, submitLogin(m.build, m.login, m.password, true)
-	case FailedMsg:
-		m.submitting = false
-		m.retryIn, m.retryReason = 0, ""
 	}
 	return m, nil
 }
 
+// coding reports whether the code form is shown.
+func (m Model) coding() bool { return m.code.ticket.id != "" }
+
 func (m Model) View() tview.Widget {
+	if m.coding() {
+		return m.viewCode()
+	}
 	labelWidth := layout.Fixed(len("Password") + 1)
 	login := textinput.New(m.login, m.loginCursor).
 		Focused(m.focus == focusLogin).
@@ -108,13 +144,6 @@ func (m Model) View() tview.Widget {
 		Focused(m.focus == focusPassword).
 		OnInput(func(text string, cursor int) tview.Msg { return passwordMsg{text, cursor} }).
 		OnSubmit(focusMsg(focusButton))
-	buttonStyle := tcell.StyleDefault
-	switch {
-	case m.focus == focusButton:
-		buttonStyle = buttonStyle.Reverse(true)
-	case m.buttonHovered:
-		buttonStyle = buttonStyle.Underline(true)
-	}
 	label := "Login"
 	switch {
 	case m.retryIn > 0:
@@ -123,7 +152,7 @@ func (m Model) View() tview.Widget {
 		label = "Logging in..."
 	}
 	submit := button.New(text.New(label)).
-		Style(buttonStyle).
+		Style(buttonStyle(m.focus == focusButton, m.buttonHovered)).
 		Width(layout.Fixed(len(label) + 4)).
 		Focused(m.focus == focusButton).
 		Hovered(m.buttonHovered).
@@ -131,8 +160,7 @@ func (m Model) View() tview.Widget {
 		OnClick(submitMsg{})
 	var warning tview.Widget
 	if m.retryIn > 0 {
-		warning = text.New(fmt.Sprintf("Connection failed, retrying once in %d s: %s", m.retryIn, m.retryReason)).
-			Style(tcell.StyleDefault.Foreground(color.Yellow))
+		warning = retryWarning(m.retryIn, m.retryReason)
 	}
 	return column.New(
 		row.New(text.New("Login").Width(labelWidth), login).Height(layout.Shrink),
@@ -140,4 +168,21 @@ func (m Model) View() tview.Widget {
 		submit,
 		warning,
 	).Spacing(1).AlignX(tview.HorizontalAlignmentCenter)
+}
+
+// buttonStyle is reversed when focused, else underlined when hovered.
+func buttonStyle(focused, hovered bool) tcell.Style {
+	switch {
+	case focused:
+		return tcell.StyleDefault.Reverse(true)
+	case hovered:
+		return tcell.StyleDefault.Underline(true)
+	}
+	return tcell.StyleDefault
+}
+
+// retryWarning says that the one retry starts in left seconds and why.
+func retryWarning(left int, reason string) tview.Widget {
+	return text.New(fmt.Sprintf("Connection failed, retrying once in %d s: %s", left, reason)).
+		Style(tcell.StyleDefault.Foreground(color.Yellow))
 }

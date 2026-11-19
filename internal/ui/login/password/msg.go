@@ -46,12 +46,16 @@ func submitLogin(build dhttp.Build, login, password string, final bool) tview.Cm
 	return cmd.Task(func() tview.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), dhttp.AuthTimeout)
 		defer cancel()
-		msg := requestLogin(ctx, authClient(dhttp.NewClient(""), build), login, password)
-		if failed, ok := msg.(FailedMsg); ok && !final && retryable(failed.Err) {
-			return CountdownMsg{left: retryDelay, err: failed.Err}
-		}
-		return msg
+		return countdownOr(requestLogin(ctx, authClient(dhttp.NewClient(""), build), login, password), final)
 	})
+}
+
+// countdownOr returns msg, or the countdown to a retry when msg is a first attempt whose connection failed.
+func countdownOr(msg tview.Msg, final bool) tview.Msg {
+	if failed, ok := msg.(FailedMsg); ok && !final && retryable(failed.Err) {
+		return CountdownMsg{left: retryDelay, err: failed.Err}
+	}
+	return msg
 }
 
 // tick sends the countdown one second later.
@@ -88,7 +92,7 @@ func authClient(client *api.Client, build dhttp.Build) *api.Client {
 	return client
 }
 
-// requestLogin posts the credentials with client and returns a TokenMsg or a FailedMsg.
+// requestLogin posts the credentials with client and returns a TokenMsg, an MFAMsg or a FailedMsg.
 func requestLogin(ctx context.Context, client *api.Client, login, password string) tview.Msg {
 	loginResp, err := client.WithContext(ctx).Login(login, password)
 	if err != nil {
@@ -100,7 +104,13 @@ func requestLogin(ctx context.Context, client *api.Client, login, password strin
 	}
 
 	if loginResp.MFA {
-		return FailedMsg{errors.New("multi-factor authentication is required; use token or QR login")}
+		if loginResp.Ticket == "" {
+			return FailedMsg{errors.New("login response did not include a two-factor ticket")}
+		}
+		if t, ok := ticketFromLogin(loginResp); ok {
+			return MFAMsg{t}
+		}
+		return FailedMsg{errors.New("this account only allows a security key as second factor; use QR login")}
 	}
 
 	return FailedMsg{errors.New("login response did not include a token")}
