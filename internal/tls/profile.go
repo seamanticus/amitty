@@ -2,7 +2,7 @@ package tls
 
 import "github.com/bogdanfinn/tls-client/profiles"
 
-var clientProfile = profiles.Chrome_152
+var clientProfile = profiles.Chrome_154
 
 func BrowserName() string {
 	return clientProfile.GetClientHelloId().Client
