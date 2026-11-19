@@ -161,9 +161,10 @@ func (m Model) pickerView() tview.Widget {
 		return m.attachmentsPicker.View()
 	case overlayReactionsPicker:
 		return m.reactionsPicker.View()
-	default:
+	case overlayNone:
 		return nil
 	}
+	panic("invariant: unknown overlay")
 }
 
 // togglePicker opens the channels picker, or closes it if it is open.
@@ -399,8 +400,10 @@ func (m *Model) route(msg tview.Msg) tview.Cmd {
 		m.attachmentsPicker, cmd = m.attachmentsPicker.Update(msg)
 	case overlayReactionsPicker:
 		m.reactionsPicker, cmd = m.reactionsPicker.Update(msg)
-	default:
+	case overlayNone:
 		cmd = m.updatePane(m.focused, msg)
+	default:
+		panic("invariant: unknown overlay")
 	}
 	return cmd
 }
@@ -501,9 +504,10 @@ func (m Model) canFocus(target pane) bool {
 		return !m.composer.Disabled()
 	case paneMembersTree:
 		return m.membersTreeShown()
-	default:
+	case paneMessagesList:
 		return true
 	}
+	panic("invariant: unknown pane")
 }
 
 // typingFooter returns who is typing in the selected channel, or "" if nobody is.
