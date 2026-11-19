@@ -269,10 +269,13 @@ func (s *State) MessageMentions(msg *discord.Message) MessageMentionFlags {
 			flags |= MessageNotifies
 		}
 		return flags
+
+	case gateway.GuildDefaults:
+		// The channel follows the guild's settings, below.
 	}
 
 	if msg.GuildID.IsValid() {
-		switch mutedGuild.Notifications {
+		switch s.guildNotifications(msg.GuildID, mutedGuild.Notifications) {
 		case gateway.NoNotifications:
 			// No notifications are allowed whatsoever.
 			return 0
@@ -290,6 +293,9 @@ func (s *State) MessageMentions(msg *discord.Message) MessageMentionFlags {
 				flags |= MessageNotifies
 			}
 			return flags
+
+		case gateway.GuildDefaults:
+			// The guild's own default is not known: mentions show, but do not notify.
 		}
 	}
 
@@ -302,6 +308,24 @@ func (s *State) MessageMentions(msg *discord.Message) MessageMentionFlags {
 	}
 
 	return flags
+}
+
+// guildNotifications resolves a guild set to GuildDefaults to the guild's own default notification level.
+func (s *State) guildNotifications(guildID discord.GuildID, setting gateway.UserNotification) gateway.UserNotification {
+	if setting != gateway.GuildDefaults {
+		return setting
+	}
+	guild, err := s.Cabinet.Guild(guildID)
+	if err != nil {
+		return setting
+	}
+	switch guild.Notification {
+	case discord.AllMessages:
+		return gateway.AllNotifications
+	case discord.OnlyMentions:
+		return gateway.OnlyMentions
+	}
+	return setting
 }
 
 // channelOverrides returns the notification settings of the given channel.

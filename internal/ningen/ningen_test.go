@@ -396,3 +396,51 @@ func TestStateMessageMentions(t *testing.T) {
 		})
 	}
 }
+
+func TestStateMessageMentionsGuildDefaults(t *testing.T) {
+	// mentions returns what a message in channel 20 of guild 1 does, where our settings follow the guild's default level.
+	mentions := func(t *testing.T, level discord.Notification, mentioned bool) MessageMentionFlags {
+		t.Helper()
+		s := FromState(state.NewWithStore("", defaultstore.New()))
+		ready := &gateway.ReadyEvent{User: discord.User{ID: 3}}
+		ready.UserGuildSettings = []gateway.UserGuildSetting{{
+			GuildID:          1,
+			Notifications:    gateway.GuildDefaults,
+			ChannelOverrides: []gateway.UserChannelOverride{{ChannelID: 20, Notifications: gateway.GuildDefaults}},
+		}}
+		s.State.Handler.Call(ready)
+
+		if err := s.Cabinet.MyselfSet(discord.User{ID: 3}, false); err != nil {
+			t.Fatal(err)
+		}
+		if err := s.Cabinet.GuildSet(&discord.Guild{ID: 1, Notification: level}, false); err != nil {
+			t.Fatal(err)
+		}
+		if err := s.Cabinet.ChannelSet(&discord.Channel{ID: 20, GuildID: 1}, false); err != nil {
+			t.Fatal(err)
+		}
+
+		msg := &discord.Message{ChannelID: 20, GuildID: 1, Author: discord.User{ID: 4}}
+		if mentioned {
+			msg.Mentions = []discord.GuildUser{{ID: 3}}
+		}
+		return s.MessageMentions(msg)
+	}
+
+	for name, tt := range map[string]struct {
+		level     discord.Notification
+		mentioned bool
+		want      MessageMentionFlags
+	}{
+		"a guild on all messages notifies of each one":   {discord.AllMessages, false, MessageNotifies},
+		"a guild on mentions notifies of a mention":      {discord.OnlyMentions, true, MessageMentions | MessageNotifies},
+		"a guild on mentions is quiet without one":       {discord.OnlyMentions, false, 0},
+		"an unknown guild level shows without notifying": {discord.Notification(7), true, MessageMentions},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if got := mentions(t, tt.level, tt.mentioned); got != tt.want {
+				t.Fatalf("MessageMentions() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
