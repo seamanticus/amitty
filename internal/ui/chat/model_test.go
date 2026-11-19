@@ -14,6 +14,7 @@ import (
 	tviewimage "github.com/ayn2op/tview/image"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/discordo/internal/http"
 	"github.com/seamanticus/discordo/internal/ui/images"
 )
 
@@ -23,7 +24,7 @@ func newTestModel(t *testing.T) *Model {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m := NewModel(cfg, "")
+	m := NewModel(cfg, http.Build{}, "")
 	return &m
 }
 

@@ -29,12 +29,12 @@ func initClipboard() tview.Cmd {
 }
 
 func (m *Model) showLogin() tview.Cmd {
-	m.screen, m.login, m.chat = screenLogin, login.NewModel(m.cfg), chat.Model{}
+	m.screen, m.login, m.chat = screenLogin, login.NewModel(m.cfg, m.build), chat.Model{}
 	return m.show(m.login.Init())
 }
 
 func (m *Model) showChat(token string) tview.Cmd {
-	m.screen, m.chat, m.login = screenChat, chat.NewModel(m.cfg, token), login.Model{}
+	m.screen, m.chat, m.login = screenChat, chat.NewModel(m.cfg, m.build, token), login.Model{}
 	init := m.chat.Init()
 	if m.resize != nil {
 		init = cmd.Batch{init, m.updateScreen(m.resize)}

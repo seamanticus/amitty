@@ -1,6 +1,8 @@
 package qr
 
 import (
+	dhttp "github.com/seamanticus/discordo/internal/http"
+
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -98,7 +100,7 @@ func TestListen(t *testing.T) {
 
 		done := make(chan error, 1)
 		go func() {
-			done <- tview.NewApplication(gatewayModel{Model: NewModel(), conn: conn}, tview.WithScreen(screen)).Run()
+			done <- tview.NewApplication(gatewayModel{Model: NewModel(dhttp.Build{}), conn: conn}, tview.WithScreen(screen)).Run()
 		}()
 		select {
 		case err := <-done:

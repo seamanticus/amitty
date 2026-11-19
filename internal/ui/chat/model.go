@@ -84,7 +84,8 @@ type Model struct {
 	cfg *config.Config
 }
 
-func NewModel(cfg *config.Config, token string) Model {
+// NewModel returns the chat of the account with token, whose requests and gateway identify as build.
+func NewModel(cfg *config.Config, build http.Build, token string) Model {
 	m := Model{
 		typers: make(map[discord.UserID]time.Time),
 		images: make(map[discord.URL]tviewimage.Widget),
@@ -94,7 +95,7 @@ func NewModel(cfg *config.Config, token string) Model {
 
 	id := gateway.NewIdentifier(gateway.IdentifyCommand{
 		Token:      token,
-		Properties: http.IdentifyProperties(),
+		Properties: http.IdentifyProperties(build),
 		Capabilities: gateway.LazyUserNotes |
 			gateway.VersionedReadStates |
 			gateway.VersionedUserGuildSetttings |
@@ -116,7 +117,7 @@ func NewModel(cfg *config.Config, token string) Model {
 	m.state.StateLog = func(err error) {
 		slog.Error("state log", "err", err)
 	}
-	m.state.OnRequest = append(m.state.OnRequest, httputil.WithHeaders(http.Headers()), onRequest)
+	m.state.OnRequest = append(m.state.OnRequest, httputil.WithHeaders(http.Headers(build)), onRequest)
 
 	m.guildsTree = guildstree.NewModel(cfg, m.state)
 	m.membersTree = memberstree.NewModel(cfg, m.state)

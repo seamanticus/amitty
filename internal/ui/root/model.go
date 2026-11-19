@@ -17,6 +17,7 @@ import (
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/discordo/internal/config"
 	"github.com/seamanticus/discordo/internal/consts"
+	"github.com/seamanticus/discordo/internal/http"
 	"github.com/seamanticus/discordo/internal/ui"
 	"github.com/seamanticus/discordo/internal/ui/chat"
 	"github.com/seamanticus/discordo/internal/ui/login"
@@ -50,10 +51,12 @@ type Model struct {
 	resize tview.ResizeMsg
 
 	cfg *config.Config
+	// build is what every request and the gateway identify as, fetched once at startup.
+	build http.Build
 }
 
-func NewModel(cfg *config.Config) Model {
-	return Model{cfg: cfg, helpVisible: cfg.Help.Enabled}
+func NewModel(cfg *config.Config, build http.Build) Model {
+	return Model{cfg: cfg, build: build, helpVisible: cfg.Help.Enabled}
 }
 
 // updateScreen updates the model shown above help with msg.

@@ -10,7 +10,7 @@ import (
 )
 
 func TestCommonProperties(t *testing.T) {
-	properties := commonProperties()
+	properties := commonProperties(Build{})
 
 	tests := []struct {
 		name string
@@ -38,7 +38,7 @@ func TestBrowserUserAgent(t *testing.T) {
 }
 
 func TestHeaders(t *testing.T) {
-	headers := Headers()
+	headers := Headers(Build{})
 	version := tls.BrowserMajorVersion()
 	tests := []struct {
 		name string
@@ -59,7 +59,7 @@ func TestHeaders(t *testing.T) {
 }
 
 func TestXSuperProperties(t *testing.T) {
-	properties := xSuperProperties()
+	properties := xSuperProperties(Build{})
 	for _, key := range []gateway.IdentifyPropertyKey{"client_launch_id", "client_heartbeat_session_id", "launch_signature"} {
 		t.Run(string(key), func(t *testing.T) {
 			value, ok := properties[key].(string)

@@ -42,11 +42,11 @@ type (
 )
 
 // submitLogin posts the credentials once. A first attempt whose connection failed starts the countdown to a retry; a final one fails.
-func submitLogin(login, password string, final bool) tview.Cmd {
+func submitLogin(build dhttp.Build, login, password string, final bool) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), dhttp.AuthTimeout)
 		defer cancel()
-		msg := requestLogin(ctx, authClient(dhttp.NewClient("")), login, password)
+		msg := requestLogin(ctx, authClient(dhttp.NewClient(""), build), login, password)
 		if failed, ok := msg.(FailedMsg); ok && !final && retryable(failed.Err) {
 			return CountdownMsg{left: retryDelay, err: failed.Err}
 		}
@@ -79,8 +79,8 @@ func retryable(err error) bool {
 }
 
 // authClient makes client send the headers of the web client's login page and post once: retrying is the login's decision, not the transport's.
-func authClient(client *api.Client) *api.Client {
-	headers := dhttp.Headers()
+func authClient(client *api.Client, build dhttp.Build) *api.Client {
+	headers := dhttp.Headers(build)
 	headers.Set("Referer", "https://discord.com/login")
 	client.OnRequest = append(client.OnRequest, httputil.WithHeaders(headers))
 	// 0 would retry forever.

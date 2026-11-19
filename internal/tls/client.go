@@ -1,5 +1,3 @@
-//go:build !no_spoof_tls_fingerprint
-
 package tls
 
 import (

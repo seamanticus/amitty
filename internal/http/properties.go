@@ -47,7 +47,7 @@ func brands(name, version string) string {
 	return strings.Join(shuffled, ", ")
 }
 
-func commonProperties() gateway.IdentifyProperties {
+func commonProperties(build Build) gateway.IdentifyProperties {
 	return gateway.IdentifyProperties{
 		gateway.IdentifyDevice: "",
 
@@ -58,7 +58,7 @@ func commonProperties() gateway.IdentifyProperties {
 		"browser_version":       tls.BrowserVersion(),
 		"browser_user_agent":    BrowserUserAgent(),
 
-		"client_build_number": clientBuildNumber,
+		"client_build_number": build.Number(),
 		"client_event_source": nil,
 		"client_launch_id":    uuid.NewV4().String(),
 
@@ -73,14 +73,14 @@ func commonProperties() gateway.IdentifyProperties {
 	}
 }
 
-func IdentifyProperties() gateway.IdentifyProperties {
-	props := commonProperties()
+func IdentifyProperties(build Build) gateway.IdentifyProperties {
+	props := commonProperties(build)
 	props["is_fast_connect"] = true
 	return props
 }
 
-func xSuperProperties() gateway.IdentifyProperties {
-	props := commonProperties()
+func xSuperProperties(build Build) gateway.IdentifyProperties {
+	props := commonProperties(build)
 	props["client_app_state"] = "focused"
 	props["client_heartbeat_session_id"] = uuid.NewV4().String()
 	props["launch_signature"] = generateLaunchSignature()

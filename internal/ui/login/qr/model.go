@@ -15,6 +15,7 @@ import (
 	"github.com/ayn2op/tview/text"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
+	"github.com/seamanticus/discordo/internal/http"
 )
 
 const (
@@ -27,6 +28,9 @@ const (
 )
 
 type Model struct {
+	// build is what the gateway and ticket requests identify as.
+	build http.Build
+
 	conn              *gatewayConn
 	heartbeatInterval time.Duration
 	privateKey        *rsa.PrivateKey
@@ -37,8 +41,9 @@ type Model struct {
 	status string
 }
 
-func NewModel() Model {
-	var m Model
+// NewModel returns a QR login whose requests identify as build.
+func NewModel(build http.Build) Model {
+	m := Model{build: build}
 	m.status = "Press Ctrl+N to open QR login"
 	return m
 }
@@ -58,7 +63,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 	switch msg := msg.(type) {
 	case startMsg:
 		m.status = "Connecting to Remote Auth Gateway..."
-		return m, connect()
+		return m, connect(m.build)
 	case tview.KeyMsg:
 		if msg.Key() == tcell.KeyEsc {
 			m.status = "Canceled"
@@ -100,7 +105,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 		return m, nil
 	case pendingLoginMsg:
 		m.status = "Authenticating..."
-		return m, cmd.Batch{closeConn(m.conn), exchangeTicket(m.fingerprint, m.privateKey, msg.ticket)}
+		return m, cmd.Batch{closeConn(m.conn), exchangeTicket(m.build, m.fingerprint, m.privateKey, msg.ticket)}
 	case ignoredMsg:
 		return m, listen(m.conn)
 	case cancelMsg:

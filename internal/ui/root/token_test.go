@@ -8,6 +8,7 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/discordo/internal/http"
 	"github.com/seamanticus/discordo/internal/ui/chat"
 	"github.com/seamanticus/discordo/internal/ui/login/password"
 	"github.com/seamanticus/discordo/internal/ui/login/qr"
@@ -117,7 +118,7 @@ func TestModelTokens(t *testing.T) {
 
 	t.Run("a stored or environment token opens the chat without storing", func(t *testing.T) {
 		keyring.MockInit()
-		m, _ := NewModel(cfg).Update(tokenMsg("t"))
+		m, _ := NewModel(cfg, http.Build{}).Update(tokenMsg("t"))
 		if m.screen != screenChat {
 			t.Fatalf("screen = %d", m.screen)
 		}
@@ -127,7 +128,7 @@ func TestModelTokens(t *testing.T) {
 	})
 
 	t.Run("no token shows the login", func(t *testing.T) {
-		if m, _ := NewModel(cfg).Update(loginMsg{}); m.screen != screenLogin {
+		if m, _ := NewModel(cfg, http.Build{}).Update(loginMsg{}); m.screen != screenLogin {
 			t.Fatalf("screen = %d", m.screen)
 		}
 	})
@@ -143,7 +144,7 @@ func TestModelTokens(t *testing.T) {
 	} {
 		t.Run(tt.name+" stores, then opens the chat", func(t *testing.T) {
 			keyring.MockInit()
-			m, command := NewModel(cfg).Update(tt.msg)
+			m, command := NewModel(cfg, http.Build{}).Update(tt.msg)
 			if m.screen == screenChat {
 				t.Fatal("chat opened before the token was stored")
 			}
@@ -159,7 +160,7 @@ func TestModelTokens(t *testing.T) {
 	t.Run("logout deletes the token and shows the login", func(t *testing.T) {
 		keyring.MockInit()
 		run(t, storeToken("t"))
-		m, command := NewModel(cfg).Update(chat.LogoutMsg{})
+		m, command := NewModel(cfg, http.Build{}).Update(chat.LogoutMsg{})
 		runAll(command)
 		if m.screen != screenLogin || m.dialog != nil {
 			t.Fatalf("screen = %d, dialog = %+v", m.screen, m.dialog)
@@ -171,14 +172,14 @@ func TestModelTokens(t *testing.T) {
 
 	t.Run("a rejected token logs out with the reason over the login", func(t *testing.T) {
 		keyring.MockInit()
-		m, _ := NewModel(cfg).Update(chat.LogoutMsg{Err: errors.New("4004")})
+		m, _ := NewModel(cfg, http.Build{}).Update(chat.LogoutMsg{Err: errors.New("4004")})
 		if m.screen != screenLogin || m.dialog == nil {
 			t.Fatalf("screen = %d, dialog = %+v", m.screen, m.dialog)
 		}
 	})
 
 	t.Run("a closed session quits", func(t *testing.T) {
-		if _, command := NewModel(cfg).Update(chat.StateClosedMsg{}); command != (cmd.Quit{}) {
+		if _, command := NewModel(cfg, http.Build{}).Update(chat.StateClosedMsg{}); command != (cmd.Quit{}) {
 			t.Fatalf("command = %#v", command)
 		}
 	})

@@ -1,6 +1,8 @@
 package qr
 
 import (
+	dhttp "github.com/seamanticus/discordo/internal/http"
+
 	"strings"
 	"testing"
 
@@ -22,7 +24,7 @@ func TestModelView(t *testing.T) {
 		}
 		t.Cleanup(screen.Fini)
 
-		m := NewModel()
+		m := NewModel(dhttp.Build{})
 		code, err := qrcode.New("test", qrcode.Low)
 		if err != nil {
 			t.Fatal(err)

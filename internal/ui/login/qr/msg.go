@@ -48,9 +48,9 @@ type connCreateMsg struct {
 
 type connCloseMsg struct{}
 
-func connect() tview.Cmd {
+func connect(build http.Build) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
-		headers := http.Headers()
+		headers := http.Headers(build)
 		headers.Set("User-Agent", http.BrowserUserAgent())
 		dialer := gateway.NewDialer()
 		conn, _, err := dialer.Dial(remoteAuthGatewayURL, headers)
@@ -278,17 +278,17 @@ func decryptUserPayload(privateKey *rsa.PrivateKey, encryptedPayload string) tvi
 	})
 }
 
-func exchangeTicket(fingerprint string, privateKey *rsa.PrivateKey, ticket string) tview.Cmd {
+func exchangeTicket(build http.Build, fingerprint string, privateKey *rsa.PrivateKey, ticket string) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), http.AuthTimeout)
 		defer cancel()
-		return redeemTicket(ctx, ticketClient(http.NewClient(""), fingerprint), privateKey, ticket)
+		return redeemTicket(ctx, ticketClient(http.NewClient(""), build, fingerprint), privateKey, ticket)
 	})
 }
 
 // ticketClient adds to client the login page headers and, if set, the fingerprint of the remote auth session.
-func ticketClient(client *api.Client, fingerprint string) *api.Client {
-	headers := http.Headers()
+func ticketClient(client *api.Client, build http.Build, fingerprint string) *api.Client {
+	headers := http.Headers(build)
 	headers.Set("Referer", "https://discord.com/login")
 	if fingerprint != "" {
 		headers.Set("X-Fingerprint", fingerprint)

@@ -13,6 +13,7 @@ import (
 	"github.com/ayn2op/arikawa/v3/utils/httputil"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/seamanticus/discordo/internal/discordtest"
+	dhttp "github.com/seamanticus/discordo/internal/http"
 )
 
 // evidence: witnesses
@@ -150,7 +151,7 @@ func TestAuthClient(t *testing.T) {
 		referer, platform = r.Header.Get("Referer"), r.Header.Get("Sec-Ch-Ua-Platform")
 		_, _ = w.Write([]byte(`{"token":"t"}`))
 	}))
-	requestLogin(t.Context(), authClient(client), "a", "b")
+	requestLogin(t.Context(), authClient(client, dhttp.Build{}), "a", "b")
 	if referer != "https://discord.com/login" {
 		t.Errorf("Referer = %q, want the login page", referer)
 	}
@@ -161,7 +162,7 @@ func TestAuthClient(t *testing.T) {
 
 func TestSubmitLogin(t *testing.T) {
 	for _, final := range []bool{false, true} {
-		if _, ok := submitLogin("a", "b", final).(cmd.Task); !ok {
+		if _, ok := submitLogin(dhttp.Build{}, "a", "b", final).(cmd.Task); !ok {
 			t.Fatal("submitLogin does not run as a task, so it would block Update")
 		}
 	}
@@ -211,7 +212,7 @@ func TestAuthClientPostsOnce(t *testing.T) {
 		client := authClient(discordtest.Client(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			calls.Add(1)
 			w.WriteHeader(code)
-		})))
+		})), dhttp.Build{})
 		requestLogin(t.Context(), client, "a", "b")
 		if n := calls.Load(); n != 1 {
 			t.Fatalf("status %d: credentials posted %d times, want 1", code, n)

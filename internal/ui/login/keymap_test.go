@@ -7,6 +7,7 @@ import (
 
 	"github.com/ayn2op/tview/keybind"
 	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/discordo/internal/http"
 )
 
 func TestModelShortHelp(t *testing.T) {
@@ -14,7 +15,7 @@ func TestModelShortHelp(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m := NewModel(cfg)
+	m := NewModel(cfg, http.Build{})
 	for _, tt := range []struct {
 		name               string
 		active             tab

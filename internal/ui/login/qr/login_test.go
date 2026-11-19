@@ -21,6 +21,7 @@ import (
 	"github.com/gdamore/tcell/v3"
 	"github.com/gorilla/websocket"
 	"github.com/seamanticus/discordo/internal/discordtest"
+	dhttp "github.com/seamanticus/discordo/internal/http"
 )
 
 // testKey returns a fresh RSA-2048 key, as the login makes one per attempt.
@@ -199,7 +200,7 @@ func TestRedeemTicket(t *testing.T) {
 			}
 			_ = json.Unmarshal([]byte(body), &b)
 			method, gotPath, ticket, fingerprint = r.Method, r.URL.Path, b.Ticket, r.Header.Get("X-Fingerprint")
-		})), "fp")
+		})), dhttp.Build{}, "fp")
 		if msg := redeemTicket(t.Context(), client, key, "tk"); msg != TokenMsg("the-token") {
 			t.Fatalf("got %#v", msg)
 		}
@@ -213,7 +214,7 @@ func TestRedeemTicket(t *testing.T) {
 		reply, _ := json.Marshal(map[string]string{"encrypted_token": encrypt(t, key, "t")})
 		client := ticketClient(discordtest.Client(t, serve(t, http.StatusOK, string(reply), func(r *http.Request, _ string) {
 			_, present = r.Header["X-Fingerprint"]
-		})), "")
+		})), dhttp.Build{}, "")
 		redeemTicket(t.Context(), client, key, "tk")
 		if present {
 			t.Fatal("empty X-Fingerprint sent")
@@ -247,7 +248,7 @@ func TestRedeemTicket(t *testing.T) {
 		client := ticketClient(discordtest.Client(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			calls.Add(1)
 			w.WriteHeader(http.StatusBadGateway)
-		})), "fp")
+		})), dhttp.Build{}, "fp")
 		redeemTicket(t.Context(), client, key, "tk")
 		if n := calls.Load(); n != 1 {
 			t.Fatalf("ticket posted %d times, want 1", n)
@@ -266,7 +267,7 @@ func TestRedeemTicket(t *testing.T) {
 
 func TestModelUpdate(t *testing.T) {
 	t.Run("a new model asks to connect", func(t *testing.T) {
-		m := NewModel()
+		m := NewModel(dhttp.Build{})
 		if msg := run(t, m.Init()); msg != (startMsg{}) {
 			t.Fatalf("Init sent %#v", msg)
 		}
@@ -277,7 +278,7 @@ func TestModelUpdate(t *testing.T) {
 	})
 
 	t.Run("hello schedules a heartbeat at its interval", func(t *testing.T) {
-		m, command := NewModel().Update(helloMsg{heartbeatInterval: 41250})
+		m, command := NewModel(dhttp.Build{}).Update(helloMsg{heartbeatInterval: 41250})
 		if m.heartbeatInterval.Milliseconds() != 41250 {
 			t.Fatalf("interval = %v", m.heartbeatInterval)
 		}
@@ -287,7 +288,7 @@ func TestModelUpdate(t *testing.T) {
 	})
 
 	t.Run("no heartbeat once the connection is gone", func(t *testing.T) {
-		if _, command := NewModel().Update(heartbeatTickMsg{}); command != nil {
+		if _, command := NewModel(dhttp.Build{}).Update(heartbeatTickMsg{}); command != nil {
 			t.Fatal("heartbeat scheduled without a connection")
 		}
 	})
@@ -300,14 +301,14 @@ func TestModelUpdate(t *testing.T) {
 			{userMsg{discriminator: "0", username: "name"}, "Logging in as name"},
 			{userMsg{discriminator: "1234", username: "name"}, "Logging in as name#1234"},
 		} {
-			if m, _ := NewModel().Update(tt.msg); !strings.HasSuffix(m.status, tt.want) {
+			if m, _ := NewModel(dhttp.Build{}).Update(tt.msg); !strings.HasSuffix(m.status, tt.want) {
 				t.Fatalf("status = %q, want suffix %q", m.status, tt.want)
 			}
 		}
 	})
 
 	t.Run("pending login closes the socket and redeems", func(t *testing.T) {
-		m, command := NewModel().Update(pendingLoginMsg{ticket: "tk"})
+		m, command := NewModel(dhttp.Build{}).Update(pendingLoginMsg{ticket: "tk"})
 		if batch, ok := command.(cmd.Batch); !ok || len(batch) != 2 || m.status != "Authenticating..." {
 			t.Fatalf("status = %q, command = %#v", m.status, command)
 		}
@@ -323,7 +324,7 @@ func TestModelUpdate(t *testing.T) {
 		{"an error", errors.New("boom"), "boom"},
 	} {
 		t.Run(tt.name+" closes the connection", func(t *testing.T) {
-			m, command := NewModel().Update(tt.msg)
+			m, command := NewModel(dhttp.Build{}).Update(tt.msg)
 			if m.status != tt.want {
 				t.Fatalf("status = %q, want %q", m.status, tt.want)
 			}
@@ -334,7 +335,7 @@ func TestModelUpdate(t *testing.T) {
 	}
 
 	t.Run("closing forgets the connection", func(t *testing.T) {
-		m := NewModel()
+		m := NewModel(dhttp.Build{})
 		m.conn = &gatewayConn{}
 		if m, _ = m.Update(connCloseMsg{}); m.conn != nil {
 			t.Fatal("connection kept")
@@ -342,7 +343,7 @@ func TestModelUpdate(t *testing.T) {
 	})
 
 	t.Run("keys other than Esc do nothing", func(t *testing.T) {
-		m := NewModel()
+		m := NewModel(dhttp.Build{})
 		if got, command := m.Update(tview.KeyMsg(tcell.NewEventKey(tcell.KeyRune, "q", tcell.ModNone))); command != nil || got.status != m.status {
 			t.Fatalf("status = %q, command = %v", got.status, command)
 		}

@@ -10,6 +10,7 @@ import (
 	"github.com/ayn2op/tview/cmd"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/discordo/internal/http"
 	"github.com/seamanticus/discordo/internal/ui"
 	"github.com/seamanticus/discordo/internal/ui/login/password"
 )
@@ -20,7 +21,7 @@ func newModel(t *testing.T) Model {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return NewModel(cfg)
+	return NewModel(cfg, http.Build{})
 }
 
 // dialogs runs the tasks in command, one level of batches deep, and returns the dialogs they show.

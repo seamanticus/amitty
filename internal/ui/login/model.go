@@ -8,6 +8,7 @@ import (
 	"github.com/ayn2op/tview/cmd"
 	"github.com/ayn2op/tview/column"
 	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/discordo/internal/http"
 	"github.com/seamanticus/discordo/internal/ui"
 	"github.com/seamanticus/discordo/internal/ui/login/password"
 	"github.com/seamanticus/discordo/internal/ui/login/qr"
@@ -33,8 +34,9 @@ type Model struct {
 	active   tab
 }
 
-func NewModel(cfg *config.Config) Model {
-	return Model{cfg: cfg, qr: qr.NewModel()}
+// NewModel returns the login methods, whose requests identify as build.
+func NewModel(cfg *config.Config, build http.Build) Model {
+	return Model{cfg: cfg, password: password.NewModel(build), qr: qr.NewModel(build)}
 }
 
 // tabs returns the login methods as tabs set up by the tabs config.

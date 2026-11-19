@@ -10,7 +10,8 @@ import (
 	"github.com/seamanticus/discordo/pkg/tzlocal"
 )
 
-func Headers() stdHttp.Header {
+// Headers returns the headers the web client of build sends with its API requests.
+func Headers(build Build) stdHttp.Header {
 	headers := make(stdHttp.Header)
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers
 	headers.Set("Accept", "*/*")
@@ -35,7 +36,7 @@ func Headers() stdHttp.Header {
 		headers.Set("X-Discord-Timezone", timezone)
 	}
 
-	superProps, err := json.Marshal(xSuperProperties())
+	superProps, err := json.Marshal(xSuperProperties(build))
 	if err != nil {
 		slog.Error("failed to marshal super props", "err", err)
 	} else {
