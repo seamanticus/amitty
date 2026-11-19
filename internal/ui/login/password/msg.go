@@ -3,18 +3,29 @@ package password
 import (
 	"context"
 	"errors"
+	"net/http"
+	"time"
 
 	"github.com/ayn2op/arikawa/v3/api"
 	"github.com/ayn2op/arikawa/v3/utils/httputil"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
-	"github.com/seamanticus/discordo/internal/http"
+	dhttp "github.com/seamanticus/discordo/internal/http"
 )
+
+// retryDelay is how long a login whose connection failed waits before its one retry.
+const retryDelay = 5
 
 type TokenMsg string
 
 // FailedMsg ends a login attempt that did not produce a token.
 type FailedMsg struct{ Err error }
+
+// CountdownMsg counts down to the one retry of a login whose connection failed, with left seconds to go.
+type CountdownMsg struct {
+	left int
+	err  error
+}
 
 // inputMsg is the text and cursor that typing in an input left.
 type inputMsg struct {
@@ -30,19 +41,50 @@ type (
 	submitMsg   struct{}
 )
 
-func submitLogin(login, password string) tview.Cmd {
+// submitLogin posts the credentials once. A first attempt whose connection failed starts the countdown to a retry; a final one fails.
+func submitLogin(login, password string, final bool) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
-		ctx, cancel := context.WithTimeout(context.Background(), http.AuthTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), dhttp.AuthTimeout)
 		defer cancel()
-		return requestLogin(ctx, authClient(http.NewClient("")), login, password)
+		msg := requestLogin(ctx, authClient(dhttp.NewClient("")), login, password)
+		if failed, ok := msg.(FailedMsg); ok && !final && retryable(failed.Err) {
+			return CountdownMsg{left: retryDelay, err: failed.Err}
+		}
+		return msg
 	})
 }
 
-// authClient adds to client the headers the web client sends from its login page.
+// tick sends the countdown one second later.
+func tick(msg CountdownMsg) tview.Cmd {
+	return cmd.Task(func() tview.Msg {
+		time.Sleep(time.Second)
+		return CountdownMsg{left: msg.left - 1, err: msg.err}
+	})
+}
+
+// retryable reports whether err means the login did not reach Discord or a proxy in front of it failed, so posting again is not a second guess at the password.
+func retryable(err error) bool {
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		return false
+	}
+	if httpErr, ok := errors.AsType[*httputil.HTTPError](err); ok {
+		switch httpErr.Status {
+		case http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout:
+			return true
+		}
+		return false
+	}
+	_, ok := errors.AsType[httputil.RequestError](err)
+	return ok
+}
+
+// authClient makes client send the headers of the web client's login page and post once: retrying is the login's decision, not the transport's.
 func authClient(client *api.Client) *api.Client {
-	headers := http.Headers()
+	headers := dhttp.Headers()
 	headers.Set("Referer", "https://discord.com/login")
 	client.OnRequest = append(client.OnRequest, httputil.WithHeaders(headers))
+	// 0 would retry forever.
+	client.Retries = 1
 	return client
 }
 

@@ -136,6 +136,64 @@ func TestModelFocus(t *testing.T) {
 	})
 }
 
+func TestModelCountdown(t *testing.T) {
+	start := func() Model {
+		m := Model{login: "u", password: "p"}
+		m, _ = m.Update(submitMsg{})
+		return m
+	}
+	reason := errors.New("connection refused")
+
+	t.Run("each second shows the warning and ticks, and a second submit is still ignored", func(t *testing.T) {
+		m := start()
+		for left := retryDelay; left > 0; left-- {
+			var command tview.Cmd
+			m, command = m.Update(CountdownMsg{left: left, err: reason})
+			if m.retryIn != left || command == nil {
+				t.Fatalf("left %d: retryIn = %d, command = %v", left, m.retryIn, command)
+			}
+			if _, again := m.Update(submitMsg{}); again != nil {
+				t.Fatalf("left %d: a submit during the countdown started a request", left)
+			}
+		}
+	})
+
+	t.Run("at zero it retries and clears the warning", func(t *testing.T) {
+		m, command := start().Update(CountdownMsg{left: 0, err: reason})
+		if command == nil || m.retryIn != 0 || !m.submitting {
+			t.Fatalf("retryIn = %d, submitting = %v, command = %v", m.retryIn, m.submitting, command)
+		}
+	})
+
+	t.Run("a countdown with no login in flight is dropped", func(t *testing.T) {
+		if _, command := (Model{}).Update(CountdownMsg{left: 3, err: reason}); command != nil {
+			t.Fatal("a stray countdown started work")
+		}
+	})
+
+	t.Run("the warning and the countdown share one line", func(t *testing.T) {
+		m, _ := start().Update(CountdownMsg{left: 4, err: reason})
+		drawn := discordtest.Draw(t, m.View(), 120, 9)
+		var found bool
+		for line := range strings.Lines(drawn) {
+			if strings.Contains(line, "retrying once in 4 s") && strings.Contains(line, "connection refused") {
+				found = true
+			}
+		}
+		if !found {
+			t.Fatalf("no line with the warning and the countdown:\n%s", drawn)
+		}
+	})
+
+	t.Run("a failure ends the countdown", func(t *testing.T) {
+		m, _ := start().Update(CountdownMsg{left: 2, err: reason})
+		m, _ = m.Update(FailedMsg{reason})
+		if m.retryIn != 0 || m.submitting {
+			t.Fatalf("retryIn = %d, submitting = %v", m.retryIn, m.submitting)
+		}
+	})
+}
+
 func TestModelView(t *testing.T) {
 	t.Run("the password is masked", func(t *testing.T) {
 		m := Model{login: "user", password: "hunter2"}

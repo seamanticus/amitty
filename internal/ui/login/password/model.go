@@ -1,6 +1,8 @@
 package password
 
 import (
+	"fmt"
+
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/button"
 	"github.com/ayn2op/tview/column"
@@ -9,6 +11,7 @@ import (
 	"github.com/ayn2op/tview/text"
 	"github.com/ayn2op/tview/textinput"
 	"github.com/gdamore/tcell/v3"
+	"github.com/gdamore/tcell/v3/color"
 )
 
 // focus is the input or button that receives keys.
@@ -32,6 +35,9 @@ type Model struct {
 	buttonHovered bool
 	// submitting reports whether a login request is in flight, during which submits are ignored.
 	submitting bool
+	// retryIn is the seconds left before the one retry of a login whose connection failed, and retryReason why; 0 when no retry is pending.
+	retryIn     int
+	retryReason string
 }
 
 func (Model) Label() string {
@@ -64,9 +70,20 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 			return m, nil
 		}
 		m.submitting = true
-		return m, submitLogin(m.login, m.password)
+		return m, submitLogin(m.login, m.password, false)
+	case CountdownMsg:
+		if !m.submitting {
+			return m, nil
+		}
+		if msg.left > 0 {
+			m.retryIn, m.retryReason = msg.left, msg.err.Error()
+			return m, tick(msg)
+		}
+		m.retryIn, m.retryReason = 0, ""
+		return m, submitLogin(m.login, m.password, true)
 	case FailedMsg:
 		m.submitting = false
+		m.retryIn, m.retryReason = 0, ""
 	}
 	return m, nil
 }
@@ -90,7 +107,10 @@ func (m Model) View() tview.Widget {
 		buttonStyle = buttonStyle.Underline(true)
 	}
 	label := "Login"
-	if m.submitting {
+	switch {
+	case m.retryIn > 0:
+		label = "Waiting..."
+	case m.submitting:
 		label = "Logging in..."
 	}
 	submit := button.New(text.New(label)).
@@ -100,9 +120,15 @@ func (m Model) View() tview.Widget {
 		Hovered(m.buttonHovered).
 		OnHover(func(hovered bool) tview.Msg { return hoverMsg(hovered) }).
 		OnClick(submitMsg{})
+	var warning tview.Widget
+	if m.retryIn > 0 {
+		warning = text.New(fmt.Sprintf("Connection failed, retrying once in %d s: %s", m.retryIn, m.retryReason)).
+			Style(tcell.StyleDefault.Foreground(color.Yellow))
+	}
 	return column.New(
 		row.New(text.New("Login").Width(labelWidth), login).Height(layout.Shrink),
 		row.New(text.New("Password").Width(labelWidth), password).Height(layout.Shrink),
 		submit,
+		warning,
 	).Spacing(1).AlignX(tview.HorizontalAlignmentCenter)
 }

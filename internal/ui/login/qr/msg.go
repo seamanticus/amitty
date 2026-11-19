@@ -294,6 +294,8 @@ func ticketClient(client *api.Client, fingerprint string) *api.Client {
 		headers.Set("X-Fingerprint", fingerprint)
 	}
 	client.OnRequest = append(client.OnRequest, httputil.WithHeaders(headers))
+	// A ticket is redeemed once; 0 would retry forever.
+	client.Retries = 1
 	return client
 }
 

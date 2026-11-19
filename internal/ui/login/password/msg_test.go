@@ -160,7 +160,61 @@ func TestAuthClient(t *testing.T) {
 }
 
 func TestSubmitLogin(t *testing.T) {
-	if _, ok := submitLogin("a", "b").(cmd.Task); !ok {
-		t.Fatal("submitLogin does not run as a task, so it would block Update")
+	for _, final := range []bool{false, true} {
+		if _, ok := submitLogin("a", "b", final).(cmd.Task); !ok {
+			t.Fatal("submitLogin does not run as a task, so it would block Update")
+		}
+	}
+}
+
+// evidence: witnesses
+func TestRetryable(t *testing.T) {
+	status := func(code int) error {
+		return &httputil.HTTPError{Status: code}
+	}
+	for _, tt := range []struct {
+		name string
+		err  error
+		want bool
+	}{
+		{"502", status(http.StatusBadGateway), true},
+		{"503", status(http.StatusServiceUnavailable), true},
+		{"504", status(http.StatusGatewayTimeout), true},
+		// A 500 may come after Discord checked the password.
+		{"500", status(http.StatusInternalServerError), false},
+		{"429", status(http.StatusTooManyRequests), false},
+		{"400", status(http.StatusBadRequest), false},
+		{"401", status(http.StatusUnauthorized), false},
+		{"deadline", context.DeadlineExceeded, false},
+		{"canceled", context.Canceled, false},
+		{"other", errors.New("x"), false},
+		{"nil", nil, false},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := retryable(tt.err); got != tt.want {
+				t.Fatalf("retryable(%v) = %v, want %v", tt.err, got, tt.want)
+			}
+		})
+	}
+
+	t.Run("a refused connection", func(t *testing.T) {
+		msg := requestLogin(t.Context(), discordtest.ClosedClient(t), "a", "b")
+		if failed, ok := msg.(FailedMsg); !ok || !retryable(failed.Err) {
+			t.Fatalf("got %#v, want a retryable failure", msg)
+		}
+	})
+}
+
+func TestAuthClientPostsOnce(t *testing.T) {
+	for _, code := range []int{http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusTooManyRequests} {
+		var calls atomic.Int32
+		client := authClient(discordtest.Client(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			calls.Add(1)
+			w.WriteHeader(code)
+		})))
+		requestLogin(t.Context(), client, "a", "b")
+		if n := calls.Load(); n != 1 {
+			t.Fatalf("status %d: credentials posted %d times, want 1", code, n)
+		}
 	}
 }

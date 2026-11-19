@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/ayn2op/tview"
@@ -240,6 +241,18 @@ func TestRedeemTicket(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("a ticket is posted once, even on a 5xx", func(t *testing.T) {
+		var calls atomic.Int32
+		client := ticketClient(discordtest.Client(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			calls.Add(1)
+			w.WriteHeader(http.StatusBadGateway)
+		})), "fp")
+		redeemTicket(t.Context(), client, key, "tk")
+		if n := calls.Load(); n != 1 {
+			t.Fatalf("ticket posted %d times, want 1", n)
+		}
+	})
 
 	t.Run("a canceled context fails", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(t.Context())

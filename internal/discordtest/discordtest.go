@@ -30,6 +30,19 @@ func Client(t testing.TB, handler http.Handler) *api.Client {
 	return api.NewCustomClient("", httputil.NewClientWithDriver(driver))
 }
 
+// ClosedClient returns an API client whose server has already shut down, so every request fails to connect.
+func ClosedClient(t testing.TB) *api.Client {
+	t.Helper()
+	server := httptest.NewServer(http.NotFoundHandler())
+	target, err := url.Parse(server.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	transport := redirect{target: target, base: server.Client().Transport}
+	server.Close()
+	return api.NewCustomClient("", httputil.NewClientWithDriver(httpdriver.WrapClient(http.Client{Transport: transport})))
+}
+
 // Draw draws widget on a width x height mock terminal and returns the text drawn, one line per row.
 func Draw(t testing.TB, widget tview.Widget, width, height int) string {
 	t.Helper()
