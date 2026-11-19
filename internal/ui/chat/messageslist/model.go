@@ -252,7 +252,8 @@ func (m Model) lastCard() int {
 // alternate reports whether the message of item takes the alternate style, as its card is every alternate_every-th.
 func (m Model) alternate(item *messageItem) bool {
 	every := int(m.cfg.UI.MessagesList.AlternateEvery)
-	return every > 0 && item.card%every == every-1
+	// Older pages number their cards below zero, where Go's % is negative, so the remainder is taken up to 0..every-1.
+	return every > 0 && (item.card%every+every)%every == every-1
 }
 
 func (m *Model) setMessage(index int, message discord.Message) {
