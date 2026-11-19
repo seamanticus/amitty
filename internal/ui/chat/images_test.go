@@ -77,3 +77,49 @@ func TestNewPooledCompressor(t *testing.T) {
 		})
 	}
 }
+
+func TestShape(t *testing.T) {
+	src := image.NewNRGBA(image.Rect(0, 0, 20, 20))
+	for i := range src.Pix {
+		src.Pix[i] = 0xff
+	}
+	alpha := func(img image.Image, x, y int) uint32 {
+		_, _, _, a := img.At(x, y).RGBA()
+		return a >> 8
+	}
+
+	// evidence: witnesses
+	for _, test := range []struct {
+		shape                string
+		corner, edge, centre uint32
+	}{
+		{"square", 0xff, 0xff, 0xff},
+		{"", 0xff, 0xff, 0xff},
+		{"rounded", 0, 0xff, 0xff},
+		{"circle", 0, 0xff, 0xff},
+	} {
+		t.Run(test.shape, func(t *testing.T) {
+			img := shape(src, test.shape)
+			if got := alpha(img, 0, 0); got != test.corner {
+				t.Fatalf("corner alpha = %d, want %d", got, test.corner)
+			}
+			// The middle of the top edge stays nearly opaque, as its pixel only touches a circle's arc.
+			if got := alpha(img, 10, 0); got < test.edge-8 {
+				t.Fatalf("edge alpha = %d, want about %d", got, test.edge)
+			}
+			if got := alpha(img, 10, 10); got != test.centre {
+				t.Fatalf("centre alpha = %d, want %d", got, test.centre)
+			}
+		})
+	}
+	t.Run("a circle cuts more than a rounded square", func(t *testing.T) {
+		if rounded, circle := alpha(shape(src, "rounded"), 2, 2), alpha(shape(src, "circle"), 2, 2); rounded <= circle {
+			t.Fatalf("alpha at 2, 2: rounded %d, circle %d", rounded, circle)
+		}
+	})
+	t.Run("an empty image", func(t *testing.T) {
+		if !shape(&image.Alpha{}, "circle").Bounds().Empty() {
+			t.Fatal("not empty")
+		}
+	})
+}

@@ -217,6 +217,8 @@ type (
 		Preview bool `toml:"preview"`
 		// The number of rows an avatar takes. It is recommended to use `1` with compact.
 		Height uint8 `toml:"height"`
+		// "square", "rounded" or "circle". Half blocks have too few pixels to show the shape clearly.
+		Shape string `toml:"shape"`
 	}
 
 	AttachmentsUIConfig struct {
@@ -285,7 +287,7 @@ func defaultUI() UIConfig {
 			ForwardedIndicator: "<",
 			ImageProtocol:      "auto",
 			Attachments:        attachments,
-			Avatars:            AvatarsUIConfig{Preview: true, Height: 2},
+			Avatars:            AvatarsUIConfig{Preview: true, Height: 2, Shape: "square"},
 			Embeds:             EmbedsUIConfig{Enabled: true},
 			Grouping:           GroupingUIConfig{Enabled: true, Interval: 10 * time.Minute},
 			Reactions:          ReactionsUIConfig{Enabled: true, Separator: " • "},

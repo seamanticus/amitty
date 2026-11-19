@@ -8,9 +8,10 @@ import (
 	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
 )
 
-// RequestedMsg asks for images: Squares by rows tall, Previews by size in pixels.
+// RequestedMsg asks for images: Squares and Avatars by rows tall, Previews by size in pixels. Avatars are squares cut to the configured shape.
 type RequestedMsg struct {
 	Squares  map[discord.URL]uint
+	Avatars  map[discord.URL]uint
 	Previews map[discord.URL]image.Point
 }
 

@@ -50,7 +50,7 @@ func (m Model) previewSources(message discord.Message) []previewSource {
 
 // LoadImages returns the command that loads the images of the shown messages, or nil.
 func (m Model) LoadImages() tui.Cmd {
-	msg := images.RequestedMsg{Squares: map[discord.URL]uint{}, Previews: map[discord.URL]image.Point{}}
+	msg := images.RequestedMsg{Squares: map[discord.URL]uint{}, Avatars: map[discord.URL]uint{}, Previews: map[discord.URL]image.Point{}}
 	for index := range m.items {
 		item := &m.items[index]
 		if item.separator != nil {
@@ -58,7 +58,7 @@ func (m Model) LoadImages() tui.Cmd {
 		}
 
 		if author := item.message.Author; m.showsAvatar(author) {
-			msg.Squares[avatarURL(author)] = uint(m.cfg.UI.MessagesList.Avatars.Height)
+			msg.Avatars[avatarURL(author)] = uint(m.cfg.UI.MessagesList.Avatars.Height)
 		}
 
 		m.addEmojis(msg.Squares, item)
@@ -71,7 +71,7 @@ func (m Model) LoadImages() tui.Cmd {
 		}
 	}
 
-	if len(msg.Squares) == 0 && len(msg.Previews) == 0 {
+	if len(msg.Squares) == 0 && len(msg.Avatars) == 0 && len(msg.Previews) == 0 {
 		return nil
 	}
 

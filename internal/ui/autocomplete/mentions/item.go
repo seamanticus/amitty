@@ -50,13 +50,13 @@ func (m mention) Line(images map[discord.URL]tuiimage.Widget) []text.Span {
 // Items returns up to limit users in channel matching query, best first, or its recent authors if query is empty, and the command that loads their avatars, or nil.
 func Items(cfg *config.Config, s *ningen.State, channel *discord.Channel, query string, limit int) ([]autocomplete.Item, tui.Cmd) {
 	var items []autocomplete.Item
-	images := images.RequestedMsg{Squares: map[discord.URL]uint{}}
+	images := images.RequestedMsg{Avatars: map[discord.URL]uint{}}
 	for _, mention := range mentions(s, channel, query, limit) {
 		items = append(items, mention)
-		images.Squares[mention.avatar] = avatarRows
+		images.Avatars[mention.avatar] = avatarRows
 	}
 
-	if !cfg.UI.Autocomplete.Mentions.Preview || len(images.Squares) == 0 {
+	if !cfg.UI.Autocomplete.Mentions.Preview || len(images.Avatars) == 0 {
 		return items, nil
 	}
 	return items, cmd.Task(func() tui.Msg { return images })

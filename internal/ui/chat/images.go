@@ -10,6 +10,7 @@ import (
 	"io"
 	"log/slog"
 	"maps"
+	"math"
 	"net/url"
 	"slices"
 	"strconv"
@@ -115,13 +116,18 @@ func (m *Model) loadImages(msg images.RequestedMsg) tui.Cmd {
 	cell := m.imageCell()
 	cellWidth, cellHeight := uint(cell.X), uint(cell.Y)
 	var cmds []tui.Cmd
-	for url, rows := range msg.Squares {
-		cols := squareCols(rows, cell)
-		bounds := image.Rect(0, 0, int(cols*cellWidth), int(cols*cellWidth))
-		cmds = append(cmds, m.loadImage(url, bounds, func(img image.Image) tuiimage.Widget {
-			return tuiimage.New(square(img)).Width(int(cols)).CellSize(int(cellWidth), int(cellHeight))
-		}))
+	squares := func(urls map[discord.URL]uint, shape func(image.Image) image.Image) {
+		for url, rows := range urls {
+			cols := squareCols(rows, cell)
+			bounds := image.Rect(0, 0, int(cols*cellWidth), int(cols*cellWidth))
+			cmds = append(cmds, m.loadImage(url, bounds, func(img image.Image) tuiimage.Widget {
+				return tuiimage.New(shape(square(img))).Width(int(cols)).CellSize(int(cellWidth), int(cellHeight))
+			}))
+		}
 	}
+	squares(msg.Squares, func(img image.Image) image.Image { return img })
+	avatarShape := m.cfg.UI.MessagesList.Avatars.Shape
+	squares(msg.Avatars, func(img image.Image) image.Image { return shape(img, avatarShape) })
 
 	for url, size := range msg.Previews {
 		cols := previewCols(uint(size.X), uint(size.Y), cellWidth, cellHeight)
@@ -219,4 +225,44 @@ func square(img image.Image) image.Image {
 	at := image.Pt((side-bounds.Dx())/2, (side-bounds.Dy())/2)
 	draw.Draw(dst, bounds.Sub(bounds.Min).Add(at), img, bounds.Min, draw.Src)
 	return dst
+}
+
+// shape returns the square img cut to a "rounded" square or a "circle", with antialiased edges, or img as it is for any other shape.
+func shape(img image.Image, shape string) image.Image {
+	b := img.Bounds()
+	side := float64(b.Dx())
+	var radius float64
+	switch shape {
+	case "circle":
+		radius = side / 2
+	case "rounded":
+		radius = side / 4
+	default:
+		return img
+	}
+	if b.Empty() {
+		return img
+	}
+
+	dst := image.NewNRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+	draw.Draw(dst, dst.Bounds(), img, b.Min, draw.Src)
+	for y := range b.Dy() {
+		for x := range b.Dx() {
+			coverage := roundedCoverage(float64(x)+0.5, float64(y)+0.5, side, radius)
+			if coverage < 1 {
+				i := dst.PixOffset(x, y) + 3
+				dst.Pix[i] = uint8(float64(dst.Pix[i]) * coverage)
+			}
+		}
+	}
+	return dst
+}
+
+// roundedCoverage returns how much of the pixel centered at x, y lies inside a square of side with corners of radius, from 0 to 1 over a pixel's width.
+func roundedCoverage(x, y, side, radius float64) float64 {
+	// The distance outside the corner's arc, or 0 off the corners.
+	cx := min(max(x, radius), side-radius)
+	cy := min(max(y, radius), side-radius)
+	distance := math.Hypot(x-cx, y-cy) - radius
+	return min(max(0.5-distance, 0), 1)
 }

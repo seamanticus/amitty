@@ -434,6 +434,12 @@ The number of rows an avatar takes. It is recommended to use `1` with compact.
 
 Default: `2`
 
+##### ui.messages_list.avatars.shape
+
+"square", "rounded" or "circle". Half blocks have too few pixels to show the shape clearly.
+
+Default: `"square"`
+
 #### ui.messages_list.embeds
 
 ##### ui.messages_list.embeds.enabled
