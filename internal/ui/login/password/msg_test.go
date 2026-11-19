@@ -30,11 +30,13 @@ func TestRequestLogin(t *testing.T) {
 	const path = "/api/v9/auth/login"
 
 	t.Run("posts the credentials as JSON to the login endpoint", func(t *testing.T) {
-		var got struct{ method, path, contentType, auth, body string }
+		var got struct{ method, path, contentType, body string }
+		var auth bool
 		client := discordtest.Client(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var body bytes.Buffer
 			_, _ = body.ReadFrom(r.Body)
-			got.method, got.path, got.contentType, got.auth, got.body = r.Method, r.URL.Path, r.Header.Get("Content-Type"), r.Header.Get("Authorization"), body.String()
+			got.method, got.path, got.contentType, got.body = r.Method, r.URL.Path, r.Header.Get("Content-Type"), body.String()
+			_, auth = r.Header["Authorization"]
 			reply(http.StatusOK, `{"token":"t"}`)(w, r)
 		}))
 		requestLogin(t.Context(), client, "user@example.com", `p"w`)
@@ -45,8 +47,9 @@ func TestRequestLogin(t *testing.T) {
 		if !strings.HasPrefix(got.contentType, "application/json") {
 			t.Errorf("Content-Type = %q", got.contentType)
 		}
-		if got.auth != "" {
-			t.Errorf("Authorization = %q, want none before login", got.auth)
+		// Even an empty Authorization is one a browser never sends before login.
+		if auth {
+			t.Error("Authorization sent before login")
 		}
 		var body struct {
 			Login    string `json:"login"`

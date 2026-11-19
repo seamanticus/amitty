@@ -16,7 +16,7 @@ import (
 )
 
 func NewClient(token string) *api.Client {
-	httpClient := httputil.NewClientWithDriver(wrapClient(tls.NewClient(tls_client.WithCookieJar(tls_client.NewCookieJar()))))
+	httpClient := httputil.NewClientWithDriver(OmitEmptyHeaders(wrapClient(tls.NewClient(tls_client.WithCookieJar(tls_client.NewCookieJar())))))
 	client := api.NewCustomClient(token, httpClient)
 	client.UserAgent = BrowserUserAgent()
 	return client

@@ -14,6 +14,7 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/vt"
+	dhttp "github.com/seamanticus/discordo/internal/http"
 )
 
 // Client returns an API client without a token whose requests handler serves, with the path and query Discord would get.
@@ -26,7 +27,7 @@ func Client(t testing.TB, handler http.Handler) *api.Client {
 		t.Fatal(err)
 	}
 	transport := redirect{target: target, base: server.Client().Transport}
-	driver := httpdriver.WrapClient(http.Client{Transport: transport})
+	driver := dhttp.OmitEmptyHeaders(httpdriver.WrapClient(http.Client{Transport: transport}))
 	return api.NewCustomClient("", httputil.NewClientWithDriver(driver))
 }
 
@@ -40,7 +41,7 @@ func ClosedClient(t testing.TB) *api.Client {
 	}
 	transport := redirect{target: target, base: server.Client().Transport}
 	server.Close()
-	return api.NewCustomClient("", httputil.NewClientWithDriver(httpdriver.WrapClient(http.Client{Transport: transport})))
+	return api.NewCustomClient("", httputil.NewClientWithDriver(dhttp.OmitEmptyHeaders(httpdriver.WrapClient(http.Client{Transport: transport}))))
 }
 
 // Draw draws widget on a width x height mock terminal and returns the text drawn, one line per row.
