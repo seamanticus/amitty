@@ -1,0 +1,274 @@
+// Package read implements a read state with an event handler API.
+package read
+
+import (
+	"log/slog"
+	"sync"
+
+	"github.com/seamanticus/dmwire/api"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/gateway"
+	"github.com/seamanticus/dmwire/state"
+	"github.com/seamanticus/dmwire/utils/handler"
+	"github.com/seamanticus/dmwire/utils/ws"
+)
+
+type UpdateEvent struct {
+	gateway.ReadState
+	GuildID discord.GuildID
+	Unread  bool
+}
+
+var _ gateway.Event = (*UpdateEvent)(nil)
+
+func (ev UpdateEvent) Op() ws.OpCode           { return -1 }
+func (ev UpdateEvent) EventType() ws.EventType { return "__read.UpdateEvent" }
+
+type State struct {
+	mutex  sync.Mutex
+	state  *state.State
+	states map[discord.ChannelID]*gateway.ReadState
+
+	selfID discord.UserID
+}
+
+func NewState(state *state.State, r *handler.Handler) *State {
+	readstate := &State{
+		state:  state,
+		states: make(map[discord.ChannelID]*gateway.ReadState),
+	}
+
+	r.AddSyncHandler(func(r *gateway.ReadyEvent) {
+		readstate.mutex.Lock()
+		defer readstate.mutex.Unlock()
+
+		readstate.selfID = r.User.ID
+		clear(readstate.states)
+
+		for i, rs := range r.ReadStates {
+			readstate.states[rs.ChannelID] = &r.ReadStates[i]
+		}
+	})
+
+	r.AddSyncHandler(func(a *gateway.MessageAckEvent) {
+		// do not send a duplicate ack
+		readstate.markRead(a.ChannelID, a.MessageID, false)
+	})
+
+	r.AddSyncHandler(func(c *gateway.MessageCreateEvent) {
+		ch, _ := state.Cabinet.Channel(c.ChannelID)
+		if ch != nil {
+			cpy := *ch
+			cpy.LastMessageID = c.ID
+			state.ChannelSet(&cpy, true)
+		}
+
+		selfID := readstate.SelfID()
+		if c.Author.ID == selfID {
+			readstate.markRead(c.ChannelID, c.ID, false)
+			return
+		}
+
+		var mentions int
+		for _, u := range c.Mentions {
+			if u.ID == selfID {
+				mentions++
+			}
+		}
+
+		readstate.MarkUnread(c.ChannelID, c.ID, mentions)
+	})
+
+	r.AddSyncHandler(func(c *gateway.ThreadCreateEvent) {
+		// Discord reads the forum we created a thread in without sending an
+		// ack for it.
+		if !c.NewlyCreated || c.OwnerID != readstate.SelfID() {
+			return
+		}
+
+		if parent, _ := state.Cabinet.Channel(c.ParentID); parent != nil && parent.Type == discord.GuildForum {
+			readstate.markRead(c.ParentID, discord.MessageID(c.ID), false)
+		}
+	})
+
+	// A channel or thread that is deleted leaves no read state behind.
+	r.AddSyncHandler(func(c *gateway.ChannelDeleteEvent) {
+		readstate.remove(c.ID)
+	})
+
+	r.AddSyncHandler(func(c *gateway.ThreadDeleteEvent) {
+		readstate.remove(c.ID)
+	})
+
+	r.AddSyncHandler(func(u *gateway.ChannelUnreadUpdateEvent) {
+		for _, update := range u.ChannelUnreadUpdates {
+			ch, _ := state.Cabinet.Channel(update.ID)
+			if ch == nil {
+				continue
+			}
+
+			cpy := *ch
+			cpy.LastMessageID = update.LastMessageID
+			state.ChannelSet(&cpy, true)
+		}
+	})
+
+	return readstate
+}
+
+func (r *State) remove(channelID discord.ChannelID) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	delete(r.states, channelID)
+}
+
+func (r *State) SelfID() discord.UserID {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	return r.selfID
+}
+
+// ReadState gets the read state for a channel.
+func (r *State) ReadState(channelID discord.ChannelID) *gateway.ReadState {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if s, ok := r.states[channelID]; ok && s.LastMessageID.IsValid() {
+		return s
+	}
+	return nil
+}
+
+func (r *State) MarkUnread(chID discord.ChannelID, msgID discord.MessageID, mentions int) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	rs, ok := r.states[chID]
+	if !ok {
+		rs = &gateway.ReadState{
+			ChannelID: chID,
+		}
+		r.states[chID] = rs
+	}
+
+	rs.MentionCount += mentions
+
+	ch, _ := r.state.Cabinet.Channel(chID)
+	if ch == nil {
+		return
+	}
+
+	if ch.LastMessageID < msgID {
+		ch.LastMessageID = msgID
+		r.state.ChannelSet(ch, false)
+	}
+
+	if msg, _ := r.state.Cabinet.Message(chID, msgID); msg != nil {
+		if msg.Author.ID == r.selfID {
+			// If the message is ours, we should marrk it as already read, since
+			// it is registered like that on the Discord servers.
+			rs.LastMessageID = msgID
+			// Reset the mentions as well.
+			rs.MentionCount = 0
+		}
+	}
+
+	// The message is not read if the last read message's ID is less than the
+	// latest message's ID. We don't check for inequality since the latest
+	// message may have been deleted, leading to us trying to mark a deleted
+	// message.
+	unread := rs.LastMessageID < msgID
+	rscp := *rs
+
+	// Force callbacks to run in a goroutine. This is because MarkRead and
+	// MarkUnread may be called by the user in their main thread, which means
+	// these callbacks may occupy the main loop. It may also run in any other
+	// goroutine, making it impossible to properly synchronize these callbacks.
+	// Doing this helps making a consistent synchronizing behavior.
+	go func() {
+		// Announce that there is a change.
+		r.state.Call(&UpdateEvent{
+			ReadState: rscp,
+			GuildID:   ch.GuildID,
+			Unread:    unread,
+		})
+	}()
+}
+
+func (r *State) MarkRead(chID discord.ChannelID, msgID discord.MessageID) {
+	// send ack
+	r.markRead(chID, msgID, true)
+}
+
+func (r *State) markRead(chID discord.ChannelID, msgID discord.MessageID, sendack bool) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	rs, ok := r.states[chID]
+	if !ok {
+		rs = &gateway.ReadState{
+			ChannelID: chID,
+		}
+		r.states[chID] = rs
+	}
+
+	// If we've already marked the message as read.
+	if rs.LastMessageID == msgID && rs.MentionCount == 0 {
+		// log.Println("ningen: NOT acking", chID, "for message", msgID)
+		return
+	}
+
+	// Update.
+	// prevMessageID := rs.LastMessageID
+	rs.LastMessageID = msgID
+	rs.MentionCount = 0
+
+	// The channel cursor is a valid ack target even if the referenced message
+	// is not in the message cache.
+	if sendack && msgID.IsValid() {
+		go r.ack(chID, msgID)
+	}
+
+	// copy
+	rscp := *rs
+
+	go func() {
+		ch, _ := r.state.Cabinet.Channel(chID)
+		if ch == nil {
+			return
+		}
+
+		// Announce that there is a change.
+		r.state.Call(&UpdateEvent{
+			ReadState: rscp,
+			GuildID:   ch.GuildID,
+			Unread:    false,
+		})
+	}()
+}
+
+func (r *State) ack(chID discord.ChannelID, msgID discord.MessageID) {
+	if err := r.state.Ack(chID, msgID, &api.Ack{}); err != nil {
+		slog.Error(
+			"cannot send message ack to Discord",
+			"module", "ningen",
+			"channel_id", chID,
+			"message_id", msgID,
+			"err", err)
+	}
+}
+
+// TotalMentionCount returns the total mention count of all channels for the
+// current user.
+func (r *State) TotalMentionCount() int {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	var total int
+	for _, rs := range r.states {
+		total += rs.MentionCount
+	}
+	return total
+}

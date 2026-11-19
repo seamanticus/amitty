@@ -1,0 +1,42 @@
+package guild
+
+import (
+	"sync"
+	"time"
+
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/gateway"
+	"github.com/seamanticus/dmwire/utils/handler"
+)
+
+// State contains additional guild states that are only available on join.
+type State struct {
+	mutex sync.RWMutex
+	joins map[discord.GuildID]time.Time
+}
+
+func NewState(h *handler.Handler) *State {
+	s := &State{joins: make(map[discord.GuildID]time.Time)}
+
+	h.AddSyncHandler(func(r *gateway.ReadyEvent) {
+		s.mutex.Lock()
+		defer s.mutex.Unlock()
+
+		clear(s.joins)
+		for _, guild := range r.Guilds {
+			s.joins[guild.ID] = guild.Joined.Time()
+		}
+	})
+
+	return s
+}
+
+// JoinedAt returns the time that the user joined the guild or the zero-value if
+// there's none.
+func (s *State) JoinedAt(guildID discord.GuildID) (time.Time, bool) {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	t, ok := s.joins[guildID]
+	return t, ok
+}
