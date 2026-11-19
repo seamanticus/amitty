@@ -75,6 +75,7 @@ Use `-log-path` to change the path, and `-log-level` (`debug`, `info`, `warn`, o
 ## License
 
 Copyright (C) 2025-present ayn2op
+Copyright (C) 2026-present seamanticus
 
 This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
 See the [LICENSE](./LICENSE) file for the full license text.
