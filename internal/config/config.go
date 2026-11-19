@@ -350,31 +350,42 @@ func WriteDefault(path string) (bool, error) {
 
 // Load reads the configuration file and parses it.
 func Load(path string) (*Config, error) {
-	cfg := Default()
 	data, err := os.ReadFile(path)
 	switch {
 	case os.IsNotExist(err):
 		slog.Info("config file does not exist, falling back to the default config", "path", path, "err", err)
 	case err != nil:
 		return nil, fmt.Errorf("failed to open config file: %w", err)
-	default:
-		// The profile is the theme the file's own styles are decoded over.
-		var profile struct {
-			ThemeProfile string `toml:"theme_profile"`
-		}
-		if _, err := toml.Decode(string(data), &profile); err != nil {
-			return nil, fmt.Errorf("failed to decode config: %w", err)
-		}
-		if err := cfg.applyProfile(profile.ThemeProfile); err != nil {
-			return nil, err
-		}
-		if _, err := toml.Decode(string(data), &cfg); err != nil {
-			return nil, fmt.Errorf("failed to decode config: %w", err)
-		}
 	}
+	return Parse(data)
+}
 
+// Parse returns the configuration that the contents of a config file give.
+func Parse(data []byte) (*Config, error) {
+	cfg, err := decode(data)
+	if err != nil {
+		return nil, err
+	}
 	cfg.applyDefaults()
 	return &cfg, nil
+}
+
+// decode returns data decoded over the defaults, or over a profile's theme if it names one, before applyDefaults fixes values up.
+func decode(data []byte) (Config, error) {
+	cfg := Default()
+	var profile struct {
+		ThemeProfile string `toml:"theme_profile"`
+	}
+	if _, err := toml.Decode(string(data), &profile); err != nil {
+		return Config{}, fmt.Errorf("failed to decode config: %w", err)
+	}
+	if err := cfg.applyProfile(profile.ThemeProfile); err != nil {
+		return Config{}, err
+	}
+	if _, err := toml.Decode(string(data), &cfg); err != nil {
+		return Config{}, fmt.Errorf("failed to decode config: %w", err)
+	}
+	return cfg, nil
 }
 
 func (cfg *Config) applyDefaults() {

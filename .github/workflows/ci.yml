@@ -38,7 +38,7 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-24.04' }}
         run: |
           go generate ./internal/config ./internal/dmwire/... ./pkg/discordemoji
-          git diff --exit-code docs/config.md internal/config/default.toml internal/dmwire pkg/discordemoji
+          git diff --exit-code docs/config.md internal/config/default.toml internal/config/optiondocs.go internal/dmwire pkg/discordemoji
 
       - name: Test
         run: |
