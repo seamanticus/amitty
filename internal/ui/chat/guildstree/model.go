@@ -13,8 +13,8 @@ import (
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
-	"github.com/seamanticus/amitty/internal/dmwire/ningen"
-	"github.com/seamanticus/amitty/internal/dmwire/ningen/states/read"
+	"github.com/seamanticus/amitty/internal/ningen"
+	"github.com/seamanticus/amitty/internal/ningen/states/read"
 	"github.com/seamanticus/amitty/internal/ui"
 	uitree "github.com/seamanticus/amitty/internal/ui/tree"
 )

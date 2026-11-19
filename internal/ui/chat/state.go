@@ -8,9 +8,9 @@ import (
 	"github.com/ayn2op/tview/cmd"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
-	"github.com/seamanticus/amitty/internal/dmwire/ningen/states/read"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
+	"github.com/seamanticus/amitty/internal/ningen/states/read"
 	"github.com/seamanticus/amitty/internal/ui"
 )
 

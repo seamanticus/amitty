@@ -9,7 +9,7 @@ import (
 	"github.com/sahilm/fuzzy"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
-	"github.com/seamanticus/amitty/internal/dmwire/ningen"
+	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/internal/ui/autocomplete"
 	uiemojis "github.com/seamanticus/amitty/internal/ui/emojis"
 	"github.com/seamanticus/amitty/internal/ui/images"

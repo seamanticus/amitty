@@ -9,7 +9,7 @@ import (
 	tviewimage "github.com/ayn2op/tview/image"
 	"github.com/ayn2op/tview/text"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
-	"github.com/seamanticus/amitty/internal/dmwire/ningen"
+	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/pkg/discordemoji"
 )
 

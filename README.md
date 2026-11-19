@@ -80,6 +80,8 @@ Copyright (C) 2026-present seamanticus
 This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
 See the [LICENSE](./LICENSE) file for the full license text.
 
+`internal/dmwire` (from [arikawa](https://github.com/diamondburned/arikawa)) and `internal/ningen` (from [ningen](https://github.com/diamondburned/ningen)) are ISC licensed, Copyright 2020 diamondburned; see the `LICENSE` file in each.
+
 # Disclaimer
 
 > [!IMPORTANT]

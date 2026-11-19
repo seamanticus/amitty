@@ -9,10 +9,10 @@ import (
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
-	"github.com/seamanticus/amitty/internal/dmwire/ningen"
-	"github.com/seamanticus/amitty/internal/dmwire/ningen/states/read"
 	"github.com/seamanticus/amitty/internal/dmwire/state"
 	"github.com/seamanticus/amitty/internal/dmwire/state/store/defaultstore"
+	"github.com/seamanticus/amitty/internal/ningen"
+	"github.com/seamanticus/amitty/internal/ningen/states/read"
 )
 
 func TestModelMoveDMToFront(t *testing.T) {

@@ -10,8 +10,8 @@ import (
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
-	"github.com/seamanticus/amitty/internal/dmwire/ningen"
 	"github.com/seamanticus/amitty/internal/dmwire/state"
+	"github.com/seamanticus/amitty/internal/ningen"
 )
 
 const guildID, channelID = 1, 2

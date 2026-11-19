@@ -2,7 +2,7 @@ package ui
 
 import (
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
-	"github.com/seamanticus/amitty/internal/dmwire/ningen"
+	"github.com/seamanticus/amitty/internal/ningen"
 )
 
 // IsMe reports whether id is the logged in user.

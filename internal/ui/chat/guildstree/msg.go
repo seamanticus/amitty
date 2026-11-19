@@ -7,7 +7,7 @@ import (
 	"github.com/ayn2op/tview/cmd"
 	"github.com/ayn2op/tview/tree"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
-	"github.com/seamanticus/amitty/internal/dmwire/ningen"
+	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/internal/ui"
 )
 
