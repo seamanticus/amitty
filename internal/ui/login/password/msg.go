@@ -7,6 +7,7 @@ import (
 
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
+	"github.com/seamanticus/amitty/internal/captcha"
 	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	dhttp "github.com/seamanticus/amitty/internal/http"
@@ -37,13 +38,19 @@ type (
 	submitMsg   struct{}
 )
 
-// submitLogin posts the credentials once with fingerprint. A first attempt whose connection failed starts the countdown to a retry; a final one fails.
-func submitLogin(build dhttp.Build, fingerprint, login, password string, final bool) tview.Cmd {
+// submitLogin posts the credentials once with fingerprint and, if set, the captcha solution. A first attempt whose connection failed starts the countdown to a retry; a final one fails.
+func submitLogin(build dhttp.Build, fingerprint string, solution captcha.Solution, login, password string, final bool) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), dhttp.AuthTimeout)
 		defer cancel()
-		return countdownOr(requestLogin(ctx, authClient(dhttp.NewClient(""), build, fingerprint), login, password), final)
+		return countdownOr(requestLogin(ctx, withSolution(authClient(dhttp.NewClient(""), build, fingerprint), solution), login, password), final)
 	})
+}
+
+// withSolution makes client send solution, the answer to the captcha its last request got.
+func withSolution(client *api.Client, solution captcha.Solution) *api.Client {
+	client.OnRequest = append(client.OnRequest, solution.Option())
+	return client
 }
 
 // countdownOr returns msg, or the countdown to a retry when msg is a first attempt whose connection failed.
@@ -75,9 +82,12 @@ func authClient(client *api.Client, build dhttp.Build, fingerprint string) *api.
 	return client
 }
 
-// requestLogin posts the credentials with client and returns a TokenMsg, an MFAMsg or a FailedMsg.
+// requestLogin posts the credentials with client and returns a TokenMsg, an MFAMsg, a CaptchaMsg or a FailedMsg.
 func requestLogin(ctx context.Context, client *api.Client, login, password string) tview.Msg {
 	loginResp, err := client.WithContext(ctx).Login(login, password)
+	if challenge, ok := captcha.FromError(err); ok {
+		return CaptchaMsg{challenge}
+	}
 	if err != nil {
 		return FailedMsg{err}
 	}

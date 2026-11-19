@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/ayn2op/tview/cmd"
+	"github.com/seamanticus/amitty/internal/captcha"
 	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	dhttp "github.com/seamanticus/amitty/internal/http"
@@ -180,7 +181,7 @@ func TestAuthClient(t *testing.T) {
 
 func TestSubmitLogin(t *testing.T) {
 	for _, final := range []bool{false, true} {
-		if _, ok := submitLogin(dhttp.Build{}, "f", "a", "b", final).(cmd.Task); !ok {
+		if _, ok := submitLogin(dhttp.Build{}, "f", captcha.Solution{}, "a", "b", final).(cmd.Task); !ok {
 			t.Fatal("submitLogin does not run as a task, so it would block Update")
 		}
 	}

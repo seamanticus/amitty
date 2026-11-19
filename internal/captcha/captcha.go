@@ -21,6 +21,9 @@ import (
 // AnswerTimeout bounds how long a page waits for the user to answer.
 const AnswerTimeout = 5 * time.Minute
 
+// MaxTries bounds the challenges answered for one request; Discord answers a rejected answer with a new challenge.
+const MaxTries = 3
+
 // maxAnswerBytes bounds the answer the page posts back; an hCaptcha key is about 3 KiB.
 const maxAnswerBytes = 64 << 10
 
@@ -84,6 +87,9 @@ func (s Solution) Headers() http.Header {
 	}
 	return headers
 }
+
+// Option adds the headers of s to a request.
+func (s Solution) Option() httputil.RequestOption { return httputil.WithHeaders(s.Headers()) }
 
 // Page shows one challenge on http://127.0.0.1 and takes one answer. hCaptcha rejects "localhost" as a host, so the address is literal.
 type Page struct {
@@ -195,7 +201,7 @@ func (p *Page) Wait(ctx context.Context) (Solution, error) {
 	case <-ctx.Done():
 		return Solution{}, fmt.Errorf("captcha: %w", ctx.Err())
 	case <-p.closed:
-		return Solution{}, errors.New("captcha page closed")
+		return Solution{}, errors.New("captcha canceled")
 	}
 }
 

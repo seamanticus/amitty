@@ -15,6 +15,7 @@ import (
 	"github.com/ayn2op/tview/textinput"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
+	"github.com/seamanticus/amitty/internal/captcha"
 	dhttp "github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/ui/login/keys"
 )
@@ -51,6 +52,14 @@ type Model struct {
 	code codeForm
 	// fingerprint ties the logins of this form to their second step; fetched before the first login and kept, as Discord grants only 3 per IP per 2 minutes.
 	fingerprint string
+
+	// captchaTries counts the challenges answered for the login in flight.
+	captchaTries int
+	// captcha is the page waiting for an answer, or nil; captchaOpenErr is why no browser opened it.
+	captcha        *captcha.Page
+	captchaOpenErr string
+	// solution is the last answer, sent with the login until Discord takes or challenges it again.
+	solution captcha.Solution
 }
 
 // NewModel returns an empty form whose login requests identify as build.
@@ -69,6 +78,9 @@ var _ help.KeyMap = Model{}
 func (m Model) ShortHelp() []keybind.Keybind {
 	if m.coding() {
 		return m.code.keybinds()
+	}
+	if m.captcha != nil {
+		return []keybind.Keybind{keys.Back("cancel captcha")}
 	}
 	return []keybind.Keybind{keys.FocusNext(), keys.FocusPrevious()}
 }
@@ -91,7 +103,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 			return m, nil
 		}
 		m.fingerprint = msg.fingerprint
-		return m, submitLogin(m.build, m.fingerprint, m.login, m.password, msg.final)
+		return m, submitLogin(m.build, m.fingerprint, m.solution, m.login, m.password, msg.final)
 	case SMSSentMsg:
 		m.submitting = false
 		m.code.phone = msg.phone
@@ -109,9 +121,12 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 			return m, submitCode(m.build, m.code.ticket, m.code.method, m.code.text, true)
 		}
 		return m, m.submit(true)
+	case CaptchaMsg, CaptchaPageMsg, CaptchaOpenFailedMsg, CaptchaSolvedMsg:
+		return m.updateCaptcha(msg)
 	case FailedMsg:
 		m.submitting = false
 		m.retryIn, m.retryReason = 0, ""
+		m.captchaTries, m.captcha, m.captchaOpenErr, m.solution = 0, nil, "", captcha.Solution{}
 		if _, expired := errors.AsType[expiredError](msg.Err); expired {
 			m.code = codeForm{}
 			m.focus = focusPassword
@@ -139,12 +154,16 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 			m.focus = (m.focus + 1) % focusCount
 		case keybind.Matches(msg, keys.FocusPrevious()):
 			m.focus = (m.focus + focusCount - 1) % focusCount
+		case m.captcha != nil && keybind.Matches(msg, keys.Back("")):
+			// The wait then fails, which ends the login.
+			return m, closeCaptcha(m.captcha)
 		}
 	case submitMsg:
 		if m.submitting || m.login == "" || m.password == "" {
 			return m, nil
 		}
 		m.submitting = true
+		m.captchaTries, m.solution = 0, captcha.Solution{}
 		return m, m.submit(false)
 	}
 	return m, nil
@@ -155,7 +174,7 @@ func (m Model) submit(final bool) tview.Cmd {
 	if m.fingerprint == "" {
 		return fetchFingerprint(m.build, final)
 	}
-	return submitLogin(m.build, m.fingerprint, m.login, m.password, final)
+	return submitLogin(m.build, m.fingerprint, m.solution, m.login, m.password, final)
 }
 
 // coding reports whether the code form is shown.
@@ -177,6 +196,8 @@ func (m Model) View() tview.Widget {
 		OnSubmit(focusMsg(focusButton))
 	label := "Login"
 	switch {
+	case m.captcha != nil:
+		label = "Captcha..."
 	case m.retryIn > 0:
 		label = "Waiting..."
 	case m.submitting:
@@ -190,7 +211,10 @@ func (m Model) View() tview.Widget {
 		OnHover(func(hovered bool) tview.Msg { return hoverMsg(hovered) }).
 		OnClick(submitMsg{})
 	var warning tview.Widget
-	if m.retryIn > 0 {
+	switch {
+	case m.captcha != nil:
+		warning = text.New(m.captchaNote()).Style(tcell.StyleDefault.Foreground(color.Yellow))
+	case m.retryIn > 0:
 		warning = retryWarning(m.retryIn, m.retryReason)
 	}
 	return column.New(
