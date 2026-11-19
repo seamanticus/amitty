@@ -29,11 +29,19 @@ const (
 	previewHeight = 20
 )
 
-// kittyPixels is the assumed cell width when the terminal does not report it.
-const kittyPixels = 10
+// cellPixels is the assumed cell width in pixels when the terminal does not report it.
+const cellPixels = 10
 
-// maxKittyImages is how many images kitty's placeholders tell apart.
-const maxKittyImages = 63488
+// imageProtocol is how images are drawn. The zero value draws half blocks, which every terminal shows.
+type imageProtocol uint8
+
+const (
+	protocolHalfBlocks imageProtocol = iota
+	// protocolKitty draws kitty's placeholders, which the terminal fills.
+	protocolKitty
+	// protocolSixel draws placeholders that the application writes sixels over.
+	protocolSixel
+)
 
 // compressorPool reuses compressors, as each holds about a megabyte of state.
 var compressorPool = sync.Pool{New: func() any {
@@ -58,16 +66,19 @@ func (compressor pooledCompressor) Close() error {
 	return err
 }
 
-// WezTerm and Konsole support kitty graphics but not Unicode placeholders.
-var placeholderTerminals = []string{"kitty", "ghostty", "Rio"}
+// WezTerm and Konsole support kitty graphics but not Unicode placeholders, so they are left to their setting.
+func placeholderTerminals() []string { return []string{"kitty", "ghostty", "Rio"} }
+
+// sixelTerminals are the terminals known to draw sixels as amitty writes them.
+func sixelTerminals() []string { return []string{"foot"} }
 
 // imageCell returns the size of a cell in image pixels.
 func (m Model) imageCell() image.Point {
 	switch {
-	case !m.kitty:
+	case m.protocol == protocolHalfBlocks:
 		return image.Pt(1, 2)
 	case m.cellWidth == 0 || m.cellHeight == 0:
-		return image.Pt(kittyPixels, kittyPixels*2)
+		return image.Pt(cellPixels, cellPixels*2)
 	}
 	return image.Pt(int(m.cellWidth), int(m.cellHeight))
 }
@@ -163,15 +174,23 @@ func (m Model) downloadImage(proxy discord.URL, bounds image.Rectangle) (image.I
 	return img, err
 }
 
-// isKitty reports whether images are drawn with kitty's placeholders.
-func (m Model) isKitty(name string) bool {
+// protocolFor returns how images are drawn in the terminal called name: as set, or as known for it.
+func (m Model) protocolFor(name string) imageProtocol {
 	switch m.cfg.UI.MessagesList.ImageProtocol {
 	case "kitty":
-		return true
+		return protocolKitty
+	case "sixel":
+		return protocolSixel
 	case "halfblocks":
-		return false
+		return protocolHalfBlocks
 	}
-	return slices.Contains(placeholderTerminals, name)
+	switch {
+	case slices.Contains(placeholderTerminals(), name):
+		return protocolKitty
+	case slices.Contains(sixelTerminals(), name):
+		return protocolSixel
+	}
+	return protocolHalfBlocks
 }
 
 // squareCols returns the width in cells of a square image rows tall.

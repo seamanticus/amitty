@@ -179,7 +179,7 @@ type (
 		ReplyIndicator     string `toml:"reply_indicator"`
 		ForwardedIndicator string `toml:"forwarded_indicator"`
 
-		// How avatars and attachment previews are drawn: "auto", "kitty" or "halfblocks".
+		// How avatars and attachment previews are drawn: "auto" (by terminal: kitty placeholders in kitty, ghostty and Rio, sixels in foot, half blocks elsewhere), "kitty", "sixel" or "halfblocks".
 		ImageProtocol string `toml:"image_protocol"`
 
 		Attachments AttachmentsUIConfig `toml:"attachments"`

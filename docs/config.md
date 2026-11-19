@@ -395,7 +395,7 @@ Default: `"<"`
 
 ### ui.messages_list.image_protocol
 
-How avatars and attachment previews are drawn: "auto", "kitty" or "halfblocks".
+How avatars and attachment previews are drawn: "auto" (by terminal: kitty placeholders in kitty, ghostty and Rio, sixels in foot, half blocks elsewhere), "kitty", "sixel" or "halfblocks".
 
 Default: `"auto"`
 

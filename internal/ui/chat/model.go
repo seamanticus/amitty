@@ -84,10 +84,10 @@ type Model struct {
 	typers map[discord.UserID]time.Time
 
 	// images are shared by the panes.
-	images map[discord.URL]tuiimage.Widget
-	kitty  bool
-	// kittyImages counts the images sent to the terminal.
-	kittyImages int
+	images   map[discord.URL]tuiimage.Widget
+	protocol imageProtocol
+	// sentImages counts the images sent to the terminal or the application, which name them.
+	sentImages int
 	// Zero if the terminal does not report its cell size.
 	cellWidth, cellHeight uint
 
@@ -278,7 +278,7 @@ func (m Model) update(msg tui.Msg) (Model, tui.Cmd) {
 		return m, m.reloadImages(cell)
 	case tui.TerminalInfoMsg:
 		cell := m.imageCell()
-		m.kitty = m.isKitty(msg.Name)
+		m.protocol = m.protocolFor(msg.Name)
 		return m, m.reloadImages(cell)
 	case images.RequestedMsg:
 		command := m.loadImages(msg)
@@ -290,10 +290,16 @@ func (m Model) update(msg tui.Msg) (Model, tui.Cmd) {
 		}
 
 		image, command := msg.Image, tui.Cmd(nil)
-		if m.kitty {
-			m.kittyImages++
-			image = image.Kitty(m.kittyImages%maxKittyImages + 1).Compressor(newPooledCompressor)
-			command = image.Transmit()
+		id := m.sentImages%tuiimage.MaxID + 1
+		switch m.protocol {
+		case protocolHalfBlocks:
+		case protocolKitty:
+			image = image.Kitty(id).Compressor(newPooledCompressor)
+		case protocolSixel:
+			image = image.Sixel(id)
+		}
+		if command = image.Transmit(); command != nil {
+			m.sentImages++
 		}
 
 		m.images[msg.URL] = image

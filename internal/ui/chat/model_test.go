@@ -136,7 +136,7 @@ func TestModelCycleFocus(t *testing.T) {
 func TestModelReloadImages(t *testing.T) {
 	const url = "avatar.png"
 	m := newTestModel(t)
-	m.kitty, m.cellWidth, m.cellHeight = true, 9, 18
+	m.protocol, m.cellWidth, m.cellHeight = protocolKitty, 9, 18
 	m.images[url] = tuiimage.New(image.NewAlpha(image.Rect(0, 0, 1, 1)))
 	cell := m.imageCell()
 
@@ -160,15 +160,51 @@ func TestModelReloadImages(t *testing.T) {
 		// Only an accepted image is sent to kitty.
 		t.Run("for the old cell size", func(t *testing.T) {
 			*m, _ = m.Update(images.LoadedMsg{URL: url, Image: m.images[url], Cell: cell})
-			if m.kittyImages != 0 {
+			if m.sentImages != 0 {
 				t.Fatal("an image sized for the old cell size was shown")
 			}
 		})
 		t.Run("for the cell size", func(t *testing.T) {
 			*m, _ = m.Update(images.LoadedMsg{URL: url, Image: m.images[url], Cell: m.imageCell()})
-			if m.kittyImages != 1 {
+			if m.sentImages != 1 {
 				t.Fatal("an image sized for the cell size was not shown")
 			}
 		})
 	})
+}
+
+func TestModelProtocolFor(t *testing.T) {
+	m := newTestModel(t)
+	// evidence: witnesses
+	for _, test := range []struct {
+		setting, terminal string
+		want              imageProtocol
+	}{
+		{"auto", "ghostty", protocolKitty},
+		{"auto", "foot", protocolSixel},
+		{"auto", "", protocolHalfBlocks},
+		{"auto", "alacritty", protocolHalfBlocks},
+		{"kitty", "foot", protocolKitty},
+		{"sixel", "", protocolSixel},
+		{"halfblocks", "foot", protocolHalfBlocks},
+	} {
+		m.cfg.UI.MessagesList.ImageProtocol = test.setting
+		if got := m.protocolFor(test.terminal); got != test.want {
+			t.Errorf("%q in %q = %v, want %v", test.setting, test.terminal, got, test.want)
+		}
+	}
+}
+
+func TestModelSixelImages(t *testing.T) {
+	const url = "avatar.png"
+	m := newTestModel(t)
+	m.protocol, m.cellWidth, m.cellHeight = protocolSixel, 9, 18
+	m.images[url] = tuiimage.New(image.NewAlpha(image.Rect(0, 0, 1, 1)))
+	*m, _ = m.Update(images.LoadedMsg{URL: url, Image: m.images[url], Cell: m.imageCell()})
+	if m.sentImages != 1 {
+		t.Fatal("the image was not given to the application")
+	}
+	if _, ok := m.images[url].Delete().(cmd.SixelImage); !ok {
+		t.Fatal("the image is not drawn as sixels")
+	}
 }
