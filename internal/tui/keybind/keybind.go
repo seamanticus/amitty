@@ -182,6 +182,8 @@ func String(msg tui.KeyMsg) string {
 }
 
 func keyName(key tcell.Key) string {
+	// Not exhaustive: names only these keys of tcell's hundreds; any other has no name.
+	//exhaustive:ignore
 	switch key {
 	case tcell.KeyBacktab:
 		return "shift+tab"

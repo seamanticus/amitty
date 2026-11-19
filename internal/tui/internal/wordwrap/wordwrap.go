@@ -48,6 +48,8 @@ func Split(text string, width int, glyph bool) []string {
 // endsWithLineBreak reports whether s ends with a character that ends a line.
 func endsWithLineBreak(s string) bool {
 	r, _ := utf8.DecodeLastRuneInString(s)
+	// Not exhaustive: a membership test over uucode's dozens of line break classes.
+	//exhaustive:ignore
 	switch uucode.LineBreak(r) {
 	case uucode.LineBreakBK, uucode.LineBreakCR, uucode.LineBreakLF, uucode.LineBreakNL:
 		return true

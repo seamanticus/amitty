@@ -198,6 +198,8 @@ func (a *Application[M]) Run() error {
 }
 
 func appendPasteKey(buffer *strings.Builder, msg KeyMsg) {
+	// Not exhaustive: only text-bearing keys of tcell's hundreds are part of a paste.
+	//exhaustive:ignore
 	switch msg.Key() {
 	case tcell.KeyRune:
 		buffer.WriteString(msg.Str())
