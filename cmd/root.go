@@ -55,6 +55,11 @@ func Run() error {
 		return fmt.Errorf("crash output: %w", err)
 	}
 
+	if wrote, err := config.WriteDefault(*configPath); err != nil {
+		return err
+	} else if wrote {
+		slog.Info("wrote the default config", "path", *configPath)
+	}
 	cfg, err := config.Load(*configPath)
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)

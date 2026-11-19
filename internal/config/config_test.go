@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/BurntSushi/toml"
@@ -130,6 +131,52 @@ func TestDefault(t *testing.T) {
 			t.Fatalf("got = %+v, want = %+v", got, want)
 		}
 	})
+	t.Run("the written file sets every option when uncommented", func(t *testing.T) {
+		var uncommented []byte
+		for line := range strings.Lines(string(defaultFile)) {
+			// Options are "# key = value"; doc comments have no " = " after a bare key.
+			if option, ok := strings.CutPrefix(line, "# "); ok && isOption(option) {
+				line = option
+			}
+			uncommented = append(uncommented, line...)
+		}
+		got := Config{Keybinds: defaultKeybinds()}
+		meta, err := toml.Decode(string(uncommented), &got)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if undecoded := meta.Undecoded(); len(undecoded) > 0 {
+			t.Fatalf("keys not in the config: %v", undecoded)
+		}
+		if want := Default(); !reflect.DeepEqual(got, want) {
+			t.Fatalf("got = %+v, want = %+v", got, want)
+		}
+	})
+}
+
+// isOption reports whether a commented line is a key and a value.
+func isOption(line string) bool {
+	key, _, ok := strings.Cut(line, " = ")
+	return ok && key != "" && !strings.ContainsAny(key, " \"`")
+}
+
+func TestWriteDefault(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "amitty", fileName)
+	if wrote, err := WriteDefault(path); err != nil || !wrote {
+		t.Fatalf("first run = %v, %v, want the file written", wrote, err)
+	}
+	if data, err := os.ReadFile(path); err != nil || string(data) != string(defaultFile) {
+		t.Fatalf("file = %q, %v, want the default file", data, err)
+	}
+	if err := os.WriteFile(path, []byte("mouse = false\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if wrote, err := WriteDefault(path); err != nil || wrote {
+		t.Fatalf("second run = %v, %v, want the file kept", wrote, err)
+	}
+	if data, _ := os.ReadFile(path); string(data) != "mouse = false\n" {
+		t.Fatalf("file = %q, want the user's kept", data)
+	}
 }
 
 func TestMIMETypesHas(t *testing.T) {

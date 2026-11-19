@@ -1,6 +1,8 @@
 package config
 
 import (
+	_ "embed"
+	"errors"
 	"fmt"
 	"log/slog"
 	"mime"
@@ -16,6 +18,11 @@ import (
 )
 
 const fileName = "config.toml"
+
+// defaultFile is every option at its default, commented out under its doc comment.
+//
+//go:embed default.toml
+var defaultFile []byte
 
 type MIMETypes []string
 
@@ -274,6 +281,25 @@ var dir = sync.OnceValue(func() string {
 
 func DefaultPath() string {
 	return filepath.Join(dir(), fileName)
+}
+
+// WriteDefault writes the commented default configuration to path, creating its directory, unless a file is already there. It reports whether it wrote one.
+func WriteDefault(path string) (bool, error) {
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		return false, fmt.Errorf("create config dir: %w", err)
+	}
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
+	if errors.Is(err, os.ErrExist) {
+		return false, nil
+	}
+	if err != nil {
+		return false, fmt.Errorf("create config: %w", err)
+	}
+	if _, err := file.Write(defaultFile); err != nil {
+		_ = file.Close()
+		return false, fmt.Errorf("write config: %w", err)
+	}
+	return true, file.Close()
 }
 
 // Load reads the configuration file and parses it.
