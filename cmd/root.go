@@ -30,7 +30,7 @@ const decryptTimeout = 2 * time.Minute
 func Run() error {
 	configPath := flag.String("config-path", config.DefaultPath(), "path of the configuration file")
 	logPath := flag.String("log-path", logger.DefaultPath(), "path of the log file")
-	logLevel := flag.String("log-level", "info", "log level")
+	logLevel := flag.String("log-level", "info", "log level: raw-debug, debug, info, warn or error; raw-debug logs every API response and gateway event in full, tokens included")
 	showVersion := flag.Bool("version", false, "print version and exit")
 	flag.Parse()
 
@@ -39,11 +39,11 @@ func Run() error {
 		return nil
 	}
 
-	var level slog.Level
-	if err := level.UnmarshalText([]byte(*logLevel)); err != nil {
-		return fmt.Errorf("invalid log level: %w", err)
+	level, err := logger.ParseLevel(*logLevel)
+	if err != nil {
+		return err
 	}
-	ws.EnableRawEvents = level == slog.LevelDebug
+	ws.EnableRawEvents = level <= slog.LevelDebug
 
 	logFile, err := logger.Load(*logPath, level)
 	if err != nil {

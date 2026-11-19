@@ -1,8 +1,10 @@
 package http
 
 import (
+	"bytes"
 	"context"
 	"io"
+	"log/slog"
 	"maps"
 	"net/http"
 	"net/url"
@@ -12,6 +14,7 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
+	"github.com/seamanticus/amitty/internal/logger"
 )
 
 // NewClient returns an API client for token, or for none before login, that connects through network.
@@ -42,11 +45,35 @@ func (c *client) NewRequest(ctx context.Context, method, url string) (httpdriver
 }
 
 func (c *client) Do(req httpdriver.Request) (httpdriver.Response, error) {
-	resp, err := c.HttpClient.Do((*fhttp.Request)(req.(*request)))
+	freq := (*fhttp.Request)(req.(*request))
+	resp, err := c.HttpClient.Do(freq)
 	if err != nil {
 		return nil, err
 	}
+	if slog.Default().Enabled(freq.Context(), logger.LevelRaw) {
+		resp.Body = &rawBody{ReadCloser: resp.Body, method: freq.Method, url: freq.URL.Redacted(), status: resp.StatusCode, ctx: freq.Context()}
+	}
 	return (*response)(resp), nil
+}
+
+// rawBody copies a response body as it is read, and logs it whole at LevelRaw when closed.
+type rawBody struct {
+	io.ReadCloser
+	read        bytes.Buffer
+	method, url string
+	status      int
+	ctx         context.Context
+}
+
+func (b *rawBody) Read(p []byte) (int, error) {
+	n, err := b.ReadCloser.Read(p)
+	b.read.Write(p[:n])
+	return n, err
+}
+
+func (b *rawBody) Close() error {
+	logger.Raw(b.ctx, "api response", b.read.Bytes(), "method", b.method, "url", b.url, "status", b.status)
+	return b.ReadCloser.Close()
 }
 
 type request fhttp.Request

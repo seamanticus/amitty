@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -10,6 +11,29 @@ import (
 )
 
 const fileName = "logs.txt"
+
+// LevelRaw is below debug: it also logs the full body of every API response and gateway event, which hold tokens and personal data.
+const LevelRaw = slog.LevelDebug - 4
+
+// ParseLevel returns the level named by -log-level: "raw-debug", or one slog knows such as "debug" or "info".
+func ParseLevel(name string) (slog.Level, error) {
+	if name == "raw-debug" {
+		return LevelRaw, nil
+	}
+	var level slog.Level
+	if err := level.UnmarshalText([]byte(name)); err != nil {
+		return 0, fmt.Errorf("invalid log level %q: %w", name, err)
+	}
+	return level, nil
+}
+
+// Raw logs the full body of a response or event at LevelRaw, if the logger takes that level.
+func Raw(ctx context.Context, msg string, body []byte, attrs ...any) {
+	if !slog.Default().Enabled(ctx, LevelRaw) {
+		return
+	}
+	slog.Log(ctx, LevelRaw, msg, append(attrs, "body", string(body))...)
+}
 
 func DefaultPath() string {
 	return filepath.Join(consts.CacheDir(), fileName)
@@ -26,7 +50,13 @@ func Load(path string, level slog.Level) (*os.File, error) {
 		return nil, fmt.Errorf("failed to open log file: %w", err)
 	}
 
-	opts := &slog.HandlerOptions{Level: level}
+	opts := &slog.HandlerOptions{Level: level, ReplaceAttr: func(_ []string, attr slog.Attr) slog.Attr {
+		// slog names a level below debug "DEBUG-4".
+		if attr.Key == slog.LevelKey && attr.Value.Any() == LevelRaw {
+			attr.Value = slog.StringValue("RAW")
+		}
+		return attr
+	}}
 	handler := slog.NewTextHandler(file, opts)
 	slog.SetDefault(slog.New(handler))
 	return file, nil

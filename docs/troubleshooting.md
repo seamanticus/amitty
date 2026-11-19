@@ -6,8 +6,13 @@ amitty logs to `~/.cache/amitty/logs.txt`, emptied at each start (see
 [Install and run](install.md)). Start it with `-log-level debug` to
 also log the type of every gateway event as it arrives.
 
-The log can hold channel and user IDs. It never holds your token or
-password; still, read it before sharing it.
+`-log-level raw-debug` logs every API response and gateway event in
+full, for following what Discord sends when it changes. That log holds
+**your token** (in the gateway's READY event) and private messages:
+never share it, and delete it when done.
+
+Below `raw-debug`, the log can hold channel and user IDs, but never
+your token or password; still, read it before sharing it.
 
 ## After a crash
 

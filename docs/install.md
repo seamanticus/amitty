@@ -29,7 +29,7 @@ go build -tags no_syntax_highlighting ./cmd/amitty
 |------|---------|---------|
 | `-config-path` | `$XDG_CONFIG_HOME/amitty/config.toml` | The [configuration](config.md) file. |
 | `-log-path` | `$XDG_CACHE_HOME/amitty/logs.txt` | The log file, emptied at each start. |
-| `-log-level` | `info` | `debug`, `info`, `warn` or `error`. `debug` also logs the type of every gateway event. |
+| `-log-level` | `info` | `raw-debug`, `debug`, `info`, `warn` or `error`. `debug` also logs the type of every gateway event; `raw-debug` also logs every API response and gateway event in full. |
 | `-version` | | Print the version and exit. |
 
 On the first run, amitty writes a configuration file at
