@@ -37,7 +37,7 @@ func (c *client) NewRequest(ctx context.Context, method, url string) (httpdriver
 	if err != nil {
 		return nil, err
 	}
-	orderHeaders(req.Header)
+	orderHeaders(req.Header, apiHeaderOrder())
 	return (*request)(req), nil
 }
 

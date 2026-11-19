@@ -84,10 +84,11 @@ func TestXSuperProperties(t *testing.T) {
 }
 
 func TestBrands(t *testing.T) {
-	// As Chrome 150 and 156 send them.
+	// As Chrome 150 and 156 send them, and Brave 157 in a NetLog.
 	for version, want := range map[string]string{
 		"150": `"Not;A=Brand";v="8", "Chromium";v="150", "Google Chrome";v="150"`,
 		"156": `"Not:A-Brand";v="8", "Chromium";v="156", "Google Chrome";v="156"`,
+		"157": `"Not-A.Brand";v="99", "Google Chrome";v="157", "Chromium";v="157"`,
 	} {
 		t.Run(version, func(t *testing.T) {
 			if got := brands("Chrome", version); got != want {

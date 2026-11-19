@@ -75,7 +75,7 @@ func NewMedia(network Network) Media {
 	return Media{client: network.TLSClient()}
 }
 
-// Get requests url, an attachment or an image.
+// Get requests url, an attachment or an image, as the web client's page loads an image from the CDN.
 func (m Media) Get(ctx context.Context, url string) (*fhttp.Response, error) {
 	if m.client == nil {
 		return nil, errors.New("media client not set up")
@@ -84,9 +84,9 @@ func (m Media) Get(ctx context.Context, url string) (*fhttp.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Accept", "*/*")
-	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
-	req.Header.Set("User-Agent", BrowserUserAgent())
-	orderHeaders(req.Header)
+	for name, value := range imageHeaders() {
+		req.Header.Set(name, value)
+	}
+	orderHeaders(req.Header, imageHeaderOrder())
 	return m.client.Do(req)
 }

@@ -42,7 +42,7 @@ func FetchBuild(ctx context.Context, network Network) (Build, error) {
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
 	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
 	req.Header.Set("User-Agent", BrowserUserAgent())
-	orderHeaders(req.Header)
+	orderHeaders(req.Header, apiHeaderOrder())
 
 	resp, err := network.TLSClient().Do(req)
 	if err != nil {

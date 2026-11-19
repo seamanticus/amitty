@@ -61,7 +61,7 @@ func inOrder(got, want []string) bool {
 }
 
 func TestHeaderOrder(t *testing.T) {
-	want := headerOrder()
+	want := apiHeaderOrder()
 
 	t.Run("API requests", func(t *testing.T) {
 		got := rawHeaderNames(t, func(url string) {
@@ -93,15 +93,35 @@ func TestHeaderOrder(t *testing.T) {
 				_ = resp.Body.Close()
 			}
 		})
-		if len(got) < 3 || !inOrder(got, want) {
+		if len(got) < 12 || !inOrder(got, imageHeaderOrder()) {
 			t.Fatalf("headers arrived as %v, want the order %v", got, want)
 		}
 	})
 
 	t.Run("every listed name is lowercase and listed once", func(t *testing.T) {
-		for i, name := range want {
-			if name != strings.ToLower(name) || slices.Index(want, name) != i {
-				t.Fatalf("%q", name)
+		for _, order := range [][]string{want, imageHeaderOrder()} {
+			for i, name := range order {
+				if name != strings.ToLower(name) || slices.Index(order, name) != i {
+					t.Fatalf("%q", name)
+				}
+			}
+		}
+	})
+
+	// The orders the NetLog of Brave 157 showed, header names only, sec-gpc left out.
+	t.Run("captured orders", func(t *testing.T) {
+		for _, tt := range []struct {
+			name  string
+			got   []string
+			order []string
+		}{
+			{"API GET", strings.Fields("sec-ch-ua-platform authorization x-installation-id x-debug-options sec-ch-ua sec-ch-ua-mobile x-discord-timezone x-super-properties x-discord-locale user-agent accept sec-fetch-site sec-fetch-mode sec-fetch-dest referer accept-encoding accept-language cookie priority"), want},
+			{"API GET with context", strings.Fields("sec-ch-ua-platform authorization x-installation-id x-debug-options sec-ch-ua sec-ch-ua-mobile x-discord-timezone x-context-properties x-super-properties x-discord-locale user-agent accept sec-fetch-site sec-fetch-mode sec-fetch-dest referer accept-encoding accept-language cookie priority"), want},
+			{"API POST", strings.Fields("content-length sec-ch-ua-platform authorization x-installation-id x-debug-options sec-ch-ua sec-ch-ua-mobile x-discord-timezone x-super-properties x-discord-locale user-agent content-type accept origin sec-fetch-site sec-fetch-mode sec-fetch-dest referer accept-encoding accept-language cookie priority"), want},
+			{"image", strings.Fields("sec-ch-ua-platform user-agent sec-ch-ua sec-ch-ua-mobile accept sec-fetch-site sec-fetch-mode sec-fetch-dest sec-fetch-storage-access referer accept-encoding accept-language cookie priority"), imageHeaderOrder()},
+		} {
+			if !inOrder(tt.got, tt.order) {
+				t.Errorf("%s: the capture %v is out of the order %v", tt.name, tt.got, tt.order)
 			}
 		}
 	})
