@@ -4,11 +4,14 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/button"
 	"github.com/ayn2op/tview/column"
+	"github.com/ayn2op/tview/help"
+	"github.com/ayn2op/tview/keybind"
 	"github.com/ayn2op/tview/layout"
 	"github.com/ayn2op/tview/row"
 	"github.com/ayn2op/tview/text"
 	"github.com/ayn2op/tview/textinput"
 	"github.com/gdamore/tcell/v3"
+	"github.com/seamanticus/discordo/internal/ui/login/keys"
 )
 
 // Model is a token input above a button. Tab and the arrow keys move the focus, Enter in the input moves to the button, and Enter on the button or clicking it logs in.
@@ -28,6 +31,14 @@ func (Model) Label() string {
 
 var _ tview.Model[Model] = Model{}
 
+var _ help.KeyMap = Model{}
+
+func (Model) ShortHelp() []keybind.Keybind {
+	return []keybind.Keybind{keys.FocusNext(), keys.FocusPrevious()}
+}
+
+func (m Model) FullHelp() [][]keybind.Keybind { return [][]keybind.Keybind{m.ShortHelp()} }
+
 func (Model) Init() tview.Cmd { return nil }
 
 func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
@@ -39,8 +50,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 	case hoverMsg:
 		m.buttonHovered = bool(msg)
 	case tview.KeyMsg:
-		switch msg.Key() {
-		case tcell.KeyTab, tcell.KeyDown, tcell.KeyBacktab, tcell.KeyUp:
+		if keybind.Matches(msg, keys.FocusNext(), keys.FocusPrevious()) {
 			m.buttonFocused = !m.buttonFocused
 		}
 	case submitMsg:

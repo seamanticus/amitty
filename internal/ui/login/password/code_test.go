@@ -189,7 +189,7 @@ func TestModelMFA(t *testing.T) {
 
 	t.Run("the view lists only allowed methods", func(t *testing.T) {
 		drawn := discordtest.Draw(t, codingModel(t, methodTOTP, methodBackup).View(), area.Width, codeHeight)
-		for label, want := range map[string]bool{methodTOTP.label(): true, methodBackup.label(): true, "Send SMS": false, "Esc: back": true} {
+		for label, want := range map[string]bool{methodTOTP.label(): true, methodBackup.label(): true, "Send SMS": false, "esc: back": true} {
 			if strings.Contains(drawn, label) != want {
 				t.Errorf("%q drawn = %v, want %v:\n%s", label, !want, want, drawn)
 			}

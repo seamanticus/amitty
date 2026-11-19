@@ -7,6 +7,8 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/button"
 	"github.com/ayn2op/tview/column"
+	"github.com/ayn2op/tview/help"
+	"github.com/ayn2op/tview/keybind"
 	"github.com/ayn2op/tview/layout"
 	"github.com/ayn2op/tview/row"
 	"github.com/ayn2op/tview/text"
@@ -14,6 +16,7 @@ import (
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
 	dhttp "github.com/seamanticus/discordo/internal/http"
+	"github.com/seamanticus/discordo/internal/ui/login/keys"
 )
 
 // focus is the input or button that receives keys.
@@ -60,6 +63,17 @@ func (Model) Label() string {
 }
 
 var _ tview.Model[Model] = Model{}
+
+var _ help.KeyMap = Model{}
+
+func (m Model) ShortHelp() []keybind.Keybind {
+	if m.coding() {
+		return m.code.keybinds()
+	}
+	return []keybind.Keybind{keys.FocusNext(), keys.FocusPrevious()}
+}
+
+func (m Model) FullHelp() [][]keybind.Keybind { return [][]keybind.Keybind{m.ShortHelp()} }
 
 func (Model) Init() tview.Cmd { return nil }
 
@@ -120,10 +134,10 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 	case hoverMsg:
 		m.buttonHovered = bool(msg)
 	case tview.KeyMsg:
-		switch msg.Key() {
-		case tcell.KeyTab, tcell.KeyDown:
+		switch {
+		case keybind.Matches(msg, keys.FocusNext()):
 			m.focus = (m.focus + 1) % focusCount
-		case tcell.KeyBacktab, tcell.KeyUp:
+		case keybind.Matches(msg, keys.FocusPrevious()):
 			m.focus = (m.focus + focusCount - 1) % focusCount
 		}
 	case submitMsg:

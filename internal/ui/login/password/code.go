@@ -6,11 +6,13 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/button"
 	"github.com/ayn2op/tview/column"
+	"github.com/ayn2op/tview/keybind"
 	"github.com/ayn2op/tview/layout"
 	"github.com/ayn2op/tview/row"
 	"github.com/ayn2op/tview/text"
 	"github.com/ayn2op/tview/textinput"
 	"github.com/gdamore/tcell/v3"
+	"github.com/seamanticus/discordo/internal/ui/login/keys"
 )
 
 // codeFocus is the control of the code form that receives keys.
@@ -59,6 +61,15 @@ func (c codeForm) moveFocus(step codeFocus) codeFocus {
 	return c.focus
 }
 
+// keybinds are those of the code form, the method keys only while the picker has the focus.
+func (c codeForm) keybinds() []keybind.Keybind {
+	binds := []keybind.Keybind{keys.FocusNext(), keys.FocusPrevious()}
+	if c.focus == codeFocusMethod {
+		binds = append(binds, keys.OptionPrevious(), keys.OptionNext())
+	}
+	return append(binds, keys.Back("back"))
+}
+
 func (m Model) updateCode(msg tview.Msg) (Model, tview.Cmd) {
 	switch msg := msg.(type) {
 	case codeMsg:
@@ -66,20 +77,16 @@ func (m Model) updateCode(msg tview.Msg) (Model, tview.Cmd) {
 	case codeFocusMsg:
 		m.code.focus = codeFocus(msg)
 	case tview.KeyMsg:
-		switch msg.Key() {
-		case tcell.KeyTab, tcell.KeyDown:
+		switch {
+		case keybind.Matches(msg, keys.FocusNext()):
 			m.code.focus = m.code.moveFocus(1)
-		case tcell.KeyBacktab, tcell.KeyUp:
+		case keybind.Matches(msg, keys.FocusPrevious()):
 			m.code.focus = m.code.moveFocus(codeFocusCount - 1)
-		case tcell.KeyRight:
-			if m.code.focus == codeFocusMethod {
-				m.code.method = m.code.ticket.next(m.code.method, 1)
-			}
-		case tcell.KeyLeft:
-			if m.code.focus == codeFocusMethod {
-				m.code.method = m.code.ticket.next(m.code.method, methodCount-1)
-			}
-		case tcell.KeyEsc:
+		case m.code.focus == codeFocusMethod && keybind.Matches(msg, keys.OptionNext()):
+			m.code.method = m.code.ticket.next(m.code.method, 1)
+		case m.code.focus == codeFocusMethod && keybind.Matches(msg, keys.OptionPrevious()):
+			m.code.method = m.code.ticket.next(m.code.method, methodCount-1)
+		case keybind.Matches(msg, keys.Back("")):
 			// A request in flight finishes first, so its answer cannot land on the form.
 			if !m.submitting {
 				m.code = codeForm{}
@@ -140,7 +147,7 @@ func (m Model) viewCode() tview.Widget {
 	if c.method == methodSMS && c.phone != "" {
 		status = append(status, "Code sent to "+c.phone)
 	}
-	status = append(status, "Esc: back")
+	status = append(status, keys.Back("").Help().Key+": back")
 	var warning tview.Widget
 	if m.retryIn > 0 {
 		warning = retryWarning(m.retryIn, m.retryReason)

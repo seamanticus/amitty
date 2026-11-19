@@ -10,12 +10,14 @@ import (
 	"github.com/ayn2op/tview/center"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/ayn2op/tview/column"
+	"github.com/ayn2op/tview/help"
 	"github.com/ayn2op/tview/image"
+	"github.com/ayn2op/tview/keybind"
 	"github.com/ayn2op/tview/layout"
 	"github.com/ayn2op/tview/text"
-	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
 	"github.com/seamanticus/discordo/internal/http"
+	"github.com/seamanticus/discordo/internal/ui/login/keys"
 )
 
 const (
@@ -54,6 +56,12 @@ func (Model) Label() string {
 
 var _ tview.Model[Model] = Model{}
 
+var _ help.KeyMap = Model{}
+
+func (Model) ShortHelp() []keybind.Keybind { return []keybind.Keybind{keys.Back("cancel")} }
+
+func (m Model) FullHelp() [][]keybind.Keybind { return [][]keybind.Keybind{m.ShortHelp()} }
+
 func (Model) Init() tview.Cmd {
 	return cmd.Task(func() tview.Msg { return startMsg{} })
 }
@@ -65,7 +73,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 		m.status = "Connecting to Remote Auth Gateway..."
 		return m, connect(m.build)
 	case tview.KeyMsg:
-		if msg.Key() == tcell.KeyEsc {
+		if keybind.Matches(msg, keys.Back("")) {
 			m.status = "Canceled"
 			return m, closeConn(m.conn)
 		}

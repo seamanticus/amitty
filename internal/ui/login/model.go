@@ -71,6 +71,9 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 	var errCmd tview.Cmd
 	switch msg := msg.(type) {
 	case selectTabMsg:
+		if msg < 0 || tab(msg) >= tabCount {
+			return m, nil
+		}
 		m.active = tab(msg)
 		return m, m.Init()
 	case password.FailedMsg:
