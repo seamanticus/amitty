@@ -15,6 +15,7 @@ import (
 	"github.com/seamanticus/amitty/internal/consts"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 	"github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/instance"
 	"github.com/seamanticus/amitty/internal/logger"
 	"github.com/seamanticus/amitty/internal/tokenstore"
 	"github.com/seamanticus/amitty/internal/tui"
@@ -44,6 +45,14 @@ func Run() error {
 		return err
 	}
 	ws.EnableRawEvents = level <= slog.LevelDebug
+
+	// Before the log, which a second instance would empty. The lock is in the default config dir whatever -config-path says, as every instance shares the token and cache.
+	lock, err := instance.Acquire(filepath.Join(filepath.Dir(config.DefaultPath()), instance.FileName))
+	if err != nil {
+		return err
+	}
+	// Exiting releases the lock anyway, so a failed release changes nothing.
+	defer func() { _ = lock.Release() }()
 
 	logFile, err := logger.Load(*logPath, level)
 	if err != nil {

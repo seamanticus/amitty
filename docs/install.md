@@ -42,6 +42,7 @@ option to change it.
 | Path | Holds |
 |------|-------|
 | `~/.config/amitty/config.toml` | The configuration. |
+| `~/.config/amitty/amitty.lock` | Held while amitty runs, so a second one stops with "amitty is already running". The kernel drops it on exit, even after a crash. |
 | `~/.local/state/amitty/token.gpg` | The encrypted token (see [Token storage](token.md)). |
 | `~/.cache/amitty/logs.txt` | The log, and the trace of any crash (see [Troubleshooting](troubleshooting.md)). |
 
