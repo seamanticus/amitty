@@ -40,6 +40,10 @@
 # The number of messages to fetch when a text-based channel is selected, from 1 to 100.
 # messages_limit = 50
 
+# A color scheme every style of [theme] starts from, such as "Catppuccin Mocha"; "" keeps the terminal's own colors. Styles set under [theme] override it.
+# The profiles are listed in docs/themes.md. Text is colored; the background stays the terminal's.
+# theme_profile = ""
+
 [markdown]
 
 # Whether to parse and render markdown in messages.
@@ -232,6 +236,9 @@
 # reply_indicator = ">"
 
 # forwarded_indicator = "<"
+
+# Every how many messages one takes theme.messages_list.alternate_style, counted from the oldest loaded; a group of messages counts as one. 0 turns it off.
+# alternate_every = 2
 
 # How avatars and attachment previews are drawn: "auto" (by terminal: kitty placeholders in kitty, ghostty and Rio, sixels in foot, half blocks elsewhere), "kitty", "sixel" or "halfblocks".
 # image_protocol = "auto"
@@ -701,6 +708,9 @@
 # message_style = {}
 
 # selected_message_style = { attributes = "reverse" }
+
+# The style merged under every ui.messages_list.alternate_every-th message, such as `{ background = "#24273a" }`, to tell messages apart. A theme profile tints it from its background.
+# alternate_style = {}
 
 [theme.messages_list.embeds]
 

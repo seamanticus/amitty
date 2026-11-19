@@ -28,6 +28,8 @@ code as it is at the commit you are reading it from.
   amitty, and the risk to your account.
 - [Configuration](config.md): every option, its meaning and default.
   Generated from the code.
+- [Themes](themes.md): theme profiles, and how a color scheme colors
+  amitty.
 - [Troubleshooting](troubleshooting.md): logs, crash traces, and
   common failures.
 

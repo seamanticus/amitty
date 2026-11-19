@@ -4,6 +4,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	dhttp "github.com/seamanticus/amitty/internal/http"
@@ -21,6 +22,7 @@ import (
 	"github.com/seamanticus/amitty/internal/tui/scrollbar"
 	"github.com/seamanticus/amitty/internal/tui/spacer"
 	"github.com/seamanticus/amitty/internal/tui/text"
+	"github.com/seamanticus/amitty/internal/tui/tint"
 	"github.com/seamanticus/amitty/internal/tui/viewport"
 	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/amitty/internal/ui/images"
@@ -35,6 +37,9 @@ type messageItem struct {
 	separator tui.Widget
 	// grouped reports whether the message is drawn without a header, under that of the message before it.
 	grouped bool
+	// card numbers the message's card, a message with those grouped under it, counting up as messages arrive; older pages count down, so a shown card keeps its number and shade. numbered is false until it is set.
+	card     int
+	numbered bool
 
 	// root is the parsed markdown of the message's content, or nil until it is needed and after the text is invalidated, as it resolves mentions when parsed.
 	root ast.Node
@@ -214,18 +219,40 @@ func (m *Model) setMessages(messages []discord.Message) {
 func (m *Model) AddMessage(message discord.Message) tui.Cmd {
 	// Appending keeps the items before it as they are, so only the separator of a new day is added rather than all rebuilt.
 	var previous *discord.Message
+	card := -1
 	if last := len(m.items) - 1; last >= 0 {
 		previous = &m.items[last].message
+		card = m.items[last].card
 	}
 
 	separator := m.shouldSeparate(previous, message)
 	if separator {
+		card = m.lastCard()
 		m.items = append(m.items, messageItem{separator: m.separatorView(message)})
 	}
 
 	grouped := !separator && m.shouldGroup(previous, message)
-	m.items = append(m.items, messageItem{message: message, grouped: grouped})
+	if !grouped {
+		card++
+	}
+	m.items = append(m.items, messageItem{message: message, grouped: grouped, card: card, numbered: true})
 	return m.LoadImages()
+}
+
+// lastCard returns the card of the newest message, or -1 for none.
+func (m Model) lastCard() int {
+	for _, item := range slices.Backward(m.items) {
+		if item.separator == nil {
+			return item.card
+		}
+	}
+	return -1
+}
+
+// alternate reports whether the message of item takes the alternate style, as its card is every alternate_every-th.
+func (m Model) alternate(item *messageItem) bool {
+	every := int(m.cfg.UI.MessagesList.AlternateEvery)
+	return every > 0 && item.card%every == every-1
 }
 
 func (m *Model) setMessage(index int, message discord.Message) {
@@ -316,6 +343,9 @@ func (m Model) itemView(item *messageItem) tui.Widget {
 		view = column.New(messageText(builder.Finish()), view).Height(layout.Shrink)
 	}
 
+	if alternate := m.cfg.Theme.MessagesList.AlternateStyle.Style; m.alternate(item) && alternate != tcell.StyleDefault {
+		view = tint.New(view, alternate)
+	}
 	return view
 }
 
@@ -348,10 +378,14 @@ func (m Model) separatorView(message discord.Message) tui.Widget {
 }
 
 // rebuildItems replaces date separators and groups while retaining message views and selection.
+// Cards are renumbered so the newest message numbered before keeps its number, as messages are only added around those shown; a message whose shade changes is drawn again.
 func (m *Model) rebuildItems() {
 	items := make([]messageItem, 0, len(m.items))
+	// before holds each message as it was, by its index in items; separators are left zero.
+	before := make([]messageItem, 0, len(m.items))
 	cursor, target := -1, -1
 	var previous *discord.Message
+	card, shift := -1, 0
 	for index, item := range m.items {
 		if item.separator != nil {
 			continue
@@ -360,10 +394,17 @@ func (m *Model) rebuildItems() {
 		separator := m.shouldSeparate(previous, item.message)
 		if separator {
 			items = append(items, messageItem{separator: m.separatorView(item.message)})
+			before = append(before, messageItem{})
 		}
 		// A message that joins or leaves a group is drawn again, with or without its header.
 		if grouped := !separator && m.shouldGroup(previous, item.message); grouped != item.grouped {
 			item.grouped, item.view = grouped, nil
+		}
+		if !item.grouped {
+			card++
+		}
+		if item.numbered {
+			shift = item.card - card
 		}
 
 		if index == m.cursor {
@@ -374,8 +415,22 @@ func (m *Model) rebuildItems() {
 			target = len(items)
 		}
 
+		before = append(before, item)
+		item.card = card
 		items = append(items, item)
 		previous = &item.message
+	}
+
+	for i := range items {
+		item := &items[i]
+		if item.separator != nil {
+			continue
+		}
+		item.card += shift
+		if was := before[i]; was.numbered && m.alternate(&was) != m.alternate(item) {
+			item.view = nil
+		}
+		item.numbered = true
 	}
 	m.items = items
 	// The selected and target messages only move with the separators, so they are not scrolled to.

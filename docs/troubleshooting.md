@@ -40,4 +40,4 @@ and the relevant part of the log.
 
 ---
 
-[Previous: Configuration](config.md) | [Contents](README.md)
+[Previous: Themes](themes.md) | [Contents](README.md)

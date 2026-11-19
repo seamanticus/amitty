@@ -251,6 +251,9 @@ type (
 
 		// Global shortcuts. A keybind is a key such as "ctrl+k", or a list of keys.
 		Keybinds Keybinds `toml:"keybinds"`
+		// A color scheme every style of [theme] starts from, such as "Catppuccin Mocha"; "" keeps the terminal's own colors. Styles set under [theme] override it.
+		// The profiles are listed in docs/themes.md. Text is colored; the background stays the terminal's.
+		ThemeProfile string `toml:"theme_profile"`
 		// Styles of the widgets, each written as
 		// `{ foreground = "", background = "", attributes = "" or ["", ""], underline = "", underline_color = "" }`.
 		Theme ThemeConfig `toml:"theme"`
@@ -346,15 +349,24 @@ func WriteDefault(path string) (bool, error) {
 // Load reads the configuration file and parses it.
 func Load(path string) (*Config, error) {
 	cfg := Default()
-	file, err := os.Open(path)
+	data, err := os.ReadFile(path)
 	switch {
 	case os.IsNotExist(err):
 		slog.Info("config file does not exist, falling back to the default config", "path", path, "err", err)
 	case err != nil:
 		return nil, fmt.Errorf("failed to open config file: %w", err)
 	default:
-		defer file.Close() //nolint:errcheck
-		if _, err := toml.NewDecoder(file).Decode(&cfg); err != nil {
+		// The profile is the theme the file's own styles are decoded over.
+		var profile struct {
+			ThemeProfile string `toml:"theme_profile"`
+		}
+		if _, err := toml.Decode(string(data), &profile); err != nil {
+			return nil, fmt.Errorf("failed to decode config: %w", err)
+		}
+		if err := cfg.applyProfile(profile.ThemeProfile); err != nil {
+			return nil, err
+		}
+		if _, err := toml.Decode(string(data), &cfg); err != nil {
 			return nil, fmt.Errorf("failed to decode config: %w", err)
 		}
 	}

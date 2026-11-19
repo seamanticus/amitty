@@ -203,6 +203,8 @@ type (
 
 		MessageStyle         Style `toml:"message_style"`
 		SelectedMessageStyle Style `toml:"selected_message_style"`
+		// The style merged under every ui.messages_list.alternate_every-th message, such as `{ background = "#24273a" }`, to tell messages apart. A theme profile tints it from its background.
+		AlternateStyle Style `toml:"alternate_style"`
 
 		Embeds MessagesListEmbedsThemeConfig `toml:"embeds"`
 	}

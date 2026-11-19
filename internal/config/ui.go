@@ -179,6 +179,9 @@ type (
 		ReplyIndicator     string `toml:"reply_indicator"`
 		ForwardedIndicator string `toml:"forwarded_indicator"`
 
+		// Every how many messages one takes theme.messages_list.alternate_style, counted from the oldest loaded; a group of messages counts as one. 0 turns it off.
+		AlternateEvery uint8 `toml:"alternate_every"`
+
 		// How avatars and attachment previews are drawn: "auto" (by terminal: kitty placeholders in kitty, ghostty and Rio, sixels in foot, half blocks elsewhere), "kitty", "sixel" or "halfblocks".
 		ImageProtocol string `toml:"image_protocol"`
 
@@ -285,6 +288,7 @@ func defaultUI() UIConfig {
 			Spacing:            1,
 			ReplyIndicator:     ">",
 			ForwardedIndicator: "<",
+			AlternateEvery:     2,
 			ImageProtocol:      "auto",
 			Attachments:        attachments,
 			Avatars:            AvatarsUIConfig{Preview: true, Height: 2, Shape: "square"},

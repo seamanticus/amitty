@@ -550,3 +550,56 @@ func TestModelDrawAuthor(t *testing.T) {
 		})
 	}
 }
+
+func TestModelAlternate(t *testing.T) {
+	ml := newTestModel(t, testConfig(t))
+	ml.cfg.UI.MessagesList.Grouping.Enabled = false
+	ml.cfg.UI.MessagesList.AlternateEvery = 2
+	ml.cfg.Theme.MessagesList.AlternateStyle = config.Style{Style: tcell.StyleDefault.Background(tcell.ColorBlue)}
+	day := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+	message := func(id discord.MessageID) discord.Message {
+		return discord.Message{ID: id, Timestamp: discord.NewTimestamp(day.Add(time.Duration(id) * time.Minute))}
+	}
+	// shades returns whether each message, oldest first, takes the alternate style.
+	shades := func() map[discord.MessageID]bool {
+		got := map[discord.MessageID]bool{}
+		for i := range ml.items {
+			if item := &ml.items[i]; item.separator == nil {
+				got[item.message.ID] = ml.alternate(item)
+			}
+		}
+		return got
+	}
+
+	ml.setMessages([]discord.Message{message(13), message(12), message(11), message(10)})
+	before := shades()
+	if before[10] || !before[11] || before[12] || !before[13] {
+		t.Fatalf("shades = %v, want every second message", before)
+	}
+	t.Run("a new message continues the pattern", func(t *testing.T) {
+		ml.AddMessage(message(14))
+		if got := shades(); got[14] {
+			t.Fatalf("message 14 shaded after 13, which is: %v", got)
+		}
+	})
+	t.Run("older messages leave those shown as they were", func(t *testing.T) {
+		ml.prependOlder(olderMessagesLoadedMsg{channelID: ml.channel.ID, older: []discord.Message{message(7), message(8), message(9)}})
+		got := shades()
+		for id, shaded := range before {
+			if got[id] != shaded {
+				t.Fatalf("message %d changed shade: %v", id, got)
+			}
+		}
+		if got[9] == got[10] {
+			t.Fatalf("message 9 has the shade of 10: %v", got)
+		}
+	})
+	t.Run("off at 0", func(t *testing.T) {
+		ml.cfg.UI.MessagesList.AlternateEvery = 0
+		for id, shaded := range shades() {
+			if shaded {
+				t.Fatalf("message %d shaded", id)
+			}
+		}
+	})
+}

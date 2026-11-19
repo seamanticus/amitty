@@ -413,6 +413,12 @@ Default: `">"`
 
 Default: `"<"`
 
+#### ui.messages_list.alternate_every
+
+Every how many messages one takes theme.messages_list.alternate_style, counted from the oldest loaded; a group of messages counts as one. 0 turns it off.
+
+Default: `2`
+
 #### ui.messages_list.image_protocol
 
 How avatars and attachment previews are drawn: "auto" (by terminal: kitty placeholders in kitty, ghostty and Rio, sixels in foot, half blocks elsewhere), "kitty", "sixel" or "halfblocks".
@@ -1143,6 +1149,13 @@ Default: `"ctrl+d"`
 
 Default: `"ctrl+c"`
 
+## theme_profile
+
+A color scheme every style of [theme] starts from, such as "Catppuccin Mocha"; "" keeps the terminal's own colors. Styles set under [theme] override it.
+The profiles are listed in docs/themes.md. Text is colored; the background stays the terminal's.
+
+Default: `""`
+
 ## theme
 
 Styles of the widgets, each written as
@@ -1292,6 +1305,12 @@ Default: `{}`
 
 Default: `{ attributes = "reverse" }`
 
+#### theme.messages_list.alternate_style
+
+The style merged under every ui.messages_list.alternate_every-th message, such as `{ background = "#24273a" }`, to tell messages apart. A theme profile tints it from its background.
+
+Default: `{}`
+
 #### theme.messages_list.embeds
 
 ##### theme.messages_list.embeds.provider_style
@@ -1366,4 +1385,4 @@ Default: `{}`
 
 ---
 
-[Previous: Network and privacy](network.md) | [Contents](README.md) | [Next: Troubleshooting](troubleshooting.md)
+[Previous: Network and privacy](network.md) | [Contents](README.md) | [Next: Themes](themes.md)
