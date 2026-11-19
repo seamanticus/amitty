@@ -104,7 +104,7 @@ func Run() error {
 		screen.EnableFocus()
 	}
 
-	return tui.NewApplication(root.NewModel(cfg, build, network, store, token), tui.WithScreen(screen)).Run()
+	return tui.NewApplication(root.NewModel(cfg, *configPath, build, network, store, token), tui.WithScreen(screen)).Run()
 }
 
 // loadToken opens the token store of cfg and decrypts its token before the screen starts, so a passphrase prompt owns the terminal. An empty token means none is stored.

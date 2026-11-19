@@ -40,6 +40,14 @@ func restartOptions() []string {
 	return []string{"proxy", "token-encrypt-cmd", "token-decrypt-cmd", "mouse", "notifications.when_unfocused", "ui.messages_list.image_protocol"}
 }
 
+// Live returns next, the config a file now gives, with the options used once at startup kept from current, as changing them needs a restart.
+func Live(current, next Config) Config {
+	next.Proxy, next.TokenEncryptCmd, next.TokenDecryptCmd = current.Proxy, current.TokenEncryptCmd, current.TokenDecryptCmd
+	next.Mouse, next.Notifications.WhenUnfocused = current.Mouse, current.Notifications.WhenUnfocused
+	next.UI.MessagesList.ImageProtocol = current.UI.MessagesList.ImageProtocol
+	return next
+}
+
 // optionChoices returns the values an option is picked from, as TOML, or nil if it is typed.
 func optionChoices(path string) []string {
 	quote := func(values ...string) []string {

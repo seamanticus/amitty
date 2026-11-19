@@ -105,6 +105,26 @@ an enhanced keyboard protocol, such as kitty, ghostty or foot.
 - **Saving**: `D` asks where to save it, and asks again before
   replacing a file.
 
+## Settings
+
+`ctrl+/` opens the settings panel; `ctrl+/` or `esc` closes it. It lists
+every option of the [configuration](config.md) by its path, with the
+selected one's description below. Type to filter, such as `avatar`.
+
+- `enter` on a true/false option flips it; on one with a fixed set of
+  values (profiles, avatar shapes, image protocols) it opens the list
+  of them; on any other it opens its value to edit as TOML, such as
+  `"ctrl+q"` or `{ attributes = "bold" }`, saved with `enter`.
+- A change is written to `config.toml` at once, on the option's own
+  line: your comments and the rest of the file stay as they are. A value
+  that is not valid for the option is refused, and the file kept.
+- Changes apply at once, but for those marked "(on restart)": the
+  proxy, the token commands, the mouse, focus reports and the image
+  protocol, which amitty uses only at startup.
+- Tables of your own entries, such as `openers`, are edited in the file.
+
+In most terminals `ctrl+/` arrives as `ctrl+_`, which opens it too.
+
 ## Leaving
 
 `ctrl+c` quits. `ctrl+z` suspends amitty to the shell; `fg` brings it

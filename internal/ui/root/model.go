@@ -11,6 +11,7 @@ import (
 	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/seamanticus/amitty/internal/tui/backdrop"
 	"github.com/seamanticus/amitty/internal/tui/box"
+	"github.com/seamanticus/amitty/internal/tui/center"
 	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/tui/column"
 	"github.com/seamanticus/amitty/internal/tui/dialog"
@@ -24,6 +25,7 @@ import (
 	"github.com/seamanticus/amitty/internal/ui/login/password"
 	"github.com/seamanticus/amitty/internal/ui/login/qr"
 	"github.com/seamanticus/amitty/internal/ui/login/token"
+	"github.com/seamanticus/amitty/internal/ui/settings"
 )
 
 type Model struct {
@@ -37,6 +39,11 @@ type Model struct {
 	resize tui.ResizeMsg
 
 	cfg *config.Config
+	// configPath is the file the settings panel edits.
+	configPath string
+	// settings is the open settings panel, or nil.
+	settings *settings.Model
+
 	// build is what every request and the gateway identify as, fetched once at startup.
 	build http.Build
 	// network is how they connect.
@@ -45,9 +52,9 @@ type Model struct {
 	store tokenstore.Store
 }
 
-// NewModel returns the application, opening the chat with token if set and the login otherwise.
-func NewModel(cfg *config.Config, build http.Build, network http.Network, store tokenstore.Store, token string) Model {
-	m := Model{cfg: cfg, build: build, network: network, store: store, helpVisible: cfg.Help.Enabled}
+// NewModel returns the application, opening the chat with token if set and the login otherwise. configPath is the file cfg was read from.
+func NewModel(cfg *config.Config, configPath string, build http.Build, network http.Network, store tokenstore.Store, token string) Model {
+	m := Model{cfg: cfg, configPath: configPath, build: build, network: network, store: store, helpVisible: cfg.Help.Enabled}
 	if token == "" {
 		m.screen = loginScreen(login.NewModel(cfg, build, network))
 	} else {
@@ -182,6 +189,23 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	case dialogDoneMsg:
 		return m, m.finishDialog(int(msg))
 
+	case settings.Msg:
+		if m.settings == nil {
+			return m, nil
+		}
+		next, command := m.settings.Update(msg)
+		m.settings = &next
+		return m, command
+	case settings.ClosedMsg:
+		m.settings = nil
+		return m, nil
+	case settings.SavedMsg:
+		// Every model reads the shared config as it draws and updates, so replacing it applies the change; options used once at startup keep their values.
+		previous := *m.cfg
+		*m.cfg = config.Live(previous, *msg.Config)
+		m.helpVisible = m.helpVisible && m.cfg.Help.Enabled
+		return m, cmd.Batch{cmd.SetBase{Style: m.cfg.BaseStyle()}, m.updateScreen(chat.ConfigChangedMsg{Previous: previous})}
+
 	case tui.KeyMsg:
 		// The dialog takes all input while it is open, so nothing behind it reacts.
 		if m.dialog != nil {
@@ -189,7 +213,18 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 		}
 
 		keybinds := m.cfg.Keybinds
+		// The panel takes all input while it is open, but for the key that closes it.
+		if m.settings != nil {
+			if keybind.Matches(msg, keybinds.Settings.Keybind) {
+				m.settings = nil
+			}
+			return m, nil
+		}
 		switch {
+		case keybind.Matches(msg, keybinds.Settings.Keybind):
+			panel := settings.New(m.cfg, m.configPath)
+			m.settings = &panel
+			return m, nil
 		case keybind.Matches(msg, keybinds.ToggleHelp.Keybind):
 			m.toggleHelp()
 			return m, nil
@@ -208,7 +243,7 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 			)
 		}
 	case tui.PasteMsg:
-		if m.dialog != nil {
+		if m.dialog != nil || m.settings != nil {
 			return m, nil
 		}
 	case tui.ResizeMsg:
@@ -228,7 +263,14 @@ func (m Model) View() tui.Widget {
 	if m.helpVisible {
 		helpView = box.New(m.helpView()).Padding(0, 0, m.cfg.Help.Padding[0], m.cfg.Help.Padding[1]).Height(layout.Shrink)
 	}
-	content := column.New(innerView, helpView)
+	var content tui.Widget = column.New(innerView, helpView)
+	if m.settings != nil {
+		content = stack.New(
+			inert.New(content),
+			backdrop.New().Style(m.cfg.Theme.Dialog.BackgroundStyle.Style),
+			center.New(column.New(m.settings.View()).Width(layout.Fixed(m.cfg.Picker.Width)).Height(layout.Fixed(m.cfg.Picker.Height))),
+		)
+	}
 	if m.dialog == nil {
 		return content
 	}

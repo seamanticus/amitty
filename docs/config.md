@@ -298,6 +298,7 @@ Global shortcuts. A keybind is a key such as "ctrl+k", or a list of keys.
 | `focus_next` | `["ctrl+l", "ctrl+right"]` |  |
 | `logout` | `"ctrl+d"` | Log out and delete the stored token. Requires re-login upon restart. |
 | `quit` | `"ctrl+c"` |  |
+| `settings` | `["ctrl+/", "ctrl+_"]` | Open or close the settings panel, which edits this file. Most terminals send ctrl+/ as ctrl+_. |
 
 ## `[keybinds.picker]`
 

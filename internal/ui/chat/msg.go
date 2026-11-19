@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"errors"
+	"github.com/seamanticus/amitty/internal/config"
 	"log/slog"
 	"time"
 
@@ -17,6 +18,9 @@ import (
 	"github.com/seamanticus/amitty/internal/ui/chat/guildstree"
 	"github.com/seamanticus/amitty/internal/ui/chat/reactionspicker"
 )
+
+// ConfigChangedMsg reports that the shared config was replaced by the settings panel; Previous is what it was.
+type ConfigChangedMsg struct{ Previous config.Config }
 
 // closeCodeAuthenticationFailed is the close code of the gateway for a token it rejects.
 const closeCodeAuthenticationFailed = 4004

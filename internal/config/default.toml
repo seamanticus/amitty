@@ -391,6 +391,9 @@
 
 # quit = "ctrl+c"
 
+# Open or close the settings panel, which edits this file. Most terminals send ctrl+/ as ctrl+_.
+# settings = ["ctrl+/", "ctrl+_"]
+
 [keybinds.picker]
 
 # select_up = "ctrl+p"

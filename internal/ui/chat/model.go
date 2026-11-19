@@ -276,6 +276,14 @@ func (m Model) update(msg tui.Msg) (Model, tui.Cmd) {
 			m.cellWidth, m.cellHeight = uint(width/cols), uint(height/rows)
 		}
 		return m, m.reloadImages(cell)
+	case ConfigChangedMsg:
+		// Messages are cached as drawn, so they are drawn again in the new styles; avatars are loaded again cut to a new shape or size.
+		m.messagesList.InvalidateRendered()
+		m.syncPanes()
+		if msg.Previous.UI.MessagesList.Avatars != m.cfg.UI.MessagesList.Avatars {
+			return m, cmd.Batch{m.clearImages(), m.messagesList.LoadImages()}
+		}
+		return m, nil
 	case tui.TerminalInfoMsg:
 		cell := m.imageCell()
 		m.protocol = m.protocolFor(msg.Name)

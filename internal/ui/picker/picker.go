@@ -38,6 +38,15 @@ func (m Model) Visible() picker.Items {
 // Reset clears the query.
 func (m *Model) Reset() { m.searchState.Reset() }
 
+// Selected returns the item the cursor is on, if any matches the query.
+func (m Model) Selected() (picker.Item, bool) { return m.searchState.Selected(m.items) }
+
+// Owns reports whether msg is one the picker's widget made for Update, such as a changed query.
+func (Model) Owns(msg tui.Msg) bool {
+	_, ok := msg.(changeMsg)
+	return ok
+}
+
 func (Model) Init() tui.Cmd { return nil }
 
 func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {

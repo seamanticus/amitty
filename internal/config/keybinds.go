@@ -69,7 +69,7 @@ func (k Keybinds) Global() []keybind.Keybind {
 		k.ToggleHelp.Keybind, k.ToggleFullHelp.Keybind, k.Suspend.Keybind,
 		k.FocusGuildsTree.Keybind, k.FocusMembersTree.Keybind, k.FocusMessagesList.Keybind, k.FocusComposer.Keybind,
 		k.FocusPrevious.Keybind, k.FocusNext.Keybind,
-		k.Logout.Keybind, k.Quit.Keybind,
+		k.Settings.Keybind, k.Logout.Keybind, k.Quit.Keybind,
 	}
 }
 
@@ -253,6 +253,8 @@ type Keybinds struct {
 	// Requires re-login upon restart.
 	Logout Keybind `toml:"logout"`
 	Quit   Keybind `toml:"quit"`
+	// Open or close the settings panel, which edits this file. Most terminals send ctrl+/ as ctrl+_.
+	Settings Keybind `toml:"settings"`
 }
 
 func selectionKeybinds(up, down []string, top, bottom string) SelectionKeybinds {
@@ -375,7 +377,8 @@ func defaultKeybinds() Keybinds {
 		},
 		Autocomplete: AutocompleteKeybinds{SelectionKeybinds: emacs},
 
-		Logout: key("logout", "ctrl+d"),
-		Quit:   key("quit", "ctrl+c"),
+		Logout:   key("logout", "ctrl+d"),
+		Settings: key("settings", "ctrl+/", "ctrl+_"),
+		Quit:     key("quit", "ctrl+c"),
 	}
 }

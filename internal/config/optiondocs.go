@@ -106,6 +106,7 @@ func optionDocs() map[string]string {
 		"keybinds.composer.delete_to_space_backward":      "Delete back to the whitespace before the cursor.",
 		"keybinds.composer.delete_to_line_start":          "Delete to the start or end of the line, or the newline there if the cursor is at it. Readline deletes to the start of the line with ctrl+u, which is undo here, so it is on ctrl+j.",
 		"keybinds.logout":                                 "Log out and delete the stored token. Requires re-login upon restart.",
+		"keybinds.settings":                               "Open or close the settings panel, which edits this file. Most terminals send ctrl+/ as ctrl+_.",
 		"theme_profile":                                   "A color scheme every style of [theme] starts from, such as \"Catppuccin Mocha\"; \"\" keeps the terminal's own colors. Styles set under [theme] override it. The profiles are listed in docs/themes.md. The profile paints its background and text color everywhere.",
 		"inherit_background":                              "Whether a theme profile leaves the background to the terminal, keeping its transparency, and paints only text.",
 		"theme.title.active_style":                        "The style used while the widget is focused.",
