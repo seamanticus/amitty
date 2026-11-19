@@ -6,9 +6,28 @@ import (
 	"log/slog"
 	stdHttp "net/http"
 
+	fhttp "github.com/bogdanfinn/fhttp"
 	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/pkg/tzlocal"
 )
+
+// headerOrder returns the order Chromium sends an API request's headers in, from a capture of the official client on Chromium 152 (neucord #92: GET /users/@me, and content-length first on a POST). Where content-type, origin and x-captcha-* go was not captured; they are placed by guess. Headers not listed go last, sorted.
+func headerOrder() []string {
+	return []string{
+		"content-length",
+		"sec-ch-ua-platform", "authorization", "x-debug-options", "accept-language",
+		"sec-ch-ua", "sec-ch-ua-mobile", "x-discord-timezone", "x-super-properties", "x-discord-locale",
+		"x-captcha-key", "x-captcha-session-id", "x-captcha-rqtoken",
+		"content-type", "user-agent", "x-fingerprint", "accept", "origin",
+		"sec-fetch-site", "sec-fetch-mode", "sec-fetch-dest", "referer", "accept-encoding",
+		"cookie", "priority",
+	}
+}
+
+// orderHeaders makes header go out in Chromium's order rather than sorted.
+func orderHeaders(header fhttp.Header) {
+	header[fhttp.HeaderOrderKey] = headerOrder()
+}
 
 // Headers returns the headers the web client of build sends with its API requests.
 func Headers(build Build) stdHttp.Header {

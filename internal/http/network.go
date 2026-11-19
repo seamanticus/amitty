@@ -87,5 +87,6 @@ func (m Media) Get(ctx context.Context, url string) (*fhttp.Response, error) {
 	req.Header.Set("Accept", "*/*")
 	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
 	req.Header.Set("User-Agent", BrowserUserAgent())
+	orderHeaders(req.Header)
 	return m.client.Do(req)
 }
