@@ -667,7 +667,11 @@
 
 [theme.messages_list]
 
-# author_style = {}
+# The style of an author's name, such as `{ attributes = "bold" }`, `"dim"` or none for regular.
+# author_style = { attributes = "bold" }
+
+# The color of an author's name: "role" takes the color of their highest colored role, falling back to author_style's foreground; "style" always takes author_style's foreground.
+# author_color = "role"
 
 # mention_style = { foreground = "blue", attributes = "bold" }
 

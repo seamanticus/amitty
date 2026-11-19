@@ -193,24 +193,25 @@ func (m Model) drawCozy(builder *markdown.Builder, message discord.Message, base
 }
 
 func (m Model) drawAuthor(builder *markdown.Builder, message discord.Message, baseStyle tui.Style) {
+	theme := m.cfg.Theme.MessagesList
 	name := message.Author.DisplayOrUsername()
-	foreground := tcell.ColorDefault
+	style := tui.MergeStyle(baseStyle, theme.AuthorStyle.Style)
 
 	if member := m.memberForMessage(message); member != nil {
 		if member.Nick != "" {
 			name = member.Nick
 		}
 
-		color, ok := state.MemberColor(member, func(id discord.RoleID) *discord.Role {
-			role, _ := m.state.Cabinet.Role(message.GuildID, id)
-			return role
-		})
-		if ok {
-			foreground = tcell.NewHexColor(int32(color))
+		if theme.AuthorColor == "role" {
+			if color, ok := state.MemberColor(member, func(id discord.RoleID) *discord.Role {
+				role, _ := m.state.Cabinet.Role(message.GuildID, id)
+				return role
+			}); ok {
+				style = style.Foreground(tcell.NewHexColor(int32(color)))
+			}
 		}
 	}
 
-	style := baseStyle.Foreground(foreground).Bold(true)
 	builder.Write(name, style)
 }
 

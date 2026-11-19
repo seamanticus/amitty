@@ -1228,7 +1228,15 @@ Default: `{}`
 
 #### theme.messages_list.author_style
 
-Default: `{}`
+The style of an author's name, such as `{ attributes = "bold" }`, `"dim"` or none for regular.
+
+Default: `{ attributes = "bold" }`
+
+#### theme.messages_list.author_color
+
+The color of an author's name: "role" takes the color of their highest colored role, falling back to author_style's foreground; "style" always takes author_style's foreground.
+
+Default: `"role"`
 
 #### theme.messages_list.mention_style
 

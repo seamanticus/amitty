@@ -15,6 +15,7 @@ import (
 	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	dhttp "github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/markdown"
 	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/internal/tui"
 	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
@@ -512,4 +513,40 @@ func TestModelCanReact(t *testing.T) {
 			t.Error("can react without the permissions")
 		}
 	})
+}
+
+func TestModelDrawAuthor(t *testing.T) {
+	ml := newTestModel(t, testConfig(t))
+	const guild, user, role = 7, 8, 9
+	if err := ml.state.Cabinet.RoleSet(guild, &discord.Role{ID: role, Color: 0x00ff00, Position: 1}, false); err != nil {
+		t.Fatal(err)
+	}
+	if err := ml.state.Cabinet.MemberSet(guild, &discord.Member{User: discord.User{ID: user}, Nick: "nick", RoleIDs: []discord.RoleID{role}}, false); err != nil {
+		t.Fatal(err)
+	}
+	message := discord.Message{GuildID: guild, Author: discord.User{ID: user, Username: "user"}}
+	green, red := tcell.NewHexColor(0x00ff00), tcell.NewHexColor(0xff0000)
+
+	// evidence: witnesses
+	for _, test := range []struct {
+		name  string
+		color string
+		style tui.Style
+		want  tui.Style
+	}{
+		{"role color over the style's", "role", tcell.StyleDefault.Foreground(red).Dim(true), tcell.StyleDefault.Foreground(green).Dim(true)},
+		{"the style's color", "style", tcell.StyleDefault.Foreground(red), tcell.StyleDefault.Foreground(red)},
+		{"regular", "style", tcell.StyleDefault, tcell.StyleDefault},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			ml.cfg.Theme.MessagesList.AuthorColor = test.color
+			ml.cfg.Theme.MessagesList.AuthorStyle = config.Style{Style: test.style}
+			var builder markdown.Builder
+			ml.drawAuthor(&builder, message, tcell.StyleDefault)
+			spans := builder.Finish()
+			if len(spans) != 1 || spans[0].Text != "nick" || spans[0].Style != test.want {
+				t.Fatalf("spans = %+v, want nick in %v", spans, test.want)
+			}
+		})
+	}
 }

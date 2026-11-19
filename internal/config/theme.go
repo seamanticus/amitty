@@ -189,7 +189,11 @@ type (
 	}
 
 	MessagesListThemeConfig struct {
-		AuthorStyle      Style `toml:"author_style"`
+		// The style of an author's name, such as `{ attributes = "bold" }`, `"dim"` or none for regular.
+		AuthorStyle Style `toml:"author_style"`
+		// The color of an author's name: "role" takes the color of their highest colored role, falling back to author_style's foreground; "style" always takes author_style's foreground.
+		AuthorColor string `toml:"author_color"`
+
 		MentionStyle     Style `toml:"mention_style"`
 		EmojiStyle       Style `toml:"emoji_style"`
 		URLStyle         Style `toml:"url_style"`
@@ -300,6 +304,8 @@ func defaultTheme() ThemeConfig {
 		MembersTree: tree,
 		ScrollBar:   ScrollBarThemeConfig{TrackStyle: dim},
 		MessagesList: MessagesListThemeConfig{
+			AuthorStyle:          Style{bold},
+			AuthorColor:          "role",
 			MentionStyle:         Style{blue.Bold(true)},
 			EmojiStyle:           Style{plain.Foreground(color.Green)},
 			URLStyle:             Style{blue},
