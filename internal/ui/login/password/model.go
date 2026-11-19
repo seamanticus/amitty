@@ -213,7 +213,7 @@ func (m Model) View() tview.Widget {
 	var warning tview.Widget
 	switch {
 	case m.captcha != nil:
-		warning = text.New(m.captchaNote()).Style(tcell.StyleDefault.Foreground(color.Yellow))
+		warning = text.New(m.captcha.Prompt(m.captchaTries, m.captchaOpenErr)).Style(tcell.StyleDefault.Foreground(color.Yellow))
 	case m.retryIn > 0:
 		warning = retryWarning(m.retryIn, m.retryReason)
 	}

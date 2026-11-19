@@ -18,7 +18,7 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 )
 
-// AnswerTimeout bounds how long a page waits for the user to answer.
+// AnswerTimeout bounds how long a page waits for the user to answer, waited on or not.
 const AnswerTimeout = 5 * time.Minute
 
 // MaxTries bounds the challenges answered for one request; Discord answers a rejected answer with a new challenge.
@@ -99,11 +99,14 @@ type Page struct {
 	server    *http.Server
 	served    sync.WaitGroup
 	answers   chan string
+	// lifetime ends after AnswerTimeout or with the context Serve got, closing the page.
+	lifetime  context.Context
+	end       context.CancelFunc
 	closed    chan struct{}
 	closeOnce sync.Once
 }
 
-// Serve starts a page for challenge on a free loopback port, under a random path only its URL knows.
+// Serve starts a page for challenge on a free loopback port, under a random path only its URL knows. The page closes once ctx ends or AnswerTimeout passes.
 func Serve(ctx context.Context, challenge Challenge) (*Page, error) {
 	if challenge.sitekey == "" {
 		return nil, errors.New("captcha challenge has no sitekey")
@@ -130,6 +133,7 @@ func Serve(ctx context.Context, challenge Challenge) (*Page, error) {
 		closed:    make(chan struct{}),
 	}
 	p.url = p.origin + path
+	p.lifetime, p.end = context.WithTimeout(ctx, AnswerTimeout)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET "+path, func(w http.ResponseWriter, r *http.Request) {
@@ -140,6 +144,7 @@ func Serve(ctx context.Context, challenge Challenge) (*Page, error) {
 	mux.HandleFunc("POST "+path+"/answer", p.takeAnswer)
 	p.server = &http.Server{Handler: p.checkHost(mux), ReadHeaderTimeout: 10 * time.Second}
 	p.served.Go(func() { _ = p.server.Serve(listener) })
+	context.AfterFunc(p.lifetime, p.Close)
 	return p, nil
 }
 
@@ -192,6 +197,15 @@ func (p *Page) takeAnswer(w http.ResponseWriter, r *http.Request) {
 // URL is where the browser opens the page.
 func (p *Page) URL() string { return p.url }
 
+// Prompt tells the user to answer the page, as try of MaxTries, and how by hand when no browser opened it because of openErr.
+func (p *Page) Prompt(try int, openErr string) string {
+	prompt := fmt.Sprintf("Solve the captcha in your browser (try %d of %d)", try, MaxTries)
+	if openErr != "" {
+		prompt += fmt.Sprintf("\nNo browser opened (%s). Open %s", openErr, p.url)
+	}
+	return prompt
+}
+
 // Wait returns the answer once the user gives one, or an error once ctx ends or Close is called. The page closes either way.
 func (p *Page) Wait(ctx context.Context) (Solution, error) {
 	defer p.Close()
@@ -201,6 +215,9 @@ func (p *Page) Wait(ctx context.Context) (Solution, error) {
 	case <-ctx.Done():
 		return Solution{}, fmt.Errorf("captcha: %w", ctx.Err())
 	case <-p.closed:
+		if errors.Is(p.lifetime.Err(), context.DeadlineExceeded) {
+			return Solution{}, fmt.Errorf("captcha not answered within %v", AnswerTimeout)
+		}
 		return Solution{}, errors.New("captcha canceled")
 	}
 }
@@ -209,6 +226,7 @@ func (p *Page) Wait(ctx context.Context) (Solution, error) {
 func (p *Page) Close() {
 	p.closeOnce.Do(func() {
 		close(p.closed)
+		p.end()
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
 		if p.server.Shutdown(ctx) != nil {

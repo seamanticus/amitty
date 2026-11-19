@@ -43,12 +43,10 @@ func openCaptcha(url string) tview.Cmd {
 	})
 }
 
-// waitCaptcha waits for the answer to page, for at most captcha.AnswerTimeout.
+// waitCaptcha waits for the answer to page, which closes itself after captcha.AnswerTimeout.
 func waitCaptcha(page *captcha.Page) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
-		ctx, cancel := context.WithTimeout(context.Background(), captcha.AnswerTimeout)
-		defer cancel()
-		solution, err := page.Wait(ctx)
+		solution, err := page.Wait(context.Background())
 		if err != nil {
 			return FailedMsg{err}
 		}
@@ -97,13 +95,4 @@ func (m Model) updateCaptcha(msg tview.Msg) (Model, tview.Cmd) {
 		return m, m.submit(false)
 	}
 	return m, nil
-}
-
-// captchaNote says where to answer the captcha, and how when no browser opened.
-func (m Model) captchaNote() string {
-	note := fmt.Sprintf("Solve the captcha in your browser (try %d of %d)", m.captchaTries, captcha.MaxTries)
-	if m.captchaOpenErr != "" {
-		note += fmt.Sprintf("\nNo browser opened (%s). Open %s", m.captchaOpenErr, m.captcha.URL())
-	}
-	return note
 }

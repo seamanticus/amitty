@@ -184,6 +184,19 @@ func TestPage(t *testing.T) {
 		}
 	})
 
+	t.Run("the page closes when the context it was served with ends", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(t.Context())
+		page, err := Serve(ctx, challenge)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(page.Close)
+		cancel()
+		if _, err := page.Wait(t.Context()); err == nil || !strings.Contains(err.Error(), "canceled") {
+			t.Fatalf("err = %v, want canceled", err)
+		}
+	})
+
 	t.Run("Close stops the wait and is safe twice", func(t *testing.T) {
 		page := serve(t, challenge)
 		page.Close()
