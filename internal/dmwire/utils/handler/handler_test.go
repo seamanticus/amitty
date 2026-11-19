@@ -2,241 +2,118 @@ package handler
 
 import (
 	"context"
-	"errors"
+	"slices"
 	"testing"
-	"time"
 
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
 
-func newMessage(content string) *gateway.MessageCreateEvent {
-	return &gateway.MessageCreateEvent{
-		Content: content,
-	}
+// record returns a subscriber that appends name to got for each event.
+func record(got *[]string, name string) func(ws.Event) {
+	return func(ws.Event) { *got = append(*got, name) }
 }
 
-func TestCall(t *testing.T) {
-	var results = make(chan string)
-
-	h := &Handler{}
-
-	// Add handler test
-	rm := h.AddHandler(func(m *gateway.MessageCreateEvent) {
-		results <- m.Content
-	})
-
-	go h.Call(newMessage("hime arikawa"))
-
-	if r := <-results; r != "hime arikawa" {
-		t.Fatal("Returned results is wrong:", r)
-	}
-
-	// Delete handler test
-	rm()
-
-	go h.Call(newMessage("astolfo"))
-
-	select {
-	case <-results:
-		t.Fatal("Unexpected results")
-	case <-time.After(5 * time.Millisecond):
-		break
-	}
-}
-
-func TestInvalidEventType(t *testing.T) {
-	defer func() {
-		if recover() == nil {
-			t.Fatal("expected panic for non-pointer event type")
-		}
-	}()
-
-	New().AddHandler(func(gateway.MessageCreateEvent) {})
-}
-
-func TestSyncOrder(t *testing.T) {
+func TestCallOrder(t *testing.T) {
 	h := New()
-
 	var got []string
-	h.AddSyncHandler(func(any) { got = append(got, "any") })
-	h.AddSyncHandler(func(*gateway.MessageCreateEvent) { got = append(got, "typed") })
-	h.AddSyncHandler(func(gateway.Event) { got = append(got, "event") })
-	h.AddSyncHandler(func(*gateway.TypingStartEvent) { got = append(got, "typing") })
+	h.Subscribe(record(&got, "a"))
+	h.Subscribe(record(&got, "b"))
+	h.Subscribe(record(&got, "c"))
 
-	h.Call(newMessage(""))
-
-	want := []string{"typed", "any", "event"}
-	if len(got) != len(want) {
+	h.Call(&gateway.MessageCreateEvent{})
+	if want := []string{"a", "b", "c"}; !slices.Equal(got, want) {
 		t.Fatalf("got %v, want %v", got, want)
 	}
-	for i := range want {
-		if got[i] != want[i] {
-			t.Fatalf("got %v, want %v", got, want)
-		}
-	}
 }
 
-func TestInterfaceMismatch(t *testing.T) {
-	h := New()
+func TestZeroHandler(t *testing.T) {
+	var h Handler
+	h.Call(&gateway.MessageCreateEvent{})
+}
 
-	h.AddSyncHandler(func(error) { t.Fatal("called for event not implementing error") })
-	h.Call(newMessage(""))
+func TestUnsubscribe(t *testing.T) {
+	h := New()
+	var got []string
+	unsubscribe := h.Subscribe(record(&got, "a"))
+	h.Subscribe(record(&got, "b"))
+
+	unsubscribe()
+	unsubscribe()
+	h.Call(&gateway.MessageCreateEvent{})
+	if want := []string{"b"}; !slices.Equal(got, want) {
+		t.Fatalf("got %v, want %v", got, want)
+	}
 }
 
 func TestReentrant(t *testing.T) {
 	h := New()
-
-	var calls int
-	var rm func()
-	rm = h.AddSyncHandler(func(*gateway.MessageCreateEvent) {
-		calls++
-		rm()
-		// Adding and calling from within a handler must not deadlock either.
-		h.AddSyncHandler(func(*gateway.TypingStartEvent) {})
+	var got []string
+	var unsubscribe func()
+	unsubscribe = h.Subscribe(func(ev ws.Event) {
+		if _, ok := ev.(*gateway.MessageCreateEvent); !ok {
+			return
+		}
+		got = append(got, "first")
+		unsubscribe()
+		// Subscribing and calling from within a call must not deadlock.
+		h.Subscribe(record(&got, "added"))
 		h.Call(&gateway.TypingStartEvent{})
 	})
 
-	done := make(chan struct{})
-	go func() {
-		h.Call(newMessage(""))
-		h.Call(newMessage(""))
-		close(done)
-	}()
-
-	select {
-	case <-done:
-	case <-time.After(time.Second):
-		t.Fatal("deadlock")
-	}
-
-	if calls != 1 {
-		t.Fatal("handler called after removal:", calls)
+	h.Call(&gateway.MessageCreateEvent{})
+	h.Call(&gateway.MessageCreateEvent{})
+	// The added subscriber sees the nested call and the second message, and is not called by the call it was added in.
+	if want := []string{"first", "added", "added"}; !slices.Equal(got, want) {
+		t.Fatalf("got %v, want %v", got, want)
 	}
 }
 
-func TestChanHandler(t *testing.T) {
-	h := New()
-
-	ch := make(chan *gateway.MessageCreateEvent)
-	rm := h.AddChanHandler(ch)
-
-	h.Call(newMessage("hime arikawa"))
-
-	if m := <-ch; m.Content != "hime arikawa" {
-		t.Fatal("Returned results is wrong:", m.Content)
+func TestSend(t *testing.T) {
+	ch := make(chan ws.Event, 1)
+	want := &gateway.MessageCreateEvent{}
+	Send(t.Context(), ch)(want)
+	if got := <-ch; got != want {
+		t.Fatalf("got %v, want %v", got, want)
 	}
 
-	// Removing must unblock pending sends.
-	h.Call(newMessage("astolfo"))
-	rm()
-	rm()
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+	// Unbuffered and never received: only the done context returns.
+	Send(ctx, make(chan ws.Event))(want)
 }
 
-func TestHandlerWaitFor(t *testing.T) {
-	inc := make(chan *gateway.TypingStartEvent, 1)
+func TestQueue(t *testing.T) {
+	q := NewQueue()
+	first, second := &gateway.MessageCreateEvent{}, &gateway.TypingStartEvent{}
+	q.Push(first)
+	q.Push(second)
 
-	h := New()
-
-	wanted := &gateway.TypingStartEvent{
-		ChannelID: 123456,
-	}
-
-	evs := []any{
-		&gateway.TypingStartEvent{},
-		&gateway.MessageCreateEvent{},
-		&gateway.ChannelDeleteEvent{},
-		wanted,
-	}
-
-	go func() {
-		ev, err := h.WaitFor(context.Background(), func(tp *gateway.TypingStartEvent) bool {
-			return tp.ChannelID == wanted.ChannelID
-		})
-		if err != nil {
-			t.Error(err)
+	for _, want := range []ws.Event{first, second} {
+		if got, ok := q.Pop(t.Context()); !ok || got != want {
+			t.Fatalf("Pop = %v, %v, want %v in push order", got, ok, want)
 		}
-		inc <- ev
-	}()
-
-	// Wait for WaitFor to add its handler:
-	time.Sleep(time.Millisecond)
-
-	for _, ev := range evs {
-		h.Call(ev)
 	}
 
-	if recv := <-inc; recv != wanted {
-		t.Fatal("Unexpected receive:", recv)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
-	defer cancel()
-
-	// Test timeout
-	v, err := h.WaitFor(ctx, func(*gateway.TypingStartEvent) bool {
-		return false
-	})
-	if !errors.Is(err, context.DeadlineExceeded) {
-		t.Fatal("Unexpected error:", err)
-	}
-	if v != nil {
-		t.Fatal("Unexpected value:", v)
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+	if _, ok := q.Pop(ctx); ok {
+		t.Fatal("Pop on an empty queue returned an event after ctx ended")
 	}
 }
 
-func TestHandlerChanFor(t *testing.T) {
+func BenchmarkCall(b *testing.B) {
 	h := New()
-
-	wanted := &gateway.TypingStartEvent{
-		ChannelID: 123456,
+	for range 30 {
+		h.Subscribe(func(ev ws.Event) {
+			switch ev.(type) {
+			case *gateway.TypingStartEvent:
+			}
+		})
 	}
-
-	evs := []any{
-		&gateway.TypingStartEvent{},
-		&gateway.MessageCreateEvent{},
-		&gateway.ChannelDeleteEvent{},
-		wanted,
-	}
-
-	inc, cancel := h.ChanFor(func(tp *gateway.TypingStartEvent) bool {
-		return tp.ChannelID == wanted.ChannelID
-	})
-	defer cancel()
-
-	for _, ev := range evs {
-		h.Call(ev)
-	}
-
-	if recv := <-inc; recv != wanted {
-		t.Fatal("Unexpected receive:", recv)
-	}
-}
-
-func benchCall(b *testing.B, register func(h *Handler)) {
-	h := New()
-	register(h)
-	ev := newMessage("")
+	ev := &gateway.MessageCreateEvent{}
 	b.ReportAllocs()
 	for b.Loop() {
 		h.Call(ev)
 	}
-}
-
-func BenchmarkCallTyped(b *testing.B) {
-	benchCall(b, func(h *Handler) { h.AddSyncHandler(func(*gateway.MessageCreateEvent) {}) })
-}
-
-func BenchmarkCallIface(b *testing.B) {
-	benchCall(b, func(h *Handler) { h.AddSyncHandler(func(gateway.Event) {}) })
-}
-
-func BenchmarkCall20Mixed(b *testing.B) {
-	benchCall(b, func(h *Handler) {
-		for range 10 {
-			h.AddSyncHandler(func(*gateway.MessageCreateEvent) {})
-			h.AddSyncHandler(func(*gateway.TypingStartEvent) {})
-		}
-		h.AddSyncHandler(func(any) {})
-		h.AddSyncHandler(func(gateway.Event) {})
-	})
 }

@@ -7,10 +7,11 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/state/store"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
 
 func (s *State) hookSession() {
-	s.Session.AddSyncHandler(func(event any) {
+	s.Session.Subscribe(func(event ws.Event) {
 		// Call the pre-handler before the state handler.
 		if s.PreHandler != nil {
 			s.PreHandler.Call(event)

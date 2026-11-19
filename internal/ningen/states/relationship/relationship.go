@@ -8,6 +8,7 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/state/store"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
 
 type State struct {
@@ -20,43 +21,52 @@ func NewState(store store.PresenceStore, r *handler.Handler) *State {
 		relationships: map[discord.UserID]discord.Relationship{},
 	}
 
-	r.AddSyncHandler(func(r *gateway.ReadyEvent) {
-		state.mutex.Lock()
-		defer state.mutex.Unlock()
-
-		clear(state.relationships)
-
-		for _, rl := range r.Relationships {
-			state.relationships[rl.UserID] = rl
-
-			if rl.User.ID == rl.UserID {
-				// Update our local presence state.
-				presence, _ := store.Presence(0, rl.UserID)
-				if presence != nil {
-					presence.User = rl.User
-				} else {
-					presence = &discord.Presence{User: rl.User}
-				}
-				store.PresenceSet(0, presence, true)
-			}
+	r.Subscribe(func(ev ws.Event) {
+		switch ev := ev.(type) {
+		case *gateway.ReadyEvent:
+			state.onReady(store, ev)
+		case *gateway.RelationshipAddEvent:
+			state.set(ev.UserID, ev.Relationship)
+		case *gateway.RelationshipRemoveEvent:
+			state.remove(ev.UserID)
 		}
 	})
 
-	r.AddSyncHandler(func(add *gateway.RelationshipAddEvent) {
-		state.mutex.Lock()
-		defer state.mutex.Unlock()
-
-		state.relationships[add.UserID] = add.Relationship
-	})
-
-	r.AddSyncHandler(func(rem *gateway.RelationshipRemoveEvent) {
-		state.mutex.Lock()
-		defer state.mutex.Unlock()
-
-		delete(state.relationships, rem.UserID)
-	})
-
 	return state
+}
+
+func (state *State) set(userID discord.UserID, relationship discord.Relationship) {
+	state.mutex.Lock()
+	defer state.mutex.Unlock()
+	state.relationships[userID] = relationship
+}
+
+func (state *State) remove(userID discord.UserID) {
+	state.mutex.Lock()
+	defer state.mutex.Unlock()
+	delete(state.relationships, userID)
+}
+
+func (state *State) onReady(store store.PresenceStore, r *gateway.ReadyEvent) {
+	state.mutex.Lock()
+	defer state.mutex.Unlock()
+
+	clear(state.relationships)
+
+	for _, rl := range r.Relationships {
+		state.relationships[rl.UserID] = rl
+
+		if rl.User.ID == rl.UserID {
+			// Update our local presence state.
+			presence, _ := store.Presence(0, rl.UserID)
+			if presence != nil {
+				presence.User = rl.User
+			} else {
+				presence = &discord.Presence{User: rl.User}
+			}
+			store.PresenceSet(0, presence, true)
+		}
+	}
 }
 
 func (r *State) Each(fn func(discord.UserID, discord.RelationshipType) (stop bool)) {

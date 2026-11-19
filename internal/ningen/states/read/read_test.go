@@ -15,6 +15,7 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
 
 type ackDriver struct {
@@ -97,7 +98,7 @@ func TestMarkReadAcksUncachedChannelCursor(t *testing.T) {
 
 func TestStateReadState(t *testing.T) {
 	// read returns the state of user 4, who has read message 3 of forum 2, after events.
-	read := func(t *testing.T, events ...any) *State {
+	read := func(t *testing.T, events ...ws.Event) *State {
 		t.Helper()
 		cabinet := defaultstore.New()
 		if err := cabinet.ChannelSet(&discord.Channel{ID: 2, GuildID: 1, Type: discord.GuildForum}, false); err != nil {
@@ -109,7 +110,7 @@ func TestStateReadState(t *testing.T) {
 
 		ready := &gateway.ReadyEvent{User: discord.User{ID: 4}}
 		ready.ReadStates = []gateway.ReadState{{ChannelID: 2, LastMessageID: 3, MentionCount: 1}}
-		for _, event := range append([]any{ready}, events...) {
+		for _, event := range append([]ws.Event{ready}, events...) {
 			h.Call(event)
 		}
 
@@ -121,7 +122,7 @@ func TestStateReadState(t *testing.T) {
 	}
 
 	t.Run("a deleted channel or thread leaves no read state", func(t *testing.T) {
-		for _, event := range []any{
+		for _, event := range []ws.Event{
 			&gateway.ChannelDeleteEvent{ID: 2},
 			&gateway.ThreadDeleteEvent{ID: 2},
 		} {

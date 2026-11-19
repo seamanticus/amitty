@@ -7,7 +7,20 @@ import (
 
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/internal/testenv"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
+
+// sendReady returns a subscriber that sends each ready event on ch without waiting.
+func sendReady(ch chan<- *gateway.ReadyEvent) func(ws.Event) {
+	return func(ev ws.Event) {
+		if ready, ok := ev.(*gateway.ReadyEvent); ok {
+			select {
+			case ch <- ready:
+			default:
+			}
+		}
+	}
+}
 
 func TestAuthTokenRefresh(t *testing.T) {
 	s := New("old")
@@ -34,7 +47,7 @@ func TestSession(t *testing.T) {
 	readyCh := make(chan *gateway.ReadyEvent, 1)
 
 	s := NewWithIntents(env.BotToken, gateway.IntentGuilds)
-	s.AddChanHandler(readyCh)
+	s.Subscribe(sendReady(readyCh))
 
 	for i := 0; i < attempts; i++ {
 		if err := s.Open(ctx); err != nil {
@@ -74,7 +87,7 @@ func TestSessionConnect(t *testing.T) {
 	readyCh := make(chan *gateway.ReadyEvent, 1)
 
 	s := NewWithIntents(env.BotToken, gateway.IntentGuilds)
-	s.AddChanHandler(readyCh)
+	s.Subscribe(sendReady(readyCh))
 
 	for i := 0; i < attempts; i++ {
 		ctx, cancel := context.WithCancel(ctx)

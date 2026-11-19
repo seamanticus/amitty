@@ -53,12 +53,6 @@ func NewState(state *state.State, r *handler.Handler) *State {
 		summaries: make(map[discord.ChannelID][]gateway.ConversationSummary),
 	}
 
-	r.AddSyncHandler(func(u *gateway.ConversationSummaryUpdateEvent) {
-		s.mutex.Lock()
-		defer s.mutex.Unlock()
-		s.summaries[u.ChannelID] = insertSummaries(s.summaries[u.ChannelID], u.Summaries...)
-	})
-
 	var lastCleanMutex sync.Mutex
 	lastClean := make(map[discord.ChannelID]time.Time)
 
@@ -87,7 +81,7 @@ func NewState(state *state.State, r *handler.Handler) *State {
 		persistentPath = filepath.Join(cacheDir, "ningen", "summary")
 	})
 
-	r.AddHandler(func(u *gateway.ConversationSummaryUpdateEvent) {
+	persist := func(u *gateway.ConversationSummaryUpdateEvent) {
 		persistentPathInit()
 		if persistentPath == "" {
 			return
@@ -192,7 +186,7 @@ func NewState(state *state.State, r *handler.Handler) *State {
 					"err", err)
 			}
 		}
-	})
+	}
 
 	var wg sync.WaitGroup
 	wg.Go(func() {
@@ -260,11 +254,24 @@ func NewState(state *state.State, r *handler.Handler) *State {
 		}
 	})
 
-	r.AddSyncHandler(func(*ws.CloseEvent) {
-		wg.Wait()
+	r.Subscribe(func(ev ws.Event) {
+		switch ev := ev.(type) {
+		case *gateway.ConversationSummaryUpdateEvent:
+			s.insert(ev)
+			// Disk writes stay off the gateway's event loop.
+			wg.Go(func() { persist(ev) })
+		case *ws.CloseEvent:
+			wg.Wait()
+		}
 	})
 
 	return s
+}
+
+func (s *State) insert(u *gateway.ConversationSummaryUpdateEvent) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.summaries[u.ChannelID] = insertSummaries(s.summaries[u.ChannelID], u.Summaries...)
 }
 
 func insertSummaries(summaries []gateway.ConversationSummary, more ...gateway.ConversationSummary) []gateway.ConversationSummary {

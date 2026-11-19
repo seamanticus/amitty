@@ -10,6 +10,7 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/state/store"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
 
 // State implements a queryable channel and guild mute state.
@@ -28,34 +29,43 @@ func NewState(cab *store.Cabinet, r *handler.Handler) *State {
 		channels: make(map[discord.ChannelID]gateway.UserChannelOverride),
 	}
 
-	r.AddSyncHandler(func(r *gateway.ReadyEvent) {
-		mute.mutex.Lock()
-		defer mute.mutex.Unlock()
-
-		clear(mute.guilds)
-		clear(mute.channels)
-
-		for i, guild := range r.UserGuildSettings {
-			mute.guilds[guild.GuildID] = r.UserGuildSettings[i]
-
-			for i, ch := range guild.ChannelOverrides {
-				mute.channels[ch.ChannelID] = guild.ChannelOverrides[i]
-			}
-		}
-	})
-
-	r.AddSyncHandler(func(u *gateway.UserGuildSettingsUpdateEvent) {
-		mute.mutex.Lock()
-		defer mute.mutex.Unlock()
-
-		mute.guilds[u.GuildID] = u.UserGuildSetting
-
-		for i, ch := range u.ChannelOverrides {
-			mute.channels[ch.ChannelID] = u.ChannelOverrides[i]
+	r.Subscribe(func(ev ws.Event) {
+		switch ev := ev.(type) {
+		case *gateway.ReadyEvent:
+			mute.onReady(ev)
+		case *gateway.UserGuildSettingsUpdateEvent:
+			mute.onSettingsUpdate(ev)
 		}
 	})
 
 	return mute
+}
+
+func (mute *State) onReady(r *gateway.ReadyEvent) {
+	mute.mutex.Lock()
+	defer mute.mutex.Unlock()
+
+	clear(mute.guilds)
+	clear(mute.channels)
+
+	for i, guild := range r.UserGuildSettings {
+		mute.guilds[guild.GuildID] = r.UserGuildSettings[i]
+
+		for i, ch := range guild.ChannelOverrides {
+			mute.channels[ch.ChannelID] = guild.ChannelOverrides[i]
+		}
+	}
+}
+
+func (mute *State) onSettingsUpdate(u *gateway.UserGuildSettingsUpdateEvent) {
+	mute.mutex.Lock()
+	defer mute.mutex.Unlock()
+
+	mute.guilds[u.GuildID] = u.UserGuildSetting
+
+	for i, ch := range u.ChannelOverrides {
+		mute.channels[ch.ChannelID] = u.ChannelOverrides[i]
+	}
 }
 
 // CategoryMuted returns whether or not the channel's category is muted.

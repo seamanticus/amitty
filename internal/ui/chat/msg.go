@@ -9,7 +9,7 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
-	"github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/internal/ui"
@@ -62,9 +62,12 @@ func isAuthenticationFailed(err error) bool {
 	return ok && event.Code == closeCodeAuthenticationFailed
 }
 
-// closeState closes the session, if any, before sending next, so that next comes after the session is gone.
-func closeState(state *ningen.State, next tview.Msg) tview.Cmd {
+// closeState stops the events, then closes the session, if any, before sending next, so that next comes after the session is gone.
+func closeState(state *ningen.State, stopEvents func(), next tview.Msg) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
+		if stopEvents != nil {
+			stopEvents()
+		}
 		if state != nil {
 			if err := state.Close(); err != nil {
 				slog.Error("failed to close the session", "err", err)
@@ -74,9 +77,14 @@ func closeState(state *ningen.State, next tview.Msg) tview.Cmd {
 	})
 }
 
-func listen(events <-chan gateway.Event) tview.Cmd {
+// listen waits for the next event, or for ctx to end, which sends nothing.
+func listen(ctx context.Context, events *handler.Queue) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
-		return <-events
+		ev, ok := events.Pop(ctx)
+		if !ok {
+			return nil
+		}
+		return ev
 	})
 }
 

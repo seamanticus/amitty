@@ -56,11 +56,12 @@ func TestRefreshToken(t *testing.T) {
 
 func TestCloseState(t *testing.T) {
 	next := LogoutMsg{Err: errors.New("x")}
-	task, ok := closeState(nil, next).(cmd.Task)
+	stopped := false
+	task, ok := closeState(nil, func() { stopped = true }, next).(cmd.Task)
 	if !ok {
 		t.Fatal("closeState is not a task")
 	}
-	if got := task(); got != next {
-		t.Fatalf("without a session it sent %#v, want %#v", got, next)
+	if got := task(); got != next || !stopped {
+		t.Fatalf("without a session it sent %#v and stopped = %v, want %#v and the events stopped", got, stopped, next)
 	}
 }

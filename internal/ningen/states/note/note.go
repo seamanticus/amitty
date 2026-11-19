@@ -7,6 +7,7 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/state"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
 
 type State struct {
@@ -23,7 +24,11 @@ func NewState(state *state.State, r *handler.Handler) *State {
 		fetching: map[discord.UserID]struct{}{},
 	}
 
-	r.AddSyncHandler(func(u *gateway.UserNoteUpdateEvent) {
+	r.Subscribe(func(ev ws.Event) {
+		u, ok := ev.(*gateway.UserNoteUpdateEvent)
+		if !ok {
+			return
+		}
 		noteState.mutex.Lock()
 		defer noteState.mutex.Unlock()
 

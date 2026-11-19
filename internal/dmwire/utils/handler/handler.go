@@ -1,45 +1,36 @@
-// Package handler handles incoming Gateway events. Handlers are registered with generic methods, so the event type is known at compile time and dispatching an event does not go through reflection.
+// Package handler passes gateway events to subscribers.
 //
-// # Usage
+// A subscriber is a func(ws.Event) that picks the events it needs with a type switch:
 //
-// Handler's usage is mostly similar to Discordgo, in that AddHandler expects a function with only one argument. The event type is inferred from the function's argument:
-//
-//	h.AddHandler(func(ev *gateway.MessageCreateEvent) {})
-//
-// The argument can also be an interface, in which case the handler is called for every event that implements it:
-//
-//	h.AddHandler(func(ev gateway.Event) {})
-//
-// For more information, refer to AddHandler.
+//	h.Subscribe(func(ev ws.Event) {
+//		switch ev := ev.(type) {
+//		case *gateway.MessageCreateEvent:
+//			...
+//		}
+//	})
 package handler
 
 import (
 	"context"
-	"fmt"
-	"maps"
-	"reflect"
 	"slices"
 	"sync"
 	"sync/atomic"
+
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
 
-// Handler is a container for event handlers. A zero-value instance is a valid instance.
+// Handler calls its subscribers with every event, one after another in the order they subscribed. The zero value has none.
 //
-// Handlers may be added and removed at any time, including from within a handler that is currently being called.
+// Subscribers may subscribe or unsubscribe at any time, including from within a call.
 type Handler struct {
-	// mutex serializes writers. Readers never lock; they load snapshot.
-	mutex    sync.Mutex
-	snapshot atomic.Pointer[snapshot]
+	// mutex serializes writers; Call reads subscribers without it.
+	mutex sync.Mutex
+	// subscribers is replaced on every change, never changed in place.
+	subscribers atomic.Pointer[[]*subscriber]
 }
 
-// snapshot is an immutable view of all handlers. Writers replace it wholesale.
-type snapshot struct {
-	typed  map[reflect.Type][]*entry // keyed by the concrete event type
-	ifaces []*entry                  // handlers taking an interface type
-}
-
-type entry struct {
-	call    func(ev any)
+type subscriber struct {
+	fn      func(ws.Event)
 	removed atomic.Bool
 }
 
@@ -47,182 +38,96 @@ func New() *Handler {
 	return &Handler{}
 }
 
-// Call calls all handlers with the given event. Handlers for the event's concrete type are called first, followed by handlers taking an interface that the event implements.
-func (h *Handler) Call(ev any) {
-	s := h.snapshot.Load()
-	if s == nil {
+// Call calls every subscriber with ev and returns once they all have.
+func (h *Handler) Call(ev ws.Event) {
+	list := h.subscribers.Load()
+	if list == nil {
 		return
 	}
-
-	for _, entry := range s.typed[reflect.TypeOf(ev)] {
-		if !entry.removed.Load() {
-			entry.call(ev)
-		}
-	}
-
-	for _, entry := range s.ifaces {
-		if !entry.removed.Load() {
-			entry.call(ev)
+	for _, s := range *list {
+		if !s.removed.Load() {
+			s.fn(ev)
 		}
 	}
 }
 
-// AddHandler adds the handler, returning a function that would remove this handler when called. The handler is called in its own goroutine for each event.
-//
-// The event type E must either be a pointer, which matches only that exact event type, or an interface, which matches every event implementing it.
-//
-//	// An example of a valid function handler.
-//	h.AddHandler(func(*gateway.MessageCreateEvent) {})
-func (h *Handler) AddHandler[E any](fn func(E)) (rm func()) {
-	return h.add(eventType[E](), matcher[E](func(ev E) { go fn(ev) }))
-}
-
-// AddSyncHandler is a synchronous variant of AddHandler. Handlers added using this method will block the Call method, which is helpful if the user needs to rely on the order of events arriving. Handlers added using this method should not block for very long, as it may clog up other handlers.
-func (h *Handler) AddSyncHandler[E any](fn func(E)) (rm func()) {
-	return h.add(eventType[E](), matcher(fn))
-}
-
-// AddChanHandler adds a channel that receives every event of type E. The type rules are the same as AddHandler.
-//
-// Keep in mind that the user must NOT close the channel. In fact, the channel should not be closed at all. The caller function WILL PANIC if the channel is closed!
-//
-// When the rm callback that is returned is called, it will also guarantee that all blocking sends will be cancelled. This helps prevent dangling goroutines.
-//
-//	ch := make(chan *gateway.MessageCreateEvent)
-//	h.AddChanHandler(ch)
-func (h *Handler) AddChanHandler[E any](ch chan<- E) (rm func()) {
-	closer := make(chan struct{})
-
-	rmHandler := h.add(eventType[E](), matcher[E](func(ev E) {
-		go func() {
-			select {
-			case ch <- ev:
-			case <-closer:
-			}
-		}()
-	}))
+// Subscribe adds fn and returns the function that removes it. fn blocks Call, so it must return quickly.
+func (h *Handler) Subscribe(fn func(ws.Event)) (unsubscribe func()) {
+	s := &subscriber{fn: fn}
+	h.update(func(list []*subscriber) []*subscriber { return append(list, s) })
 
 	return sync.OnceFunc(func() {
-		rmHandler()
-		close(closer)
-	})
-}
-
-// WaitFor blocks until an event of type E for which fn returns true arrives, or until ctx is done, in which case ctx.Err() is returned. fn is called synchronously, so no events of type E are skipped.
-func (h *Handler) WaitFor[E any](ctx context.Context, fn func(E) bool) (E, error) {
-	result := make(chan E, 1)
-
-	rm := h.AddSyncHandler(func(ev E) {
-		if fn(ev) {
-			select {
-			case result <- ev:
-			default:
-			}
-		}
-	})
-	defer rm()
-
-	select {
-	case ev := <-result:
-		return ev, nil
-	case <-ctx.Done():
-		var zero E
-		return zero, ctx.Err()
-	}
-}
-
-// ChanFor returns a channel that would receive all incoming events of type E that match the callback given. The cancel() function removes the handler and drops all hanging goroutines.
-//
-// This method is more intended to be used as a filter. For a persistent event channel, consider using AddChanHandler.
-func (h *Handler) ChanFor[E any](fn func(E) bool) (out <-chan E, cancel func()) {
-	result := make(chan E)
-	closer := make(chan struct{})
-
-	removeHandler := h.AddHandler(func(ev E) {
-		if fn(ev) {
-			select {
-			case result <- ev:
-			case <-closer:
-			}
-		}
-	})
-
-	cancel = sync.OnceFunc(func() {
-		removeHandler()
-		close(closer)
-	})
-
-	return result, cancel
-}
-
-// eventType returns the reflect.Type of E, panicking if E is neither a pointer nor an interface. Interfaces return nil.
-func eventType[E any]() reflect.Type {
-	t := reflect.TypeFor[E]()
-
-	switch t.Kind() {
-	case reflect.Interface:
-		return nil
-	case reflect.Pointer:
-		return t
-	default:
-		panic(fmt.Sprintf("handler: event type %s is not a pointer or interface", t))
-	}
-}
-
-// matcher wraps fn into a function that calls it only if ev is an E. For handlers keyed by their concrete type, the check always succeeds.
-func matcher[E any](fn func(E)) func(any) {
-	return func(v any) {
-		if ev, ok := v.(E); ok {
-			fn(ev)
-		}
-	}
-}
-
-// add adds the given entry for t, or as an interface handler if t is nil.
-func (h *Handler) add(t reflect.Type, call func(any)) (rm func()) {
-	e := &entry{call: call}
-
-	h.update(func(s *snapshot) {
-		if t == nil {
-			s.ifaces = append(slices.Clip(s.ifaces), e)
-		} else {
-			s.typed[t] = append(slices.Clip(s.typed[t]), e)
-		}
-	})
-
-	return sync.OnceFunc(func() {
-		e.removed.Store(true)
-
-		h.update(func(s *snapshot) {
-			if t == nil {
-				s.ifaces = deleteEntry(s.ifaces, e)
-			} else if entries := deleteEntry(s.typed[t], e); len(entries) > 0 {
-				s.typed[t] = entries
-			} else {
-				delete(s.typed, t)
-			}
+		s.removed.Store(true)
+		h.update(func(list []*subscriber) []*subscriber {
+			return slices.DeleteFunc(list, func(other *subscriber) bool { return other == s })
 		})
 	})
 }
 
-// update replaces the snapshot with a shallow copy modified by fn. fn must not mutate the slices in the copy in place.
-func (h *Handler) update(fn func(*snapshot)) {
+// update replaces the subscribers with what change makes of a copy of them.
+func (h *Handler) update(change func([]*subscriber) []*subscriber) {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 
-	var next snapshot
-	if old := h.snapshot.Load(); old != nil {
-		next.typed = make(map[reflect.Type][]*entry, len(old.typed)+1)
-		maps.Copy(next.typed, old.typed)
-		next.ifaces = old.ifaces
-	} else {
-		next.typed = make(map[reflect.Type][]*entry)
+	var list []*subscriber
+	if old := h.subscribers.Load(); old != nil {
+		list = slices.Clone(*old)
 	}
-
-	fn(&next)
-	h.snapshot.Store(&next)
+	list = change(list)
+	h.subscribers.Store(&list)
 }
 
-func deleteEntry(entries []*entry, e *entry) []*entry {
-	return slices.DeleteFunc(slices.Clone(entries), func(v *entry) bool { return v == e })
+// Send returns a subscriber that sends each event on ch, in order, blocking until it is received or ctx is done.
+func Send(ctx context.Context, ch chan<- ws.Event) func(ws.Event) {
+	return func(ev ws.Event) {
+		select {
+		case ch <- ev:
+		case <-ctx.Done():
+		}
+	}
+}
+
+// Queue holds events in order for a reader slower than the gateway: Push never blocks, so the gateway keeps its heartbeat while the reader is busy. It grows without bound while the reader is away.
+type Queue struct {
+	mutex  sync.Mutex
+	events []ws.Event
+	// ready holds a token while events may be waiting.
+	ready chan struct{}
+}
+
+func NewQueue() *Queue {
+	return &Queue{ready: make(chan struct{}, 1)}
+}
+
+// Push appends ev; it is the subscriber that fills the queue.
+func (q *Queue) Push(ev ws.Event) {
+	q.mutex.Lock()
+	q.events = append(q.events, ev)
+	q.mutex.Unlock()
+
+	select {
+	case q.ready <- struct{}{}:
+	default:
+	}
+}
+
+// Pop returns the oldest event, waiting for one, or false once ctx is done.
+func (q *Queue) Pop(ctx context.Context) (ws.Event, bool) {
+	for {
+		q.mutex.Lock()
+		if len(q.events) > 0 {
+			ev := q.events[0]
+			q.events[0] = nil
+			q.events = q.events[1:]
+			q.mutex.Unlock()
+			return ev, true
+		}
+		q.mutex.Unlock()
+
+		select {
+		case <-q.ready:
+		case <-ctx.Done():
+			return nil, false
+		}
+	}
 }

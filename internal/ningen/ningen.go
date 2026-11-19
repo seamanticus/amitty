@@ -16,6 +16,7 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/state"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 	"github.com/seamanticus/amitty/internal/ningen/nstore"
 	"github.com/seamanticus/amitty/internal/ningen/states/emoji"
 	"github.com/seamanticus/amitty/internal/ningen/states/guild"
@@ -93,7 +94,7 @@ func FromState(s *state.State) *State {
 	state.SummaryState = summary.NewState(s, prehandler)
 	state.RelationshipState = relationship.NewState(s.Cabinet, prehandler)
 
-	s.AddSyncHandler(func(v gateway.Event) {
+	s.Subscribe(func(v ws.Event) {
 		switch v := v.(type) {
 		case *gateway.SessionsReplaceEvent:
 			me, _ := s.Me()

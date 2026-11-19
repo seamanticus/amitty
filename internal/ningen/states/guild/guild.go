@@ -7,6 +7,7 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
 
 // State contains additional guild states that are only available on join.
@@ -18,7 +19,11 @@ type State struct {
 func NewState(h *handler.Handler) *State {
 	s := &State{joins: make(map[discord.GuildID]time.Time)}
 
-	h.AddSyncHandler(func(r *gateway.ReadyEvent) {
+	h.Subscribe(func(ev ws.Event) {
+		r, ok := ev.(*gateway.ReadyEvent)
+		if !ok {
+			return
+		}
 		s.mutex.Lock()
 		defer s.mutex.Unlock()
 

@@ -16,6 +16,7 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/state"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 	"github.com/twmb/murmur3"
 )
 
@@ -86,21 +87,30 @@ func NewState(state *state.State, h *handler.Handler) *State {
 		SearchLimit:      50,
 		RequestPresences: true,
 	}
-	h.AddSyncHandler(s.onListUpdateState)
-	h.AddSyncHandler(s.onListUpdate)
-	h.AddSyncHandler(s.onMembers)
-	h.AddSyncHandler(func(*gateway.ReadyEvent) {
-		s.guildMu.Lock()
-		s.minFetchMu.Lock()
-
-		// Invalidate everything.
-		clear(s.guilds)
-		clear(s.minFetched)
-
-		s.minFetchMu.Unlock()
-		s.guildMu.Unlock()
+	h.Subscribe(func(ev ws.Event) {
+		switch ev := ev.(type) {
+		case *gateway.GuildMemberListUpdateEvent:
+			s.onListUpdateState(ev)
+			s.onListUpdate(ev)
+		case *gateway.GuildMembersChunkEvent:
+			s.onMembers(ev)
+		case *gateway.ReadyEvent:
+			s.onReady()
+		}
 	})
 	return s
+}
+
+// onReady forgets every list and fetch, which the new session must redo.
+func (m *State) onReady() {
+	m.guildMu.Lock()
+	m.minFetchMu.Lock()
+
+	clear(m.guilds)
+	clear(m.minFetched)
+
+	m.minFetchMu.Unlock()
+	m.guildMu.Unlock()
 }
 
 type Guild struct {

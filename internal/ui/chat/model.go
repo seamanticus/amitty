@@ -2,6 +2,7 @@ package chat
 
 import (
 	"cmp"
+	"context"
 	"fmt"
 	"github.com/ayn2op/tview/layout"
 	"log/slog"
@@ -70,8 +71,12 @@ type Model struct {
 	// windowUnfocused reports whether the terminal window lost focus.
 	windowUnfocused bool
 
-	state  *ningen.State
-	events chan gateway.Event
+	state *ningen.State
+	// events holds what the session sent, in order, until Update takes it; eventsCtx ends the wait for one.
+	events    *handler.Queue
+	eventsCtx context.Context
+	// stopEvents ends the subscription feeding events, before the session closes.
+	stopEvents func()
 	// token is the one the session uses, so a different one in READY is a refresh to store.
 	token string
 
@@ -118,8 +123,14 @@ func NewModel(cfg *config.Config, build http.Build, token string) Model {
 	state := state.NewFromSession(session, defaultstore.New())
 	m.state = ningen.FromState(state)
 
-	m.events = make(chan gateway.Event)
-	m.state.AddChanHandler(m.events)
+	m.events = handler.NewQueue()
+	var cancel context.CancelFunc
+	m.eventsCtx, cancel = context.WithCancel(context.Background())
+	unsubscribe := m.state.Subscribe(m.events.Push)
+	m.stopEvents = func() {
+		unsubscribe()
+		cancel()
+	}
 	m.state.StateLog = func(err error) {
 		slog.Error("state log", "err", err)
 	}
@@ -232,7 +243,7 @@ func (m *Model) syncPanes() {
 func (m Model) update(msg tview.Msg) (Model, tview.Cmd) {
 	switch msg := msg.(type) {
 	case gateway.Event:
-		return m, cmd.Batch{m.applyEvent(msg), listen(m.events)}
+		return m, cmd.Batch{m.applyEvent(msg), listen(m.eventsCtx, m.events)}
 	case tview.FocusMsg:
 		m.windowUnfocused = !msg.Focused
 		return m, nil
@@ -347,7 +358,7 @@ func (m Model) update(msg tview.Msg) (Model, tview.Cmd) {
 		m.messagesList.ShowNewest()
 		return m, nil
 	case QuitMsg:
-		return m, closeState(m.state, StateClosedMsg{})
+		return m, closeState(m.state, m.stopEvents, StateClosedMsg{})
 	case tview.KeyMsg:
 		keybinds := m.cfg.Keybinds
 		switch {
@@ -384,7 +395,7 @@ func (m Model) update(msg tview.Msg) (Model, tview.Cmd) {
 			return m, ui.ShowDialog(
 				"Are you sure you want to log out?",
 				ui.DialogButton{Label: "No"},
-				ui.DialogButton{Label: "Yes", Cmd: closeState(m.state, LogoutMsg{})},
+				ui.DialogButton{Label: "Yes", Cmd: closeState(m.state, m.stopEvents, LogoutMsg{})},
 			)
 		}
 	case composer.RefreshAutocompleteMsg, autocomplete.Msg:
@@ -573,7 +584,7 @@ func (m Model) typerName(channel discord.Channel, userID discord.UserID) string 
 var _ tview.Model[Model] = Model{}
 
 func (m Model) Init() tview.Cmd {
-	return cmd.Batch{openState(m.state), listen(m.events), m.guildsTree.Init(), m.messagesList.Init(), cmd.RequestTerminalInfo{}}
+	return cmd.Batch{openState(m.state), listen(m.eventsCtx, m.events), m.guildsTree.Init(), m.messagesList.Init(), cmd.RequestTerminalInfo{}}
 }
 
 // Update returns m changed in response to msg and a command to run, or nil.

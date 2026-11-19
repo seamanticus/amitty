@@ -128,9 +128,9 @@ func newCustom(
 			id:      id,
 		},
 	}
-	h.AddSyncHandler(func(ev *gateway.ReadyEvent) {
-		if ev.AuthToken != "" {
-			s.Client.Session.Token = ev.AuthToken
+	h.Subscribe(func(ev ws.Event) {
+		if ready, ok := ev.(*gateway.ReadyEvent); ok && ready.AuthToken != "" {
+			s.Client.Session.Token = ready.AuthToken
 		}
 	})
 	return s
@@ -263,7 +263,7 @@ func (s *Session) Connect(ctx context.Context) error {
 // Open opens the Discord gateway and its handler, then waits until either the
 // Ready or Resumed event gets through. Prefer using Connect instead of Open.
 func (s *Session) Open(ctx context.Context) error {
-	evCh := make(chan any)
+	evCh := make(chan ws.Event)
 
 	s.state.Lock()
 	defer s.state.Unlock()
@@ -285,9 +285,11 @@ func (s *Session) Open(ctx context.Context) error {
 	// Make a context that's stored in state so this can be used throughout.
 	s.state.ctx, s.state.cancel = context.WithCancel(context.Background())
 
-	// TODO: change this to AddSyncHandler.
-	rm := s.AddChanHandler(evCh)
-	defer rm()
+	// Events reach evCh until Open returns; sends still pending then are dropped.
+	waiting, stopWaiting := context.WithCancel(ctx)
+	defer stopWaiting()
+	unsubscribe := s.Subscribe(handler.Send(waiting, evCh))
+	defer unsubscribe()
 
 	opCh := s.state.gateway.Connect(s.state.ctx)
 	s.state.doneCh = ophandler.Loop(opCh, s.Handler)

@@ -38,82 +38,88 @@ func NewState(state *state.State, r *handler.Handler) *State {
 		states: make(map[discord.ChannelID]*gateway.ReadState),
 	}
 
-	r.AddSyncHandler(func(r *gateway.ReadyEvent) {
-		readstate.mutex.Lock()
-		defer readstate.mutex.Unlock()
-
-		readstate.selfID = r.User.ID
-		clear(readstate.states)
-
-		for i, rs := range r.ReadStates {
-			readstate.states[rs.ChannelID] = &r.ReadStates[i]
-		}
-	})
-
-	r.AddSyncHandler(func(a *gateway.MessageAckEvent) {
-		// do not send a duplicate ack
-		readstate.markRead(a.ChannelID, a.MessageID, false)
-	})
-
-	r.AddSyncHandler(func(c *gateway.MessageCreateEvent) {
-		ch, _ := state.Cabinet.Channel(c.ChannelID)
-		if ch != nil {
-			cpy := *ch
-			cpy.LastMessageID = c.ID
-			state.ChannelSet(&cpy, true)
-		}
-
-		selfID := readstate.SelfID()
-		if c.Author.ID == selfID {
-			readstate.markRead(c.ChannelID, c.ID, false)
-			return
-		}
-
-		var mentions int
-		for _, u := range c.Mentions {
-			if u.ID == selfID {
-				mentions++
-			}
-		}
-
-		readstate.MarkUnread(c.ChannelID, c.ID, mentions)
-	})
-
-	r.AddSyncHandler(func(c *gateway.ThreadCreateEvent) {
-		// Discord reads the forum we created a thread in without sending an
-		// ack for it.
-		if !c.NewlyCreated || c.OwnerID != readstate.SelfID() {
-			return
-		}
-
-		if parent, _ := state.Cabinet.Channel(c.ParentID); parent != nil && parent.Type == discord.GuildForum {
-			readstate.markRead(c.ParentID, discord.MessageID(c.ID), false)
-		}
-	})
-
-	// A channel or thread that is deleted leaves no read state behind.
-	r.AddSyncHandler(func(c *gateway.ChannelDeleteEvent) {
-		readstate.remove(c.ID)
-	})
-
-	r.AddSyncHandler(func(c *gateway.ThreadDeleteEvent) {
-		readstate.remove(c.ID)
-	})
-
-	r.AddSyncHandler(func(u *gateway.ChannelUnreadUpdateEvent) {
-		for _, update := range u.ChannelUnreadUpdates {
-			ch, _ := state.Cabinet.Channel(update.ID)
-			if ch == nil {
-				continue
-			}
-
-			cpy := *ch
-			cpy.LastMessageID = update.LastMessageID
-			state.ChannelSet(&cpy, true)
+	r.Subscribe(func(ev ws.Event) {
+		switch ev := ev.(type) {
+		case *gateway.ReadyEvent:
+			readstate.onReady(ev)
+		case *gateway.MessageAckEvent:
+			// do not send a duplicate ack
+			readstate.markRead(ev.ChannelID, ev.MessageID, false)
+		case *gateway.MessageCreateEvent:
+			readstate.onMessageCreate(ev)
+		case *gateway.ThreadCreateEvent:
+			readstate.onThreadCreate(ev)
+		// A channel or thread that is deleted leaves no read state behind.
+		case *gateway.ChannelDeleteEvent:
+			readstate.remove(ev.ID)
+		case *gateway.ThreadDeleteEvent:
+			readstate.remove(ev.ID)
+		case *gateway.ChannelUnreadUpdateEvent:
+			readstate.onUnreadUpdate(ev)
 		}
 	})
 
 	return readstate
+}
+
+func (r *State) onReady(ready *gateway.ReadyEvent) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	r.selfID = ready.User.ID
+	clear(r.states)
+
+	for i, rs := range ready.ReadStates {
+		r.states[rs.ChannelID] = &ready.ReadStates[i]
+	}
+}
+
+func (r *State) onMessageCreate(c *gateway.MessageCreateEvent) {
+	ch, _ := r.state.Cabinet.Channel(c.ChannelID)
+	if ch != nil {
+		cpy := *ch
+		cpy.LastMessageID = c.ID
+		r.state.ChannelSet(&cpy, true)
+	}
+
+	selfID := r.SelfID()
+	if c.Author.ID == selfID {
+		r.markRead(c.ChannelID, c.ID, false)
+		return
+	}
+
+	var mentions int
+	for _, u := range c.Mentions {
+		if u.ID == selfID {
+			mentions++
+		}
+	}
+
+	r.MarkUnread(c.ChannelID, c.ID, mentions)
+}
+
+// onThreadCreate reads the forum we created a thread in, which Discord does without sending an ack for it.
+func (r *State) onThreadCreate(c *gateway.ThreadCreateEvent) {
+	if !c.NewlyCreated || c.OwnerID != r.SelfID() {
+		return
+	}
+
+	if parent, _ := r.state.Cabinet.Channel(c.ParentID); parent != nil && parent.Type == discord.GuildForum {
+		r.markRead(c.ParentID, discord.MessageID(c.ID), false)
+	}
+}
+
+func (r *State) onUnreadUpdate(u *gateway.ChannelUnreadUpdateEvent) {
+	for _, update := range u.ChannelUnreadUpdates {
+		ch, _ := r.state.Cabinet.Channel(update.ID)
+		if ch == nil {
+			continue
+		}
+
+		cpy := *ch
+		cpy.LastMessageID = update.LastMessageID
+		r.state.ChannelSet(&cpy, true)
+	}
 }
 
 func (r *State) remove(channelID discord.ChannelID) {

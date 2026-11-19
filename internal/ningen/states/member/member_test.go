@@ -11,6 +11,7 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/state"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
 
 type mockNingen struct {
@@ -33,8 +34,12 @@ func ExampleState_RequestMemberList() {
 	// Replace with the actual ningen.FromState function.
 	n := ningenFromState(s)
 
-	updates := make(chan *gateway.GuildMemberListUpdateEvent, 1)
-	n.AddChanHandler(updates)
+	updates := make(chan struct{}, 1)
+	n.Subscribe(func(ev ws.Event) {
+		if _, ok := ev.(*gateway.GuildMemberListUpdateEvent); ok {
+			updates <- struct{}{}
+		}
+	})
 
 	if err := n.Open(context.TODO()); err != nil {
 		panic(err)
