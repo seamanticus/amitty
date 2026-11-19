@@ -5,8 +5,8 @@ import (
 	"testing"
 	"uuid"
 
-	"github.com/ayn2op/arikawa/v3/gateway"
 	"github.com/seamanticus/discordo/internal/tls"
+	"github.com/seamanticus/dmwire/gateway"
 )
 
 func TestCommonProperties(t *testing.T) {

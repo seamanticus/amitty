@@ -9,9 +9,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ayn2op/arikawa/v3/api"
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/utils/httputil"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/ayn2op/tview/picker"
@@ -19,6 +16,9 @@ import (
 	"github.com/ncruces/zenity"
 	"github.com/seamanticus/discordo/internal/consts"
 	"github.com/seamanticus/discordo/internal/ui"
+	"github.com/seamanticus/dmwire/api"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/utils/httputil"
 	"github.com/skratchdot/open-golang/open"
 )
 

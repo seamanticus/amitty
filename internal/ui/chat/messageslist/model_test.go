@@ -9,9 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/state"
-	"github.com/ayn2op/ningen/v3"
 	"github.com/ayn2op/tview"
 	tviewimage "github.com/ayn2op/tview/image"
 	"github.com/ayn2op/tview/layout"
@@ -19,6 +16,9 @@ import (
 	"github.com/gdamore/tcell/v3/vt"
 	"github.com/seamanticus/discordo/internal/config"
 	"github.com/seamanticus/discordo/internal/ui/emojis"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/ningen"
+	"github.com/seamanticus/dmwire/state"
 )
 
 func testConfig(t *testing.T) *config.Config {

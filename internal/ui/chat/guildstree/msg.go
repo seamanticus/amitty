@@ -3,12 +3,12 @@ package guildstree
 import (
 	"log/slog"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/ningen/v3"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/ayn2op/tview/tree"
 	"github.com/seamanticus/discordo/internal/ui"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/ningen"
 )
 
 // currentMsg makes a node of the tree the current one.

@@ -4,25 +4,19 @@ go 1.27.0
 
 // replace github.com/ayn2op/tview => ../tview
 
-// replace (
-// 	github.com/ayn2op/arikawa/v3 => ../arikawa
-// 	github.com/ayn2op/ningen/v3 => ../ningen
-// )
-
 require (
-	github.com/BurntSushi/toml v1.6.0
 	github.com/alecthomas/chroma/v2 v2.27.0
-	github.com/ayn2op/arikawa/v3 v3.0.0-20261114022753-8abfed11ec74
-	github.com/ayn2op/ningen/v3 v3.0.1-0.20261026205502-53a9435c0b4f
 	github.com/ayn2op/tview v0.0.0-20261113213513-aa6cbbecdc63
 	github.com/bogdanfinn/fhttp v0.7.3
 	github.com/bogdanfinn/tls-client v1.18.1
+	github.com/BurntSushi/toml v1.6.0
 	github.com/gdamore/tcell/v3 v3.6.1-0.20261105165643-4cedad629677
 	github.com/gorilla/websocket v1.5.3
 	github.com/mattn/go-shellwords v1.0.16
 	github.com/ncruces/zenity v0.10.15
 	github.com/rockorager/go-uucode v1.2.2
 	github.com/sahilm/fuzzy v0.1.3
+	github.com/seamanticus/dmwire v0.0.0-20261119071804-a3e86ff0c00b
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/yuin/goldmark/v2 v2.1.16

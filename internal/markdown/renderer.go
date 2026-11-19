@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
-	md "github.com/ayn2op/arikawa/v3/markdown"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/text"
 	"github.com/seamanticus/discordo/internal/config"
+	md "github.com/seamanticus/dmwire/markdown"
 	"github.com/yuin/goldmark/v2/ast"
 )
 

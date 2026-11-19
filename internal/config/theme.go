@@ -6,10 +6,10 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/ayn2op/arikawa/v3/discord"
 	"github.com/ayn2op/tview"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
+	"github.com/seamanticus/dmwire/discord"
 )
 
 var errInvalidType = errors.New("invalid type")

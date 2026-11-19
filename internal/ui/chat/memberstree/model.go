@@ -6,10 +6,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/gateway"
-	"github.com/ayn2op/arikawa/v3/state"
-	"github.com/ayn2op/ningen/v3"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/keybind"
 	"github.com/ayn2op/tview/text"
@@ -19,6 +15,10 @@ import (
 	"github.com/seamanticus/discordo/internal/config"
 	"github.com/seamanticus/discordo/internal/ui"
 	uitree "github.com/seamanticus/discordo/internal/ui/tree"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/gateway"
+	"github.com/seamanticus/dmwire/ningen"
+	"github.com/seamanticus/dmwire/state"
 )
 
 // groupRef is the ID of a member list group: a role ID, "online", or "offline".

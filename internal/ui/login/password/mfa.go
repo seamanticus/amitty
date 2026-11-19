@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ayn2op/arikawa/v3/api"
-	"github.com/ayn2op/arikawa/v3/utils/httputil"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	dhttp "github.com/seamanticus/discordo/internal/http"
+	"github.com/seamanticus/dmwire/api"
+	"github.com/seamanticus/dmwire/utils/httputil"
 )
 
 // method is a second factor that a two-factor login accepts.

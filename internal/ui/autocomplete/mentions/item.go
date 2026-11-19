@@ -6,9 +6,6 @@ import (
 	"log/slog"
 	"slices"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/state"
-	"github.com/ayn2op/ningen/v3"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	tviewimage "github.com/ayn2op/tview/image"
@@ -18,6 +15,9 @@ import (
 	"github.com/seamanticus/discordo/internal/config"
 	"github.com/seamanticus/discordo/internal/ui/autocomplete"
 	"github.com/seamanticus/discordo/internal/ui/images"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/ningen"
+	"github.com/seamanticus/dmwire/state"
 )
 
 const (

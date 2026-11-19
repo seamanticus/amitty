@@ -5,9 +5,9 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/ningen/v3"
 	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/ningen"
 )
 
 // ChannelToString returns how channel is shown in the UI: an icon for its type and its name, or the recipients' names for a DM.
@@ -49,7 +49,7 @@ func ChannelToString(channel discord.Channel, icons config.Icons, state *ningen.
 	case discord.GuildStore:
 		icon = icons.GuildStore
 	default:
-		// Types Discord added after arikawa, and directories, have no icon.
+		// Types Discord added after dmwire, and directories, have no icon.
 	}
 
 	return icon + channel.Name

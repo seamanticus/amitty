@@ -4,8 +4,8 @@ package images
 import (
 	"image"
 
-	"github.com/ayn2op/arikawa/v3/discord"
 	tviewimage "github.com/ayn2op/tview/image"
+	"github.com/seamanticus/dmwire/discord"
 )
 
 // RequestedMsg asks for images: Squares by rows tall, Previews by size in pixels.

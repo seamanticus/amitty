@@ -6,9 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	md "github.com/ayn2op/arikawa/v3/markdown"
-	"github.com/ayn2op/arikawa/v3/state"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/layout"
 	"github.com/ayn2op/tview/row"
@@ -17,6 +14,9 @@ import (
 	"github.com/gdamore/tcell/v3/color"
 	"github.com/seamanticus/discordo/internal/markdown"
 	"github.com/seamanticus/discordo/internal/ui/emojis"
+	"github.com/seamanticus/dmwire/discord"
+	md "github.com/seamanticus/dmwire/markdown"
+	"github.com/seamanticus/dmwire/state"
 	"github.com/yuin/goldmark/v2/ast"
 )
 

@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/api"
-	"github.com/ayn2op/arikawa/v3/utils/httputil"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	dhttp "github.com/seamanticus/discordo/internal/http"
+	"github.com/seamanticus/dmwire/api"
+	"github.com/seamanticus/dmwire/utils/httputil"
 )
 
 // retryDelay is how long a login whose connection failed waits before its one retry.

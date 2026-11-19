@@ -1,6 +1,6 @@
 package reactionspicker
 
-import "github.com/ayn2op/arikawa/v3/discord"
+import "github.com/seamanticus/dmwire/discord"
 
 // ShowMsg lists the emojis to react to the message with MessageID in ChannelID with, in GuildID.
 type ShowMsg struct {

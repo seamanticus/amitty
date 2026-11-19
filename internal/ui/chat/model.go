@@ -8,14 +8,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/gateway"
-	"github.com/ayn2op/arikawa/v3/session"
-	"github.com/ayn2op/arikawa/v3/state"
-	"github.com/ayn2op/arikawa/v3/state/store/defaultstore"
-	"github.com/ayn2op/arikawa/v3/utils/handler"
-	"github.com/ayn2op/arikawa/v3/utils/httputil"
-	"github.com/ayn2op/ningen/v3"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/backdrop"
 	"github.com/ayn2op/tview/center"
@@ -41,6 +33,14 @@ import (
 	"github.com/seamanticus/discordo/internal/ui/chat/messageslist"
 	"github.com/seamanticus/discordo/internal/ui/chat/reactionspicker"
 	"github.com/seamanticus/discordo/internal/ui/images"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/gateway"
+	"github.com/seamanticus/dmwire/ningen"
+	"github.com/seamanticus/dmwire/session"
+	"github.com/seamanticus/dmwire/state"
+	"github.com/seamanticus/dmwire/state/store/defaultstore"
+	"github.com/seamanticus/dmwire/utils/handler"
+	"github.com/seamanticus/dmwire/utils/httputil"
 )
 
 type Model struct {

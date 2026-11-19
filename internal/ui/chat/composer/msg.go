@@ -10,17 +10,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/api"
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/gateway"
-	"github.com/ayn2op/arikawa/v3/utils/json/option"
-	"github.com/ayn2op/arikawa/v3/utils/sendpart"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/ncruces/zenity"
 	"github.com/seamanticus/discordo/internal/config"
 	"github.com/seamanticus/discordo/internal/ui/autocomplete/emojis"
 	"github.com/seamanticus/discordo/internal/ui/autocomplete/mentions"
+	"github.com/seamanticus/dmwire/api"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/gateway"
+	"github.com/seamanticus/dmwire/utils/json/option"
+	"github.com/seamanticus/dmwire/utils/sendpart"
 	"golang.design/x/clipboard"
 )
 
@@ -232,7 +232,7 @@ func (m *Model) searchMember(guildID discord.GuildID, name string) tview.Cmd {
 		return nil
 	}
 	// If searching for "ab" returns less than SearchLimit, then "abc" would not return anything new because we already searched everything starting with "ab".
-	// This will still be true even if a new member joins because arikawa loads new members into the state.
+	// This will still be true even if a new member joins because dmwire loads new members into the state.
 	if count, ok := m.memberSearchCache[key[:len(key)-1]]; ok && count < m.state.MemberState.SearchLimit {
 		m.memberSearchCache[key] = count
 		return nil

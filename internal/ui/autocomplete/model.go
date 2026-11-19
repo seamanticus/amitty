@@ -2,7 +2,6 @@
 package autocomplete
 
 import (
-	"github.com/ayn2op/arikawa/v3/discord"
 	"github.com/ayn2op/tview"
 	tviewimage "github.com/ayn2op/tview/image"
 	"github.com/ayn2op/tview/layout"
@@ -14,6 +13,7 @@ import (
 	"github.com/seamanticus/discordo/internal/config"
 	"github.com/seamanticus/discordo/internal/ui"
 	"github.com/seamanticus/discordo/internal/ui/images"
+	"github.com/seamanticus/dmwire/discord"
 )
 
 // Model is a list of suggestions, hidden while it has none.

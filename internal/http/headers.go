@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	stdHttp "net/http"
 
-	"github.com/ayn2op/arikawa/v3/api"
 	"github.com/seamanticus/discordo/pkg/tzlocal"
+	"github.com/seamanticus/dmwire/api"
 )
 
 // Headers returns the headers the web client of build sends with its API requests.

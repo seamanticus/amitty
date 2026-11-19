@@ -1,9 +1,9 @@
 package autocomplete
 
 import (
-	"github.com/ayn2op/arikawa/v3/discord"
 	tviewimage "github.com/ayn2op/tview/image"
 	"github.com/ayn2op/tview/text"
+	"github.com/seamanticus/dmwire/discord"
 )
 
 // Item is a suggestion.

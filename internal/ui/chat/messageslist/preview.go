@@ -4,13 +4,13 @@ import (
 	"image"
 	"slices"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	md "github.com/ayn2op/arikawa/v3/markdown"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/ayn2op/tview/text"
 	"github.com/seamanticus/discordo/internal/ui/emojis"
 	"github.com/seamanticus/discordo/internal/ui/images"
+	"github.com/seamanticus/dmwire/discord"
+	md "github.com/seamanticus/dmwire/markdown"
 	"github.com/yuin/goldmark/v2/ast"
 )
 

@@ -3,9 +3,9 @@ package autocomplete
 import (
 	"testing"
 
-	"github.com/ayn2op/arikawa/v3/discord"
 	tviewimage "github.com/ayn2op/tview/image"
 	"github.com/ayn2op/tview/text"
+	"github.com/seamanticus/dmwire/discord"
 )
 
 // item is an item drawn as its text.

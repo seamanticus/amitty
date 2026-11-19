@@ -3,8 +3,6 @@ package reactionspicker
 import (
 	"strings"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/ningen/v3"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	tviewimage "github.com/ayn2op/tview/image"
@@ -14,6 +12,8 @@ import (
 	"github.com/seamanticus/discordo/internal/ui/emojis"
 	"github.com/seamanticus/discordo/internal/ui/images"
 	uipicker "github.com/seamanticus/discordo/internal/ui/picker"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/ningen"
 )
 
 type Model struct {

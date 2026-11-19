@@ -16,13 +16,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/api"
-	"github.com/ayn2op/arikawa/v3/utils/httputil"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/gorilla/websocket"
 	"github.com/seamanticus/discordo/internal/gateway"
 	"github.com/seamanticus/discordo/internal/http"
+	"github.com/seamanticus/dmwire/api"
+	"github.com/seamanticus/dmwire/utils/httputil"
 	"github.com/skip2/go-qrcode"
 )
 

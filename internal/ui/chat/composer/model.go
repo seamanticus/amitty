@@ -14,13 +14,6 @@ import (
 
 	"github.com/ayn2op/tview/layout"
 
-	"github.com/ayn2op/arikawa/v3/api"
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/gateway"
-	md "github.com/ayn2op/arikawa/v3/markdown"
-	"github.com/ayn2op/arikawa/v3/utils/json/option"
-	"github.com/ayn2op/arikawa/v3/utils/sendpart"
-	"github.com/ayn2op/ningen/v3"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/box"
 	"github.com/ayn2op/tview/cmd"
@@ -33,6 +26,13 @@ import (
 	"github.com/seamanticus/discordo/internal/ui/autocomplete"
 	"github.com/seamanticus/discordo/internal/ui/autocomplete/mentions"
 	"github.com/seamanticus/discordo/internal/ui/images"
+	"github.com/seamanticus/dmwire/api"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/gateway"
+	md "github.com/seamanticus/dmwire/markdown"
+	"github.com/seamanticus/dmwire/ningen"
+	"github.com/seamanticus/dmwire/utils/json/option"
+	"github.com/seamanticus/dmwire/utils/sendpart"
 	"github.com/yuin/goldmark/v2/ast"
 	"golang.design/x/clipboard"
 )

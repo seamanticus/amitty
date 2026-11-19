@@ -10,10 +10,10 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/ayn2op/arikawa/v3/utils/httputil"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/seamanticus/discordo/internal/discordtest"
 	dhttp "github.com/seamanticus/discordo/internal/http"
+	"github.com/seamanticus/dmwire/utils/httputil"
 )
 
 // reply answers with status and a JSON body.

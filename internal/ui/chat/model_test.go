@@ -7,8 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/gateway"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	tviewimage "github.com/ayn2op/tview/image"
@@ -16,6 +14,8 @@ import (
 	"github.com/seamanticus/discordo/internal/config"
 	"github.com/seamanticus/discordo/internal/http"
 	"github.com/seamanticus/discordo/internal/ui/images"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/gateway"
 )
 
 func newTestModel(t *testing.T) *Model {

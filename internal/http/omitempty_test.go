@@ -14,7 +14,7 @@ func TestOmitEmptyHeaders(t *testing.T) {
 		header = r.Header.Clone()
 		_, _ = w.Write([]byte(`{}`))
 	}))
-	// A client without a token, as before login: arikawa still sets Authorization to "".
+	// A client without a token, as before login: dmwire still sets Authorization to "".
 	if _, err := client.Me(); err != nil {
 		t.Fatal(err)
 	}

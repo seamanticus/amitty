@@ -6,12 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/gateway"
-	"github.com/ayn2op/arikawa/v3/state"
-	"github.com/ayn2op/arikawa/v3/state/store/defaultstore"
-	"github.com/ayn2op/arikawa/v3/utils/sendpart"
-	"github.com/ayn2op/ningen/v3"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	tviewimage "github.com/ayn2op/tview/image"
@@ -19,6 +13,12 @@ import (
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/discordo/internal/config"
 	"github.com/seamanticus/discordo/internal/ui/images"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/gateway"
+	"github.com/seamanticus/dmwire/ningen"
+	"github.com/seamanticus/dmwire/state"
+	"github.com/seamanticus/dmwire/state/store/defaultstore"
+	"github.com/seamanticus/dmwire/utils/sendpart"
 )
 
 // newTestModel returns an enabled composer with the default config.

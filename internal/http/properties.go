@@ -6,9 +6,9 @@ import (
 	"strings"
 	"uuid"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/gateway"
 	"github.com/seamanticus/discordo/internal/tls"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/gateway"
 )
 
 //go:generate go run generator.go

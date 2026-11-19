@@ -1,8 +1,8 @@
 package ui
 
 import (
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/ningen/v3"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/ningen"
 )
 
 // IsMe reports whether id is the logged in user.

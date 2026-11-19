@@ -1,10 +1,10 @@
 package gateway
 
 import (
-	"github.com/ayn2op/arikawa/v3/api"
-	discordgateway "github.com/ayn2op/arikawa/v3/gateway"
-	"github.com/ayn2op/arikawa/v3/utils/ws"
 	"github.com/seamanticus/discordo/internal/http"
+	"github.com/seamanticus/dmwire/api"
+	discordgateway "github.com/seamanticus/dmwire/gateway"
+	"github.com/seamanticus/dmwire/utils/ws"
 )
 
 const gatewayURL = "wss://gateway.discord.gg"

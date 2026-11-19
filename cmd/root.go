@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ayn2op/arikawa/v3/utils/ws"
 	"github.com/ayn2op/tview"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/discordo/internal/config"
@@ -18,6 +17,7 @@ import (
 	"github.com/seamanticus/discordo/internal/logger"
 	"github.com/seamanticus/discordo/internal/tokenstore"
 	"github.com/seamanticus/discordo/internal/ui/root"
+	"github.com/seamanticus/dmwire/utils/ws"
 )
 
 // buildTimeout bounds the startup fetch of the build number.

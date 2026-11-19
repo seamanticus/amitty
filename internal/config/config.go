@@ -11,8 +11,8 @@ import (
 	"sync"
 
 	"github.com/BurntSushi/toml"
-	"github.com/ayn2op/arikawa/v3/discord"
 	"github.com/seamanticus/discordo/internal/consts"
+	"github.com/seamanticus/dmwire/discord"
 )
 
 const fileName = "config.toml"

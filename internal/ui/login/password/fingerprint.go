@@ -5,10 +5,10 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/ayn2op/arikawa/v3/api"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	dhttp "github.com/seamanticus/discordo/internal/http"
+	"github.com/seamanticus/dmwire/api"
 )
 
 // FingerprintMsg carries the fingerprint that the login of final attempt is sent with.

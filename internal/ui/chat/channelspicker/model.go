@@ -3,14 +3,14 @@ package channelspicker
 import (
 	"log/slog"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/ningen/v3"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/picker"
 	"github.com/ayn2op/tview/text"
 	"github.com/seamanticus/discordo/internal/config"
 	"github.com/seamanticus/discordo/internal/ui"
 	uipicker "github.com/seamanticus/discordo/internal/ui/picker"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/ningen"
 )
 
 type Model struct {

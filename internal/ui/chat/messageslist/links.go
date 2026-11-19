@@ -5,8 +5,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	md "github.com/ayn2op/arikawa/v3/markdown"
+	"github.com/seamanticus/dmwire/discord"
+	md "github.com/seamanticus/dmwire/markdown"
 	"github.com/yuin/goldmark/v2/ast"
 )
 

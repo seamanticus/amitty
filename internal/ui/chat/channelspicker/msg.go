@@ -1,6 +1,6 @@
 package channelspicker
 
-import "github.com/ayn2op/arikawa/v3/discord"
+import "github.com/seamanticus/dmwire/discord"
 
 type SelectedMsg struct {
 	ChannelID discord.ChannelID

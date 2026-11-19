@@ -6,10 +6,10 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/ayn2op/arikawa/v3/discord"
 	tviewimage "github.com/ayn2op/tview/image"
 	"github.com/seamanticus/discordo/internal/ui/emojis"
 	"github.com/seamanticus/discordo/internal/ui/images"
+	"github.com/seamanticus/dmwire/discord"
 )
 
 func TestModelPreviewSources(t *testing.T) {

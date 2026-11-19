@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/gateway"
-	"github.com/ayn2op/arikawa/v3/utils/httputil/httpdriver"
-	"github.com/ayn2op/arikawa/v3/utils/ws"
-	"github.com/ayn2op/ningen/v3/states/read"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/seamanticus/discordo/internal/ui"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/gateway"
+	"github.com/seamanticus/dmwire/ningen/states/read"
+	"github.com/seamanticus/dmwire/utils/httputil/httpdriver"
+	"github.com/seamanticus/dmwire/utils/ws"
 )
 
 func onRequest(req httpdriver.Request) error {

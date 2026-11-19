@@ -8,13 +8,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ayn2op/arikawa/v3/api"
-	"github.com/ayn2op/arikawa/v3/utils/httputil"
-	"github.com/ayn2op/arikawa/v3/utils/httputil/httpdriver"
 	"github.com/ayn2op/tview"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/vt"
 	dhttp "github.com/seamanticus/discordo/internal/http"
+	"github.com/seamanticus/dmwire/api"
+	"github.com/seamanticus/dmwire/utils/httputil"
+	"github.com/seamanticus/dmwire/utils/httputil/httpdriver"
 )
 
 // Client returns an API client without a token whose requests handler serves, with the path and query Discord would get.

@@ -1,10 +1,10 @@
 package memberstree
 
 import (
-	"github.com/ayn2op/ningen/v3/states/member"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/ayn2op/tview/tree"
+	"github.com/seamanticus/dmwire/ningen/states/member"
 )
 
 // currentMsg makes a node of the tree the current one.

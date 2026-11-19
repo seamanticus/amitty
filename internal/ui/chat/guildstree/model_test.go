@@ -5,14 +5,14 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/arikawa/v3/gateway"
-	"github.com/ayn2op/arikawa/v3/state"
-	"github.com/ayn2op/arikawa/v3/state/store/defaultstore"
-	"github.com/ayn2op/ningen/v3"
-	"github.com/ayn2op/ningen/v3/states/read"
 	"github.com/ayn2op/tview/tree"
 	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/dmwire/gateway"
+	"github.com/seamanticus/dmwire/ningen"
+	"github.com/seamanticus/dmwire/ningen/states/read"
+	"github.com/seamanticus/dmwire/state"
+	"github.com/seamanticus/dmwire/state/store/defaultstore"
 )
 
 func TestModelMoveDMToFront(t *testing.T) {

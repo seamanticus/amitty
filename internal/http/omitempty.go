@@ -4,10 +4,10 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/ayn2op/arikawa/v3/utils/httputil/httpdriver"
+	"github.com/seamanticus/dmwire/utils/httputil/httpdriver"
 )
 
-// OmitEmptyHeaders returns driver with headers whose only value is empty left out, as a browser never sends them. arikawa sets Authorization to the token even when there is none, which would otherwise send an empty Authorization before login.
+// OmitEmptyHeaders returns driver with headers whose only value is empty left out, as a browser never sends them. dmwire sets Authorization to the token even when there is none, which would otherwise send an empty Authorization before login.
 func OmitEmptyHeaders(driver httpdriver.Client) httpdriver.Client {
 	return omitEmpty{driver}
 }

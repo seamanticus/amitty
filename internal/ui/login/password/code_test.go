@@ -5,10 +5,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ayn2op/arikawa/v3/utils/httputil"
 	"github.com/ayn2op/tview"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/discordo/internal/discordtest"
+	"github.com/seamanticus/dmwire/utils/httputil"
 )
 
 // codeHeight fits the code form.
