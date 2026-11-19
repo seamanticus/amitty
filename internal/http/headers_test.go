@@ -1,47 +1,80 @@
 package http
 
 import (
-	"bufio"
+	"crypto/tls"
+	"io"
 	"net"
-	"net/textproto"
+	"net/http/httptest"
 	"slices"
 	"strings"
 	"testing"
+
+	"github.com/bogdanfinn/fhttp/http2"
+	"github.com/bogdanfinn/fhttp/http2/hpack"
+	tls_client "github.com/bogdanfinn/tls-client"
 )
 
-// rawHeaderNames serves one HTTP/1.1 request and returns its header names in the order they arrived.
-func rawHeaderNames(t *testing.T, send func(url string)) []string {
+// rawHeaderNames serves one HTTP/2 request over TLS, as discord.com gets them, and returns its header names in the order its HEADERS frame carried them. HTTP/1.1 would not do: fhttp appends the Accept-Encoding it adds there after the ordered headers.
+func rawHeaderNames(t *testing.T, send func(client tls_client.HttpClient, url string)) []string {
 	t.Helper()
-	listener, err := (&net.ListenConfig{}).Listen(t.Context(), "tcp", "127.0.0.1:0")
+	// httptest makes the certificate; the frames are read by hand, as a server's Header map has no order.
+	cert := httptest.NewUnstartedServer(nil)
+	cert.EnableHTTP2 = true
+	cert.StartTLS()
+	config := cert.TLS.Clone()
+	cert.Close()
+	listener, err := tls.Listen("tcp", "127.0.0.1:0", config)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = listener.Close() })
+
 	names := make(chan []string, 1)
 	go func() {
-		conn, err := listener.Accept()
-		if err != nil {
-			names <- nil
-			return
-		}
-		defer conn.Close() //nolint:errcheck
-		reader := textproto.NewReader(bufio.NewReader(conn))
-		var got []string
-		if _, err := reader.ReadLine(); err == nil {
-			for {
-				line, err := reader.ReadLine()
-				if err != nil || line == "" {
-					break
-				}
-				name, _, _ := strings.Cut(line, ":")
-				got = append(got, strings.ToLower(name))
-			}
-		}
-		_, _ = conn.Write([]byte("HTTP/1.1 204 No Content\r\nConnection: close\r\n\r\n"))
-		names <- got
+		names <- readHeaderNames(listener)
 	}()
-	send("http://" + listener.Addr().String() + "/api/v9/users/@me")
+	send(Network{}.TLSClient(tls_client.WithInsecureSkipVerify()), "https://"+listener.Addr().String()+"/api/v9/users/@me")
 	return <-names
+}
+
+// readHeaderNames accepts one HTTP/2 connection and returns the regular header names of its first request, or nil.
+func readHeaderNames(listener net.Listener) []string {
+	conn, err := listener.Accept()
+	if err != nil {
+		return nil
+	}
+	defer conn.Close() //nolint:errcheck
+	tlsConn, ok := conn.(*tls.Conn)
+	if !ok || tlsConn.Handshake() != nil || tlsConn.ConnectionState().NegotiatedProtocol != "h2" {
+		return nil
+	}
+	preface := make([]byte, len(http2.ClientPreface))
+	if _, err := io.ReadFull(conn, preface); err != nil || string(preface) != http2.ClientPreface {
+		return nil
+	}
+	framer := http2.NewFramer(conn, conn)
+	framer.ReadMetaHeaders = hpack.NewDecoder(4096, nil)
+	if framer.WriteSettings() != nil {
+		return nil
+	}
+	for {
+		frame, err := framer.ReadFrame()
+		if err != nil {
+			return nil
+		}
+		switch frame := frame.(type) {
+		case *http2.SettingsFrame:
+			if !frame.IsAck() && framer.WriteSettingsAck() != nil {
+				return nil
+			}
+		case *http2.MetaHeadersFrame:
+			var got []string
+			for _, field := range frame.RegularFields() {
+				got = append(got, field.Name)
+			}
+			return got
+		}
+	}
 }
 
 // inOrder reports whether every name of want that got has comes in want's order.
@@ -64,8 +97,8 @@ func TestHeaderOrder(t *testing.T) {
 	want := apiHeaderOrder()
 
 	t.Run("API requests", func(t *testing.T) {
-		got := rawHeaderNames(t, func(url string) {
-			driver := OmitEmptyHeaders(wrapClient(Network{}.TLSClient()))
+		got := rawHeaderNames(t, func(client tls_client.HttpClient, url string) {
+			driver := OmitEmptyHeaders(wrapClient(client))
 			req, err := driver.NewRequest(t.Context(), "GET", url)
 			if err != nil {
 				t.Fatal(err)
@@ -78,7 +111,8 @@ func TestHeaderOrder(t *testing.T) {
 				_ = resp.GetBody().Close()
 			}
 		})
-		if len(got) < 10 || !inOrder(got, want) {
+		// accept-encoding is fhttp's own; it must still land in its place.
+		if len(got) < 10 || !inOrder(got, want) || !slices.Contains(got, "accept-encoding") {
 			t.Fatalf("headers arrived as %v, want the order %v", got, want)
 		}
 		// The ordering key itself must never reach the wire.
@@ -88,13 +122,13 @@ func TestHeaderOrder(t *testing.T) {
 	})
 
 	t.Run("media", func(t *testing.T) {
-		got := rawHeaderNames(t, func(url string) {
-			if resp, err := NewMedia(Network{}).Get(t.Context(), url); err == nil {
+		got := rawHeaderNames(t, func(client tls_client.HttpClient, url string) {
+			if resp, err := (Media{client: client}).Get(t.Context(), url); err == nil {
 				_ = resp.Body.Close()
 			}
 		})
 		if len(got) < 12 || !inOrder(got, imageHeaderOrder()) {
-			t.Fatalf("headers arrived as %v, want the order %v", got, want)
+			t.Fatalf("headers arrived as %v, want the order %v", got, imageHeaderOrder())
 		}
 	})
 
