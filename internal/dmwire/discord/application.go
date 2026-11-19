@@ -101,29 +101,6 @@ const (
 	MembershipAccepted
 )
 
-// https://discord.com/developers/docs/interactions/slash-commands#application-command-permissions-object-guild-application-command-permissions-structure
-type GuildCommandPermissions struct {
-	ID          CommandID            `json:"id"`
-	AppID       AppID                `json:"application_id"`
-	GuildID     GuildID              `json:"guild_id"`
-	Permissions []CommandPermissions `json:"permissions"`
-}
-
-// https://discord.com/developers/docs/interactions/slash-commands#application-command-permissions-object-application-command-permissions-structure
-type CommandPermissions struct {
-	ID         Snowflake             `json:"id"`
-	Type       CommandPermissionType `json:"type"`
-	Permission bool                  `json:"permission"`
-}
-
-type CommandPermissionType uint8
-
-// https://discord.com/developers/docs/interactions/slash-commands#application-command-permissions-object-application-command-permission-type
-const (
-	RoleCommandPermission = iota + 1
-	UserCommandPermission
-)
-
 // https://discord.com/developers/docs/resources/application#install-params-object
 type InstallParams struct {
 	// Scopes is the scopes to add the application to the server with.

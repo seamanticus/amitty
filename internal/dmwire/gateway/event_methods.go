@@ -64,7 +64,6 @@ func init() {
 		func() ws.Event { return new(VoiceStateUpdateEvent) },
 		func() ws.Event { return new(VoiceServerUpdateEvent) },
 		func() ws.Event { return new(WebhooksUpdateEvent) },
-		func() ws.Event { return new(InteractionCreateEvent) },
 		func() ws.Event { return new(UserGuildSettingsUpdateEvent) },
 		func() ws.Event { return new(UserSettingsUpdateEvent) },
 		func() ws.Event { return new(UserNoteUpdateEvent) },
@@ -431,12 +430,6 @@ func (*WebhooksUpdateEvent) Op() ws.OpCode { return dispatchOp }
 
 // EventType implements Event.
 func (*WebhooksUpdateEvent) EventType() ws.EventType { return "WEBHOOKS_UPDATE" }
-
-// Op implements Event. It always returns 0.
-func (*InteractionCreateEvent) Op() ws.OpCode { return dispatchOp }
-
-// EventType implements Event.
-func (*InteractionCreateEvent) EventType() ws.EventType { return "INTERACTION_CREATE" }
 
 // Op implements Event. It always returns 0.
 func (*UserGuildSettingsUpdateEvent) Op() ws.OpCode { return dispatchOp }

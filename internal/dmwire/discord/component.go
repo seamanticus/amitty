@@ -2,11 +2,7 @@ package discord
 
 import (
 	"fmt"
-	"reflect"
-	"strconv"
-	"strings"
 
-	"github.com/seamanticus/amitty/internal/dmwire/internal/rfutil"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/json"
 )
 
@@ -90,167 +86,6 @@ func (t ComponentType) String() string {
 // TopLevelComponents is primarily used for unmarshaling. It is the top-level
 // type for component lists.
 type TopLevelComponents []TopLevelComponent
-
-// Find finds any component with the given custom ID.
-func (c *TopLevelComponents) Find(customID ComponentID) Component {
-	for _, component := range *c {
-		if component, ok := component.(*ActionRowComponent); ok {
-			if component := component.Find(customID); component != nil {
-				return component
-			}
-		}
-	}
-	return nil
-}
-
-// Unmarshal unmarshals the components into the struct pointer v. Each struct
-// field must be exported and is of a supported type.
-//
-// Fields that don't satisfy any of the above are ignored. The "discord" struct
-// tag with a value "-" is ignored. Fields that aren't found in the list of
-// options and have a "?" at the end of the "discord" struct tag are ignored.
-//
-// Each struct field will be used to search the tree of components for a
-// matching custom ID. The struct must be a flat struct that lists all the
-// components it needs using the custom ID.
-//
-// # Supported Types
-//
-// The following types are supported:
-//
-//   - string (SelectComponent if range = [n, 1], TextInputComponent)
-//   - int*, uint*, float* (uses Parse{Int,Uint,Float}, SelectComponent if range = [n, 1], TextInputComponent)
-//   - bool (ButtonComponent or any component, true if present)
-//   - []string (SelectComponent)
-//
-// Any types that are derived from any of the above built-in types are also
-// supported.
-//
-// Pointer types to any of the above types are also supported and will also
-// implicitly imply optionality.
-func (c *TopLevelComponents) Unmarshal(v any) error {
-	rv, rt, err := rfutil.StructValue(v)
-	if err != nil {
-		return err
-	}
-
-	numField := rt.NumField()
-	for i := range numField {
-		fieldStruct := rt.Field(i)
-		if !fieldStruct.IsExported() {
-			continue
-		}
-
-		name := fieldStruct.Tag.Get("discord")
-		switch name {
-		case "-":
-			continue
-		case "?":
-			name = fieldStruct.Name + "?"
-		case "":
-			name = fieldStruct.Name
-		}
-
-		component := c.Find(ComponentID(strings.TrimSuffix(name, "?")))
-		fieldv := rv.Field(i)
-		fieldt := fieldStruct.Type
-
-		if before, ok := strings.CutSuffix(name, "?"); ok {
-			name = before
-			if component == nil {
-				// not found
-				continue
-			}
-		} else if fieldStruct.Type.Kind() == reflect.Pointer {
-			fieldt = fieldt.Elem()
-			if component == nil {
-				// not found
-				fieldv.Set(reflect.NewAt(fieldt, nil))
-				continue
-			}
-			// found, so allocate new value and use that to set
-			newv := reflect.New(fieldt)
-			fieldv.Set(newv)
-			fieldv = newv.Elem()
-		} else if component == nil {
-			// not found AND the field is not a pointer, so error out
-			return fmt.Errorf("component %q is required but not found", name)
-		}
-
-		switch fieldk := fieldt.Kind(); fieldk {
-		case reflect.Bool:
-			// Intended for ButtonComponents.
-			fieldv.Set(reflect.ValueOf(true).Convert(fieldt))
-		case reflect.String,
-			reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-			reflect.Float32, reflect.Float64:
-			var v string
-
-			switch component := component.(type) {
-			case *TextInputComponent:
-				v = component.Value
-			case *StringSelectComponent:
-				switch len(component.Options) {
-				case 0:
-					// ok
-				case 1:
-					v = component.Options[0].Value
-				default:
-					return fmt.Errorf("component %q selected more than one item (bug, check ValueRange)", name)
-				}
-			default:
-				return fmt.Errorf("component %q is of unsupported type %T", name, component)
-			}
-
-			switch fieldk {
-			case reflect.String:
-				fieldv.Set(reflect.ValueOf(v).Convert(fieldt))
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				i, err := strconv.ParseInt(v, 10, rfutil.KindBits(fieldk))
-				if err != nil {
-					return fmt.Errorf("component %q has invalid integer: %w", name, err)
-				}
-				fieldv.Set(reflect.ValueOf(i).Convert(fieldt))
-			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-				u, err := strconv.ParseUint(v, 10, rfutil.KindBits(fieldk))
-				if err != nil {
-					return fmt.Errorf("component %q has invalid unsigned (positive) integer: %w", name, err)
-				}
-				fieldv.Set(reflect.ValueOf(u).Convert(fieldt))
-			case reflect.Float32, reflect.Float64:
-				f, err := strconv.ParseFloat(v, rfutil.KindBits(fieldk))
-				if err != nil {
-					return fmt.Errorf("component %q has invalid floating-point number: %w", name, err)
-				}
-				fieldv.Set(reflect.ValueOf(f).Convert(fieldt))
-			default:
-				panic("unreachable")
-			}
-		case reflect.Slice:
-			elemt := fieldt.Elem()
-
-			switch elemt.Kind() {
-			case reflect.String:
-				switch component := component.(type) {
-				case *StringSelectComponent:
-					fieldv.Set(reflect.MakeSlice(fieldt, len(component.Options), len(component.Options)))
-					for i, option := range component.Options {
-						fieldv.Index(i).Set(reflect.ValueOf(option.Value).Convert(elemt))
-					}
-				default:
-					return fmt.Errorf("component %q is of unsupported type %T", name, component)
-				}
-			default:
-				return fmt.Errorf("field %s (%q) has unknown slice type %s", fieldStruct.Name, name, fieldt)
-			}
-		default:
-			return fmt.Errorf("field %s (%q) has unknown type %s", fieldStruct.Name, name, fieldt)
-		}
-	}
-
-	return nil
-}
 
 // UnmarshalJSON unmarshals JSON into the component. It does type-checking and
 // will only accept container components.
@@ -419,44 +254,6 @@ func ParseComponent(b []byte) (Component, error) {
 // on it.
 type ActionRowComponent []InteractiveComponent
 
-// Components wraps the given list of components inside ActionRows if it's not
-// already in one. This is a convenient function that wraps components inside
-// ActionRows for the user. It panics if any of the action rows have nested
-// action rows in them.
-//
-// Here's an example of how to use it:
-//
-//	discord.Components(
-//	    discord.TextButtonComponent("Hello, world!"),
-//	    discord.Components(
-//	        discord.TextButtonComponent("Hello!"),
-//	        discord.TextButtonComponent("Delete."),
-//	    ),
-//	)
-func Components(components ...Component) TopLevelComponents {
-	new := make([]TopLevelComponent, len(components))
-
-	for i, comp := range components {
-		cc, ok := comp.(TopLevelComponent)
-		if !ok {
-			// Wrap. We're asserting that comp is either a ContainerComponent or
-			// an InteractiveComponent. Neither would be a bug, therefore panic.
-			cc = &ActionRowComponent{comp.(InteractiveComponent)}
-		}
-
-		new[i] = cc
-	}
-
-	return new
-}
-
-// ComponentsPtr returns the pointer to Components' return. This is a
-// convenient function.
-func ComponentsPtr(components ...Component) *TopLevelComponents {
-	v := Components(components...)
-	return &v
-}
-
 // Type implements the Component interface.
 func (a *ActionRowComponent) Type() ComponentType {
 	return ActionRowComponentType
@@ -552,18 +349,6 @@ const (
 // PrimaryButtonStyle is a style for a blurple button.
 func PrimaryButtonStyle() ButtonComponentStyle { return primaryButtonStyle }
 
-// SecondaryButtonStyle is a style for a grey button.
-func SecondaryButtonStyle() ButtonComponentStyle { return secondaryButtonStyle }
-
-// SuccessButtonStyle is a style for a green button.
-func SuccessButtonStyle() ButtonComponentStyle { return successButtonStyle }
-
-// DangerButtonStyle is a style for a red button.
-func DangerButtonStyle() ButtonComponentStyle { return dangerButtonStyle }
-
-// PremiumButtonStyle is a style for purchasing an SKU
-func PremiumButtonStyle() ButtonComponentStyle { return premiumButtonStyle }
-
 type linkButtonStyle URL
 
 func (s linkButtonStyle) style() int { return int(linkButtonStyleNum) }
@@ -587,16 +372,6 @@ type ButtonComponent struct {
 	SKUID SKUID `json:"sku_id,omitempty"`
 	// Disabled determines whether the button is disabled.
 	Disabled bool `json:"disabled,omitempty"`
-}
-
-// TextButtonComponent creates a new button with the given label used for the label and
-// the custom ID.
-func TextButtonComponent(style ButtonComponentStyle, label string) ButtonComponent {
-	return ButtonComponent{
-		Style:    style,
-		Label:    label,
-		CustomID: ComponentID(label),
-	}
 }
 
 // ID implements the Component interface.
@@ -961,16 +736,6 @@ type DefaultMention struct {
 	roleId RoleID `json:"-"`
 }
 
-// DefaultUserMention creates a new DefaultMention type with only UserID
-func DefaultUserMention(userId UserID) DefaultMention {
-	return DefaultMention{userId: userId}
-}
-
-// DefaultRoleMention creates a new DefaultMention type with only RoleID
-func DefaultRoleMention(roleId RoleID) DefaultMention {
-	return DefaultMention{roleId: roleId}
-}
-
 type MentionableSelectComponent struct {
 	// CustomID is the custom unique ID.
 	CustomID ComponentID `json:"custom_id,omitempty"`
@@ -1133,26 +898,19 @@ func (s *ChannelSelectComponent) MarshalJSON() ([]byte, error) {
 }
 
 // Unknown is reserved for components with unknown or not yet implemented
-// components types. It can also be used in place of a ComponentInteraction.
+// components types.
 type UnknownComponent struct {
 	json.Raw
 	id  ComponentID
 	typ ComponentType
 }
 
-// ID implements the Component and ComponentInteraction interfaces.
+// ID implements the Component interface.
 func (u *UnknownComponent) ID() ComponentID { return u.id }
 
-// Type implements the Component and ComponentInteraction interfaces.
+// Type implements the Component interface.
 func (u *UnknownComponent) Type() ComponentType { return u.typ }
 
-// Type implements InteractionData.
-func (u *UnknownComponent) InteractionType() InteractionDataType {
-	return ComponentInteractionType
-}
-
-func (u *UnknownComponent) resp() {}
-func (u *UnknownComponent) data() {}
 func (u *UnknownComponent) _cmp() {}
 func (u *UnknownComponent) _icp() {}
 func (u *UnknownComponent) _tlc() {}

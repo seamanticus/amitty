@@ -652,13 +652,6 @@ type WebhooksUpdateEvent struct {
 	ChannelID discord.ChannelID `json:"channel_id"`
 }
 
-// InteractionCreateEvent is a dispatch event.
-//
-// https://discord.com/developers/docs/topics/gateway#webhooks
-type InteractionCreateEvent struct {
-	discord.InteractionEvent
-}
-
 // Undocumented
 
 // UserGuildSettingsUpdateEvent is a dispatch event. It is undocumented.

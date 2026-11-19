@@ -525,6 +525,17 @@ type MessageInteraction struct {
 	Member *Member `json:"member,omitempty"`
 }
 
+// InteractionDataType is the type of the interaction a message answers, enumerated in integers.
+type InteractionDataType uint
+
+const (
+	PingInteractionType InteractionDataType = iota + 1
+	CommandInteractionType
+	ComponentInteractionType
+	AutocompleteInteractionType
+	ModalInteractionType
+)
+
 //
 
 // https://discord.com/developers/docs/resources/channel#attachment-object
