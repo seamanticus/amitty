@@ -19,6 +19,8 @@ func TestModelPreviewSources(t *testing.T) {
 		want    []previewSource
 	}{
 		{"file attachment", discord.Message{Attachments: []discord.Attachment{{Proxy: "a"}}}, nil},
+		{"image attachment", discord.Message{Attachments: []discord.Attachment{{Proxy: "a", ContentType: "image/png", Width: 2, Height: 1}}}, []previewSource{{"a", 2, 1}}},
+		{"video attachment", discord.Message{Attachments: []discord.Attachment{{Proxy: "a", ContentType: "video/mp4", Width: 2, Height: 1}}}, nil},
 		{"embed image over thumbnail", discord.Message{Embeds: []discord.Embed{{
 			Type:      discord.ImageEmbed,
 			Image:     &discord.EmbedImage{Proxy: "i", Width: 2, Height: 1},
@@ -45,7 +47,7 @@ func TestModelPreviewSources(t *testing.T) {
 		ml := newTestModel(t, testConfig(t))
 		ml.cfg.UI.MessagesList.Embeds.Enabled = false
 		message := discord.Message{
-			Attachments: []discord.Attachment{{Proxy: "a", Width: 2, Height: 1}},
+			Attachments: []discord.Attachment{{Proxy: "a", ContentType: "image/png", Width: 2, Height: 1}},
 			Embeds: []discord.Embed{{
 				Type:  discord.ImageEmbed,
 				Image: &discord.EmbedImage{Proxy: "i", Width: 2, Height: 1},

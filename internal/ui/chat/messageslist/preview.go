@@ -3,6 +3,7 @@ package messageslist
 import (
 	"image"
 	"slices"
+	"strings"
 
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	md "github.com/seamanticus/amitty/internal/dmwire/markdown"
@@ -22,6 +23,10 @@ type previewSource struct {
 func (m Model) previewSources(message discord.Message) []previewSource {
 	var sources []previewSource
 	for _, attachment := range message.Attachments {
+		// Videos have dimensions too, but the media proxy answers 415 to a video scaled as an image.
+		if !strings.HasPrefix(attachment.ContentType, "image/") {
+			continue
+		}
 		sources = append(sources, previewSource{attachment.Proxy, attachment.Width, attachment.Height})
 	}
 
