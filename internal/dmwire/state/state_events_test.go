@@ -1,6 +1,8 @@
 package state
 
 import (
+	"errors"
+	"net/http"
 	"testing"
 
 	"github.com/seamanticus/amitty/internal/dmwire/api"
@@ -9,6 +11,8 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/session"
 	"github.com/seamanticus/amitty/internal/dmwire/state/store/defaultstore"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
 )
 
 func TestStateOnEvent(t *testing.T) {
@@ -24,7 +28,7 @@ func TestStateOnEvent(t *testing.T) {
 			}
 		}
 
-		state := NewFromSession(session.NewCustom(gateway.DefaultIdentifier("token"), api.NewClient("token"), handler.New()), cabinet)
+		state := NewFromSession(session.NewCustom(gateway.DefaultIdentifier("token"), offlineClient(), handler.New()), cabinet)
 		state.onEvent(&gateway.ChannelDeleteEvent{ID: 10, GuildID: 1})
 
 		if _, err := cabinet.Channel(11); err == nil {
@@ -50,7 +54,7 @@ func TestStateOnEvent(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			state := NewFromSession(session.NewCustom(gateway.DefaultIdentifier("token"), api.NewClient("token"), handler.New()), cabinet)
+			state := NewFromSession(session.NewCustom(gateway.DefaultIdentifier("token"), offlineClient(), handler.New()), cabinet)
 			for _, event := range events {
 				state.onEvent(event)
 			}
@@ -69,7 +73,7 @@ func TestStateOnEvent(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			state := NewFromSession(session.NewCustom(gateway.DefaultIdentifier("token"), api.NewClient("token"), handler.New()), cabinet)
+			state := NewFromSession(session.NewCustom(gateway.DefaultIdentifier("token"), offlineClient(), handler.New()), cabinet)
 			state.onEvent(&gateway.ThreadMembersUpdateEvent{ID: 11, GuildID: 1, MemberCount: 3})
 
 			if thread, err := cabinet.Channel(11); err != nil || thread.MemberCount != 3 {
@@ -119,3 +123,13 @@ func TestStateOnEvent(t *testing.T) {
 		})
 	})
 }
+
+// offlineClient returns an API client that fails every request without dialing.
+func offlineClient() *api.Client {
+	return api.NewCustomClient("token", httputil.NewClientWithDriver(httpdriver.WrapClient(http.Client{Transport: offline{}})))
+}
+
+// offline is a transport that never connects.
+type offline struct{}
+
+func (offline) RoundTrip(*http.Request) (*http.Response, error) { return nil, errors.New("offline") }

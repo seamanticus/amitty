@@ -15,8 +15,8 @@ import (
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/vt"
 	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
-	"github.com/seamanticus/amitty/internal/dmwire/state"
 	dhttp "github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/internal/ui/emojis"
@@ -34,7 +34,7 @@ func testConfig(t *testing.T) *config.Config {
 // newTestModel returns a list showing channel 1, logged in as user 1.
 func newTestModel(t *testing.T, cfg *config.Config) *Model {
 	t.Helper()
-	ml := NewModel(cfg, ningen.FromState(state.New("")), dhttp.Media{})
+	ml := NewModel(cfg, ningen.FromState(discordtest.State(t)), dhttp.Media{})
 	if err := ml.state.MyselfSet(discord.User{ID: 1}, false); err != nil {
 		t.Fatal(err)
 	}

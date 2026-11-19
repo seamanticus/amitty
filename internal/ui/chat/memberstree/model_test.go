@@ -8,9 +8,9 @@ import (
 
 	"github.com/ayn2op/tview/tree"
 	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
-	"github.com/seamanticus/amitty/internal/dmwire/state"
 	"github.com/seamanticus/amitty/internal/ningen"
 )
 
@@ -22,7 +22,7 @@ func newTestModel(t *testing.T) Model {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return NewModel(cfg, ningen.FromState(state.New("")))
+	return NewModel(cfg, ningen.FromState(discordtest.State(t)))
 }
 
 // setGuildMembers stores a guild channel whose member list holds items, given as JSON.

@@ -34,11 +34,6 @@ type Websocket struct {
 	dialLimiter *rate.Limiter
 }
 
-// NewWebsocket creates a default Websocket with the given address.
-func NewWebsocket(c Codec, addr string) *Websocket {
-	return NewCustomWebsocket(NewConn(c), addr)
-}
-
 // NewCustomWebsocket creates a new undialed Websocket.
 func NewCustomWebsocket(conn Connection, addr string) *Websocket {
 	return &Websocket{

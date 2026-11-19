@@ -4,10 +4,8 @@ import (
 	"context"
 	"fmt"
 	"runtime"
-	"strings"
 	"time"
 
-	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
 	"golang.org/x/time/rate"
@@ -57,41 +55,6 @@ func (id *Identifier) Wait(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-// QueryGateway queries the gateway for the URL and updates the Identifier with
-// the appropriate information.
-func (id *Identifier) QueryGateway(ctx context.Context) (gatewayURL string, err error) {
-	var botData *api.BotData
-
-	if strings.HasPrefix(id.Token, "Bot ") {
-		botData, err = BotURL(ctx, id.Token)
-		if err != nil {
-			return "", fmt.Errorf("failed to get bot data: %w", err)
-		}
-		gatewayURL = botData.URL
-	} else {
-		gatewayURL, err = URL(ctx)
-		if err != nil {
-			return "", fmt.Errorf("failed to get gateway endpoint: %w", err)
-		}
-	}
-
-	// Use the supplied connect rate limit, if any.
-	if botData != nil && botData.StartLimit != nil {
-		resetAt := time.Now().Add(botData.StartLimit.ResetAfter.Duration())
-		limiter := id.IdentifyGlobalLimit
-
-		// Update the burst to be the current given time and reset it back to
-		// the default when the given time is reached.
-		limiter.SetBurst(botData.StartLimit.Remaining)
-		limiter.SetBurstAt(resetAt, botData.StartLimit.Total)
-
-		// Update the maximum number of identify requests allowed per 5s.
-		id.IdentifyShortLimit.SetBurst(botData.StartLimit.MaxConcurrency)
-	}
-
-	return
 }
 
 const (

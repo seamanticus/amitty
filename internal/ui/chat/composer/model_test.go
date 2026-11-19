@@ -12,10 +12,9 @@ import (
 	"github.com/ayn2op/tview/keybind"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
-	"github.com/seamanticus/amitty/internal/dmwire/state"
-	"github.com/seamanticus/amitty/internal/dmwire/state/store/defaultstore"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/sendpart"
 	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/internal/ui/images"
@@ -28,7 +27,7 @@ func newTestModel(t *testing.T) (*Model, *config.Config) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	c := NewModel(cfg, ningen.FromState(state.New("")))
+	c := NewModel(cfg, ningen.FromState(discordtest.State(t)))
 	c.disabled = false
 	return &c, cfg
 }
@@ -40,7 +39,7 @@ func TestModelSetChannel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	state := ningen.FromState(state.NewWithStore("", defaultstore.New()))
+	state := ningen.FromState(discordtest.State(t))
 	channel := discord.Channel{ID: 10, GuildID: 1}
 	thread := discord.Channel{ID: 11, GuildID: 1, ParentID: 10, Type: discord.GuildPublicThread}
 	for _, err := range []error{

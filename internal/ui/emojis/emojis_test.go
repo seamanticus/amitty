@@ -7,15 +7,14 @@ import (
 
 	"github.com/ayn2op/tview"
 	tviewimage "github.com/ayn2op/tview/image"
+	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
-	"github.com/seamanticus/amitty/internal/dmwire/state"
-	"github.com/seamanticus/amitty/internal/dmwire/state/store/defaultstore"
 	"github.com/seamanticus/amitty/internal/ningen"
 )
 
 func TestAll(t *testing.T) {
 	var names []string
-	for name, emoji := range All(ningen.FromState(state.New("")), discord.NoGuild()) {
+	for name, emoji := range All(ningen.FromState(discordtest.State(t)), discord.NoGuild()) {
 		if emoji.Name == "👍" {
 			names = append(names, name)
 		}
@@ -77,7 +76,7 @@ func TestUsableEmojis(t *testing.T) {
 		{"without nitro in dms", discord.NoUserNitro, discord.NoGuild(), nil},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			s := ningen.FromState(state.NewWithStore("", defaultstore.New()))
+			s := ningen.FromState(discordtest.State(t))
 			if err := s.MyselfSet(discord.User{ID: 100, Nitro: test.nitro}, false); err != nil {
 				t.Fatal(err)
 			}

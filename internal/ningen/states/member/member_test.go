@@ -1,17 +1,12 @@
 package member
 
 import (
-	"context"
-	"fmt"
-	"log"
-	"os"
 	"slices"
 	"testing"
 
+	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
-	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/state"
-	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
 
 type mockNingen struct {
@@ -21,82 +16,6 @@ type mockNingen struct {
 
 func ningenFromState(s *state.State) *mockNingen {
 	return &mockNingen{s, NewState(s, s.Handler)}
-}
-
-const (
-	GuildID   = 0
-	ChannelID = 0
-)
-
-func ExampleState_RequestMemberList() {
-	s := state.New(os.Getenv("TOKEN"))
-
-	// Replace with the actual ningen.FromState function.
-	n := ningenFromState(s)
-
-	updates := make(chan struct{}, 1)
-	n.Subscribe(func(ev ws.Event) {
-		if _, ok := ev.(*gateway.GuildMemberListUpdateEvent); ok {
-			updates <- struct{}{}
-		}
-	})
-
-	if err := n.Open(context.TODO()); err != nil {
-		panic(err)
-	}
-
-	defer n.Close()
-
-	for i := 0; ; i++ {
-		c := n.MemberState.RequestMemberList(GuildID, ChannelID, i)
-		if c == nil {
-			break
-		}
-
-		<-updates
-		log.Println("Received", i)
-	}
-
-	l, err := n.MemberState.GetMemberList(GuildID, ChannelID)
-	if err != nil {
-		panic(err)
-	}
-
-	l.ViewGroups(func(groups []gateway.GuildMemberListGroup) {
-		for _, group := range groups {
-			var name = group.ID
-			if p, err := discord.ParseSnowflake(name); err == nil {
-				r, err := s.Role(GuildID, discord.RoleID(p))
-				if err != nil {
-					log.Fatalln("Failed to get role:", err)
-				}
-
-				name = r.Name
-			}
-
-			fmt.Println("Group:", name, group.Count)
-		}
-	})
-
-	l.ViewItems(func(items []gateway.GuildMemberListOpItem) {
-		for i := 0; i < len(items); i += 100 {
-			for j := 0; j < 99 && i+j < len(items); j++ {
-				if ListItemIsNil(items[i+j]) {
-					fmt.Print(" ")
-				} else {
-					fmt.Print("O")
-				}
-			}
-
-			fmt.Println("|")
-		}
-
-		var firstNonNil = ListItemSeek(items, 100)
-		fmt.Println("First non-nil past 100:", firstNonNil)
-		fmt.Println("Above member:", items[firstNonNil].Member)
-
-		fmt.Println("Last member:", items[len(items)-1].Member.User.Username)
-	})
 }
 
 func TestComputeListID(t *testing.T) {
@@ -130,7 +49,7 @@ func TestComputeListID(t *testing.T) {
 }
 
 func TestRequestMemberList(t *testing.T) {
-	s := state.New("")
+	s := discordtest.State(t)
 	s.Cabinet.ChannelSet(&discord.Channel{ID: 1, GuildID: 10}, false)
 	s.Cabinet.ChannelSet(&discord.Channel{ID: 2, GuildID: 10}, false)
 	m := NewState(s, s.Handler)
@@ -155,7 +74,7 @@ func TestRequestMemberList(t *testing.T) {
 
 func TestStateListID(t *testing.T) {
 	const guildID = 10
-	s := state.New("")
+	s := discordtest.State(t)
 	s.Cabinet.RoleSet(guildID, &discord.Role{ID: guildID, Permissions: discord.PermissionViewChannel}, false)
 	// In the other guild, the @everyone role cannot view channels.
 	s.Cabinet.RoleSet(guildID+1, &discord.Role{ID: guildID + 1}, false)

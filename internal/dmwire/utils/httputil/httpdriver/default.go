@@ -19,11 +19,6 @@ func WrapClient(client http.Client) Client {
 	return DefaultClient(client)
 }
 
-// NewClient creates a new client around the standard library's http.Client.
-func NewClient() Client {
-	return WrapClient(http.Client{})
-}
-
 func (d DefaultClient) NewRequest(ctx context.Context, method, url string) (Request, error) {
 	r, err := http.NewRequestWithContext(ctx, method, url, nil)
 	if err != nil {

@@ -57,19 +57,6 @@ type State struct {
 	oldCtx context.Context
 }
 
-// New creates a new ningen state from the given token and the default
-// identifier.
-func New(token string) *State {
-	id := gateway.DefaultIdentifier(token)
-	id.Capabilities = gateway.LazyUserNotes | gateway.VersionedReadStates | gateway.VersionedUserGuildSetttings | gateway.DedupeUserObjects | gateway.PrioritizedReadyPayload | gateway.MultipleGuildExperimentPopulations | gateway.NonChannelReadStates
-	return NewWithIdentifier(id)
-}
-
-// NewWithIdentifier creates a new ningen state from the given identifier.
-func NewWithIdentifier(id gateway.Identifier) *State {
-	return FromState(state.NewWithIdentifier(id))
-}
-
 // FromState wraps a normal state.
 func FromState(s *state.State) *State {
 	state := &State{

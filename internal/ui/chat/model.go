@@ -118,8 +118,7 @@ func NewModel(cfg *config.Config, build http.Build, network http.Network, token 
 			gateway.DebounceMessageReactions,
 	})
 
-	session := session.NewWithGateway(clientgateway.New(network, id), handler.New())
-	session.Client = http.NewClient(network, token)
+	session := session.NewWithGateway(clientgateway.New(network, id), http.NewClient(network, token), handler.New())
 	state := state.NewFromSession(session, defaultstore.New())
 	m.state = ningen.FromState(state)
 

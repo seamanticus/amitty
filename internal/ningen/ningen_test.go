@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/state"
@@ -174,7 +175,7 @@ func newUnreadTestState(tb testing.TB, acked, latest discord.MessageID) (*State,
 		userID    = discord.UserID(3)
 	)
 
-	s := FromState(state.NewWithStore("", defaultstore.New()))
+	s := FromState(discordtest.State(tb))
 	s.State.Handler.Call(&gateway.ReadyEvent{
 		User: discord.User{ID: userID},
 		ReadStates: []gateway.ReadState{{
@@ -273,7 +274,7 @@ func newMentionedGuildState(tb testing.TB, count, mention int) (*State, *countin
 		}
 	}
 
-	s := FromState(state.NewWithStore("", defaultstore.New()))
+	s := FromState(discordtest.State(tb))
 	s.State.Handler.Call(&gateway.ReadyEvent{
 		User:              discord.User{ID: 1},
 		ReadStates:        readStates,
@@ -310,7 +311,7 @@ func guildIsUnreadFullScan(s *State, guildID discord.GuildID) UnreadIndication {
 func TestStateChannelIsMuted(t *testing.T) {
 	// The guild has channels 10, which is muted, and 20. We are members of the threads 11 of channel 10 and 21 and 22 of
 	// channel 20, of which we muted 22, but not thread 23.
-	s := FromState(state.NewWithStore("", defaultstore.New()))
+	s := FromState(discordtest.State(t))
 	thread := func(id, parentID discord.ChannelID, member *discord.ThreadMember) discord.Channel {
 		return discord.Channel{ID: id, GuildID: 1, ParentID: parentID, Type: discord.GuildAnnouncementThread, ThreadMember: member}
 	}
@@ -358,7 +359,7 @@ func TestStateMessageMentions(t *testing.T) {
 	// mentions returns what a message that mentions us or not in thread 21 of channel 20 does, with flags on our member of the thread.
 	mentions := func(t *testing.T, flags discord.ThreadMemberFlags, mentioned bool) MessageMentionFlags {
 		t.Helper()
-		s := FromState(state.NewWithStore("", defaultstore.New()))
+		s := FromState(discordtest.State(t))
 		thread := discord.Channel{ID: 21, GuildID: 1, ParentID: 20, Type: discord.GuildPublicThread, ThreadMember: &discord.ThreadMember{Flags: flags}}
 
 		if err := s.Cabinet.MyselfSet(discord.User{ID: 3}, false); err != nil {
@@ -401,7 +402,7 @@ func TestStateMessageMentionsGuildDefaults(t *testing.T) {
 	// mentions returns what a message in channel 20 of guild 1 does, where our settings follow the guild's default level.
 	mentions := func(t *testing.T, level discord.Notification, mentioned bool) MessageMentionFlags {
 		t.Helper()
-		s := FromState(state.NewWithStore("", defaultstore.New()))
+		s := FromState(discordtest.State(t))
 		ready := &gateway.ReadyEvent{User: discord.User{ID: 3}}
 		ready.UserGuildSettings = []gateway.UserGuildSetting{{
 			GuildID:          1,

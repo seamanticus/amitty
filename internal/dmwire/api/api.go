@@ -18,9 +18,7 @@ var (
 	Version      = "9"
 	Path         = "/api/v" + Version
 
-	Endpoint           = BaseEndpoint + Path + "/"
-	EndpointGateway    = Endpoint + "gateway"
-	EndpointGatewayBot = EndpointGateway + "/bot"
+	Endpoint = BaseEndpoint + Path + "/"
 )
 
 var UserAgent = "DiscordBot (https://github.com/seamanticus/amitty/internal/dmwire)"
@@ -29,10 +27,6 @@ type Client struct {
 	*httputil.Client
 	*Session
 	AcquireOptions rate.AcquireOptions
-}
-
-func NewClient(token string) *Client {
-	return NewCustomClient(token, httputil.NewClient())
 }
 
 func NewCustomClient(token string, httpClient *httputil.Client) *Client {

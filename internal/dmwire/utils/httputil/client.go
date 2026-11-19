@@ -43,10 +43,6 @@ type Client struct {
 	context context.Context
 }
 
-func NewClient() *Client {
-	return NewClientWithDriver(httpdriver.NewClient())
-}
-
 func NewClientWithDriver(driver httpdriver.Client) *Client {
 	return &Client{
 		Client:        driver,

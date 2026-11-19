@@ -1,115 +1,27 @@
 package session
 
 import (
-	"context"
+	"net/http"
 	"testing"
-	"time"
 
+	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
-	"github.com/seamanticus/amitty/internal/dmwire/internal/testenv"
-	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
 )
 
-// sendReady returns a subscriber that sends each ready event on ch without waiting.
-func sendReady(ch chan<- *gateway.ReadyEvent) func(ws.Event) {
-	return func(ev ws.Event) {
-		if ready, ok := ev.(*gateway.ReadyEvent); ok {
-			select {
-			case ch <- ready:
-			default:
-			}
-		}
-	}
-}
-
 func TestAuthTokenRefresh(t *testing.T) {
-	s := New("old")
+	s := NewCustom(gateway.DefaultIdentifier("old"), api.NewCustomClient("old", httputil.NewClientWithDriver(httpdriver.WrapClient(http.Client{}))), handler.New())
 	s.Handler.Call(&gateway.ReadyEvent{AuthToken: "new"})
 	if s.Client.Session.Token != "new" {
 		t.Fatalf("unexpected token: %q", s.Client.Session.Token)
 	}
 }
 
-func TestSession(t *testing.T) {
-	attempts := 1
-	timeout := 45 * time.Second
-
-	if !testing.Short() {
-		attempts = 5
-		timeout = 8 * time.Minute
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	t.Cleanup(cancel)
-
-	env := testenv.Must(t)
-
-	readyCh := make(chan *gateway.ReadyEvent, 1)
-
-	s := NewWithIntents(env.BotToken, gateway.IntentGuilds)
-	s.Subscribe(sendReady(readyCh))
-
-	for i := 0; i < attempts; i++ {
-		if err := s.Open(ctx); err != nil {
-			t.Fatal("failed to open:", err)
-		}
-
-		if ready, ok := <-readyCh; !ok {
-			t.Error("ready not received")
-		} else {
-			now := time.Now()
-			t.Logf("%s: logged in as %s", now.Format(time.StampMilli), ready.User.Username)
-		}
-
-		if err := s.Close(); err != nil {
-			t.Fatal("failed to close:", err)
-		}
-
-		// Hold for an additional one second.
-		time.Sleep(time.Second)
-	}
-}
-
-func TestSessionConnect(t *testing.T) {
-	attempts := 1
-	timeout := 45 * time.Second
-
-	if !testing.Short() {
-		attempts = 5
-		timeout = 8 * time.Minute
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	t.Cleanup(cancel)
-
-	env := testenv.Must(t)
-
-	readyCh := make(chan *gateway.ReadyEvent, 1)
-
-	s := NewWithIntents(env.BotToken, gateway.IntentGuilds)
-	s.Subscribe(sendReady(readyCh))
-
-	for i := 0; i < attempts; i++ {
-		ctx, cancel := context.WithCancel(ctx)
-
-		go func() {
-			select {
-			case ready := <-readyCh:
-				now := time.Now()
-				t.Logf("%s: logged in as %s", now.Format(time.StampMilli), ready.User.Username)
-				cancel()
-			case <-ctx.Done():
-				t.Error("ready not received")
-			}
-		}()
-
-		if err := s.Connect(ctx); err != nil {
-			t.Fatal("failed to open:", err)
-		}
-
-		cancel()
-
-		// Hold for an additional one second.
-		time.Sleep(time.Second)
+func TestOpenWithoutGateway(t *testing.T) {
+	s := NewCustom(gateway.DefaultIdentifier("t"), api.NewCustomClient("t", httputil.NewClientWithDriver(httpdriver.WrapClient(http.Client{}))), handler.New())
+	if err := s.Open(t.Context()); err == nil {
+		t.Fatal("a session without a gateway opened")
 	}
 }

@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
 	"sync"
 	"time"
 
@@ -64,17 +63,6 @@ type connMutex struct {
 }
 
 var _ Connection = (*Conn)(nil)
-
-// NewConn creates a new default websocket connection with a default dialer.
-func NewConn(codec Codec) *Conn {
-	return NewConnWithDialer(codec, websocket.Dialer{
-		Proxy:             http.ProxyFromEnvironment,
-		HandshakeTimeout:  10 * time.Second,
-		ReadBufferSize:    rwBufferSize,
-		WriteBufferSize:   rwBufferSize,
-		EnableCompression: true,
-	})
-}
 
 // NewConnWithDialer creates a new default websocket connection with a custom
 // dialer.

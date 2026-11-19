@@ -39,17 +39,6 @@ const CodeInvalidSequence = 4007
 // https://discord.com/developers/docs/topics/opcodes-and-status-codes#gateway-gateway-close-event-codes.
 const CodeShardingRequired = 4011
 
-// URL asks Discord for a Websocket URL to the Gateway.
-func URL(ctx context.Context) (string, error) {
-	return api.GatewayURL(ctx)
-}
-
-// BotURL fetches the Gateway URL along with extra metadata. The token
-// passed in will NOT be prefixed with Bot.
-func BotURL(ctx context.Context, token string) (*api.BotData, error) {
-	return api.NewClient(token).WithContext(ctx).BotURL()
-}
-
 // AddGatewayParams appends into the given URL string the gateway URL
 // parameters.
 func AddGatewayParams(baseURL string) string {
@@ -89,50 +78,6 @@ type Gateway struct {
 	retryTimer lazytime.Timer
 }
 
-// NewWithIntents creates a new Gateway with the given intents and the default
-// stdlib JSON driver. Refer to NewGatewayWithDriver and AddIntents.
-func NewWithIntents(ctx context.Context, token string, intents ...Intents) (*Gateway, error) {
-	var allIntents Intents
-	for _, intent := range intents {
-		allIntents |= intent
-	}
-
-	g, err := New(ctx, token)
-	if err != nil {
-		return nil, err
-	}
-
-	g.AddIntents(allIntents)
-	return g, nil
-}
-
-// New creates a new Gateway to the default Discord server.
-func New(ctx context.Context, token string) (*Gateway, error) {
-	return NewWithIdentifier(ctx, DefaultIdentifier(token))
-}
-
-// NewWithIdentifier creates a new Gateway with the given gateway identifier and
-// the default everything. Sharded bots should prefer this function for the
-// shared identifier. The given Identifier will be modified.
-func NewWithIdentifier(ctx context.Context, id Identifier) (*Gateway, error) {
-	gatewayURL, err := id.QueryGateway(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	gatewayURL = AddGatewayParams(gatewayURL)
-	gateway := NewCustomWithIdentifier(gatewayURL, id, nil)
-
-	return gateway, nil
-}
-
-// NewCustom creates a new Gateway with a custom gateway URL and a new
-// Identifier. Most bots connecting to the official server should not use these
-// custom functions.
-func NewCustom(gatewayURL, token string) *Gateway {
-	return NewCustomWithIdentifier(gatewayURL, DefaultIdentifier(token), nil)
-}
-
 // DefaultGatewayOpts contains the default options to be used for connecting to
 // the gateway.
 var DefaultGatewayOpts = ws.GatewayOpts{
@@ -154,23 +99,6 @@ var DefaultGatewayOpts = ws.GatewayOpts{
 	DialTimeout:           0,
 	ReconnectAttempt:      0,
 	AlwaysCloseGracefully: true,
-}
-
-// NewCustomWithIdentifier creates a new Gateway with a custom gateway URL and a
-// pre-existing Identifier. If opts is nil, then DefaultGatewayOpts is used.
-func NewCustomWithIdentifier(gatewayURL string, id Identifier, opts *ws.GatewayOpts) *Gateway {
-	return NewFromState(gatewayURL, State{Identifier: id}, opts)
-}
-
-// NewFromState creates a new gateway from the given state and optionally
-// gateway options. If opts is nil, then DefaultGatewayOpts is used.
-func NewFromState(gatewayURL string, state State, opts *ws.GatewayOpts) *Gateway {
-	if opts == nil {
-		opts = &DefaultGatewayOpts
-	}
-
-	gw := ws.NewGateway(ws.NewWebsocket(ws.NewCodec(NewOpUnmarshalers(state.Identifier.Capabilities)), gatewayURL), opts)
-	return FromWebsocketGateway(gw, state)
 }
 
 // NewOpUnmarshalers returns an event registry configured with the capabilities sent with Identify.

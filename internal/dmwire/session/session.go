@@ -6,13 +6,11 @@ package session
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
 
 	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
-	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/ws/ophandler"
 )
@@ -47,66 +45,9 @@ type sessionState struct {
 	doneCh <-chan struct{}
 }
 
-// NewWithIntents is similar to New but adds the given intents in during
-// construction.
-func NewWithIntents(token string, intents ...gateway.Intents) *Session {
-	var allIntent gateway.Intents
-	for _, intent := range intents {
-		allIntent |= intent
-	}
-
-	id := gateway.DefaultIdentifier(token)
-	id.Intents = option.Some(uint(allIntent))
-
-	return NewWithIdentifier(id)
-}
-
-// New creates a new session from a given token. Most bots should be using
-// NewWithIntents instead.
-func New(token string) *Session {
-	return NewWithIdentifier(gateway.DefaultIdentifier(token))
-}
-
-// Login tries to log in as a normal user account; MFA is optional.
-func Login(ctx context.Context, email, password, mfa string) (*Session, error) {
-	// Make a scratch HTTP client without a token
-	client := api.NewClient("").WithContext(ctx)
-
-	// Try to login without TOTP
-	l, err := client.Login(email, password)
-	if err != nil {
-		return nil, fmt.Errorf("failed to login: %w", err)
-	}
-
-	if l.Token != "" && !l.MFA {
-		// We got the token, return with a new Session.
-		return New(l.Token), nil
-	}
-
-	// Discord requests MFA, so we need the MFA token.
-	if mfa == "" {
-		return nil, ErrMFA
-	}
-
-	// Retry logging in with a 2FA token
-	l, err = client.TOTP(mfa, l.Ticket, l.LoginInstanceID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to login with 2FA: %w", err)
-	}
-
-	return New(l.Token), nil
-}
-
-// NewWithIdentifier creates a bare Session with the given identifier.
-func NewWithIdentifier(id gateway.Identifier) *Session {
-	return NewCustom(id, api.NewClient(id.Token), handler.New())
-}
-
-// NewWithGateway constructs a bare Session from the given UNOPENED gateway.
-func NewWithGateway(g *gateway.Gateway, h *handler.Handler) *Session {
-	state := g.State()
-	client := api.NewClient(state.Identifier.Token)
-	return newCustom(state.Identifier, client, h, g)
+// NewWithGateway constructs a bare Session from the given UNOPENED gateway and the API client of the same account.
+func NewWithGateway(g *gateway.Gateway, client *api.Client, h *handler.Handler) *Session {
+	return newCustom(g.State().Identifier, client, h, g)
 }
 
 // NewCustom constructs a bare Session from the given parameters.
@@ -274,12 +215,9 @@ func (s *Session) Open(ctx context.Context) error {
 		}
 	}
 
+	// The gateway is the caller's, so it connects as the caller chose.
 	if s.state.gateway == nil {
-		g, err := gateway.NewWithIdentifier(ctx, s.state.id)
-		if err != nil {
-			return err
-		}
-		s.state.gateway = g
+		return errors.New("session has no gateway to open")
 	}
 
 	// Make a context that's stored in state so this can be used throughout.

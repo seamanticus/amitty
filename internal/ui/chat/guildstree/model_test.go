@@ -7,10 +7,9 @@ import (
 
 	"github.com/ayn2op/tview/tree"
 	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
-	"github.com/seamanticus/amitty/internal/dmwire/state"
-	"github.com/seamanticus/amitty/internal/dmwire/state/store/defaultstore"
 	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/internal/ningen/states/read"
 )
@@ -114,7 +113,7 @@ func TestMentionsLabel(t *testing.T) {
 }
 
 func TestModelMentions(t *testing.T) {
-	s := ningen.FromState(state.NewWithStore("", defaultstore.New()))
+	s := ningen.FromState(discordtest.State(t))
 	s.State.Call(&gateway.ReadyEvent{ReadStates: []gateway.ReadState{
 		{ChannelID: 1, LastMessageID: 10, MentionCount: 2},
 		{ChannelID: 2, LastMessageID: 20, MentionCount: 3},
@@ -128,7 +127,7 @@ func TestModelMentions(t *testing.T) {
 
 func TestModelRefreshReadState(t *testing.T) {
 	t.Run("keeps the name of a channel sharing its guild's ID", func(t *testing.T) {
-		s := ningen.FromState(state.NewWithStore("", defaultstore.New()))
+		s := ningen.FromState(discordtest.State(t))
 		me := discord.User{ID: 2}
 		guild := discord.Guild{ID: 1, Name: "guild", OwnerID: me.ID}
 		channel := discord.Channel{ID: 1, GuildID: guild.ID, Type: discord.GuildText, Name: "general"}

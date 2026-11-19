@@ -13,7 +13,6 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/session"
 	"github.com/seamanticus/amitty/internal/dmwire/state/store"
-	"github.com/seamanticus/amitty/internal/dmwire/state/store/defaultstore"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
 )
 
@@ -98,30 +97,6 @@ type State struct {
 	guildMutex    *sync.Mutex
 }
 
-// New creates a new state.
-func New(token string) *State {
-	return NewWithStore(token, defaultstore.New())
-}
-
-// NewWithIntents creates a new state with the given gateway intents. For more
-// information, refer to gateway.Intents.
-func NewWithIntents(token string, intents ...gateway.Intents) *State {
-	s := session.NewWithIntents(token, intents...)
-	return NewFromSession(s, defaultstore.New())
-}
-
-// NewWithIdentifier creates a new state with the given gateway identifier.
-func NewWithIdentifier(id gateway.Identifier) *State {
-	s := session.NewWithIdentifier(id)
-	return NewFromSession(s, defaultstore.New())
-}
-
-// NewWithStore creates a new state with the given store cabinet.
-func NewWithStore(token string, cabinet *store.Cabinet) *State {
-	s := session.New(token)
-	return NewFromSession(s, cabinet)
-}
-
 // NewFromSession creates a new State from the passed Session and Cabinet.
 func NewFromSession(s *session.Session, cabinet *store.Cabinet) *State {
 	state := &State{
@@ -138,21 +113,6 @@ func NewFromSession(s *session.Session, cabinet *store.Cabinet) *State {
 	}
 	state.hookSession()
 	return state
-}
-
-// NewAPIOnlyState creates a new State that only has API functions and no
-// gateway (or state caches). Use this as a drop-in for InteractionServer usage.
-//
-// This function may work for most use cases; however, it will not work for all
-// use cases. For example, bots that need the gateway won't be able to fully
-// work, which is expected.
-func NewAPIOnlyState(token string, h *handler.Handler) *State {
-	return &State{
-		Session:  session.NewCustom(gateway.DefaultIdentifier(token), api.NewClient(token), h),
-		Handler:  h,
-		Cabinet:  store.NoopCabinet,
-		StateLog: func(err error) {},
-	}
 }
 
 // WithContext returns a shallow copy of State with the context replaced in the

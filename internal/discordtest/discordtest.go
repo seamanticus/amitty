@@ -12,6 +12,11 @@ import (
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/vt"
 	"github.com/seamanticus/amitty/internal/dmwire/api"
+	"github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/session"
+	"github.com/seamanticus/amitty/internal/dmwire/state"
+	"github.com/seamanticus/amitty/internal/dmwire/state/store/defaultstore"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
 	dhttp "github.com/seamanticus/amitty/internal/http"
@@ -42,6 +47,12 @@ func ClosedClient(t testing.TB) *api.Client {
 	transport := redirect{target: target, base: server.Client().Transport}
 	server.Close()
 	return api.NewCustomClient("", httputil.NewClientWithDriver(dhttp.OmitEmptyHeaders(httpdriver.WrapClient(http.Client{Transport: transport}))))
+}
+
+// State returns an empty state of no account, with an empty store, whose API client can only reach a closed server, so a test never reaches Discord.
+func State(t testing.TB) *state.State {
+	t.Helper()
+	return state.NewFromSession(session.NewCustom(gateway.DefaultIdentifier(""), ClosedClient(t), handler.New()), defaultstore.New())
 }
 
 // Draw draws widget on a width x height mock terminal and returns the text drawn, one line per row.

@@ -7,9 +7,8 @@ import (
 
 	tviewimage "github.com/ayn2op/tview/image"
 	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
-	"github.com/seamanticus/amitty/internal/dmwire/state"
-	"github.com/seamanticus/amitty/internal/dmwire/state/store/defaultstore"
 	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/internal/ui/autocomplete"
 )
@@ -20,7 +19,7 @@ func TestItems(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s := ningen.FromState(state.NewWithStore("", defaultstore.New()))
+	s := ningen.FromState(discordtest.State(t))
 	if err := s.MyselfSet(discord.User{ID: 1, Username: "me"}, false); err != nil {
 		t.Fatal(err)
 	}
