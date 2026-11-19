@@ -188,6 +188,7 @@ func (w Widget) Handle(msg tui.Msg, area tui.Rectangle) tui.Msg {
 			if tab, ok := w.step(1); ok {
 				return w.selectTab(tab)
 			}
+		case tui.MouseMove, tui.MouseLeftUp, tui.MouseLeftClick, tui.MouseMiddleDown, tui.MouseMiddleUp, tui.MouseMiddleClick, tui.MouseRightDown, tui.MouseRightUp, tui.MouseRightClick:
 		}
 		return nil
 	}

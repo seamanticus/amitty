@@ -331,6 +331,8 @@ func (w Widget) Handle(msg tui.Msg, area tui.Rectangle) tui.Msg {
 			a.y -= v.port.Height
 		case ActionPageDown:
 			a.y += v.port.Height
+		case ActionNone:
+			fallthrough
 		default:
 			return msg
 		}
@@ -347,6 +349,8 @@ func (w Widget) Handle(msg tui.Msg, area tui.Rectangle) tui.Msg {
 			a.x -= v.port.Width / 2
 		case tui.MouseScrollRight:
 			a.x += v.port.Width / 2
+		case tui.MouseMove, tui.MouseLeftDown, tui.MouseLeftUp, tui.MouseLeftClick, tui.MouseMiddleDown, tui.MouseMiddleUp, tui.MouseMiddleClick, tui.MouseRightDown, tui.MouseRightUp, tui.MouseRightClick:
+			fallthrough
 		default:
 			return msg
 		}
@@ -391,6 +395,7 @@ func (w Widget) barMouse(m tui.MouseMsg, v view, a *ScrollState) bool {
 			a.y = w.thumbOffset(v, row, a.grab)
 		case tui.MouseLeftUp:
 			a.dragging = false
+		case tui.MouseLeftDown, tui.MouseLeftClick, tui.MouseMiddleDown, tui.MouseMiddleUp, tui.MouseMiddleClick, tui.MouseRightDown, tui.MouseRightUp, tui.MouseRightClick, tui.MouseScrollUp, tui.MouseScrollDown, tui.MouseScrollLeft, tui.MouseScrollRight:
 		}
 		return true
 	}

@@ -33,6 +33,7 @@ func Print(screen Screen, text string, x, y, width int, align HorizontalAlignmen
 	textWidth := uucode.StringWidth(text)
 	cut := 0
 	switch align {
+	case HorizontalAlignmentLeft:
 	case HorizontalAlignmentRight:
 		cut = textWidth - width
 	case HorizontalAlignmentCenter:
@@ -49,6 +50,7 @@ func Print(screen Screen, text string, x, y, width int, align HorizontalAlignmen
 	}
 	if textWidth < width {
 		switch align {
+		case HorizontalAlignmentLeft:
 		case HorizontalAlignmentRight:
 			x += width - textWidth
 		case HorizontalAlignmentCenter:

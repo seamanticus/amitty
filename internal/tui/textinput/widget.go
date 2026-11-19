@@ -188,6 +188,7 @@ func edit(action Action, value string, cursor int) (string, int) {
 		return value, 0
 	case ActionEnd:
 		return value, len(value)
+	case ActionNone, ActionSubmit:
 	}
 	return value, cursor
 }

@@ -192,6 +192,7 @@ const (
 // FromHorizontal returns align as an alignment along either axis: left is the start and right the end.
 func FromHorizontal(align tui.HorizontalAlignment) Alignment {
 	switch align {
+	case tui.HorizontalAlignmentLeft:
 	case tui.HorizontalAlignmentCenter:
 		return Center
 	case tui.HorizontalAlignmentRight:
@@ -203,6 +204,7 @@ func FromHorizontal(align tui.HorizontalAlignment) Alignment {
 // FromVertical returns align as an alignment along either axis: the top is the start and the bottom the end.
 func FromVertical(align tui.VerticalAlignment) Alignment {
 	switch align {
+	case tui.VerticalAlignmentTop:
 	case tui.VerticalAlignmentCenter:
 		return Center
 	case tui.VerticalAlignmentBottom:
@@ -214,6 +216,7 @@ func FromVertical(align tui.VerticalAlignment) Alignment {
 // offset returns how far into space something goes with align: none at the start, half of it in the center and all of it at the end.
 func offset(space int, align Alignment) int {
 	switch align {
+	case Start:
 	case Center:
 		return space / 2
 	case End:

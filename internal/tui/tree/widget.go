@@ -378,6 +378,8 @@ func (w Widget) Handle(msg tui.Msg, area tui.Rectangle) tui.Msg {
 			}
 		case ActionSelect:
 			return w.selectNode(v.node(current))
+		case ActionNone:
+			fallthrough
 		default:
 			return msg
 		}

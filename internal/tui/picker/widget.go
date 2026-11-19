@@ -109,6 +109,7 @@ func (w Widget) Handle(msg tui.Msg, area tui.Rectangle) tui.Msg {
 			return nil
 		case ActionCancel:
 			return w.onCancel
+		case ActionNone:
 		}
 		if w.listKeybind(key) != list.ActionNone {
 			area.Y, area.Height = area.Y+inputHeight, max(area.Height-inputHeight, 0)

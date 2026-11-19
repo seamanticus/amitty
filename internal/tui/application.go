@@ -226,6 +226,7 @@ func (a *Application[M]) fireMouseActions(event *tcell.EventMouse) (updated, qui
 		switch action {
 		case MouseLeftDown, MouseMiddleDown, MouseRightDown:
 			a.mouseDownX, a.mouseDownY = x, y
+		case MouseMove, MouseLeftUp, MouseLeftClick, MouseMiddleUp, MouseMiddleClick, MouseRightUp, MouseRightClick, MouseScrollUp, MouseScrollDown, MouseScrollLeft, MouseScrollRight:
 		}
 		var u bool
 		u, quit = a.handle(MouseMsg{EventMouse: event, Action: action})

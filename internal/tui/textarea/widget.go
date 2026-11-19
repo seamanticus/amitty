@@ -240,6 +240,7 @@ func edit(action Action, value string, cursor int, lines []line) (string, int) {
 			end++
 		}
 		return value[:cursor] + value[end:], cursor
+	case ActionNone:
 	}
 	return value, cursor
 }

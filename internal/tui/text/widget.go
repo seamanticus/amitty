@@ -92,6 +92,7 @@ func (w Widget) Draw(screen tui.Screen, area tui.Rectangle) {
 		// A line wider than area is cut off on the side it is not aligned to, or on both if it is centered.
 		start := 0
 		switch w.alignX {
+		case tui.HorizontalAlignmentLeft:
 		case tui.HorizontalAlignmentCenter:
 			start = (area.Width - Width(line)) / 2
 		case tui.HorizontalAlignmentRight:

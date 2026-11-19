@@ -165,6 +165,8 @@ func (w Widget) Handle(msg tui.Msg, area tui.Rectangle) tui.Msg {
 			cursor = min(0, w.count-1)
 		case ActionSelectBottom:
 			cursor = w.count - 1
+		case ActionNone:
+			fallthrough
 		default:
 			return msg
 		}

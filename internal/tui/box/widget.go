@@ -243,6 +243,7 @@ func (w Widget) labels(area tui.Rectangle) []label {
 		width := l.widget.Layout(layout.Limits{Max: layout.Size{Width: room, Height: 1}}).Width
 		x := area.X + 1
 		switch l.align {
+		case tui.HorizontalAlignmentLeft:
 		case tui.HorizontalAlignmentCenter:
 			x += room/2 - width/2
 		case tui.HorizontalAlignmentRight:
