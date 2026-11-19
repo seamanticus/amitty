@@ -7,11 +7,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"sync"
 
 	"github.com/ayn2op/arikawa/v3/api"
-	"github.com/ayn2op/arikawa/v3/api/webhook"
 	"github.com/ayn2op/arikawa/v3/gateway"
 	"github.com/ayn2op/arikawa/v3/utils/handler"
 	"github.com/ayn2op/arikawa/v3/utils/json/option"
@@ -34,11 +32,6 @@ type Session struct {
 
 	// internal state to not be copied around.
 	state *sessionState
-
-	// OnInteractionError is called when an interaction added using
-	// AddInteractionHandler cannot be sent. By default, it logs into the
-	// console.
-	OnInteractionError func(*gateway.InteractionCreateEvent, error)
 
 	// DontWaitForReady makes Open return after the first event (usually HELLO).
 	DontWaitForReady bool // false
@@ -133,12 +126,6 @@ func newCustom(
 		state: &sessionState{
 			gateway: g,
 			id:      id,
-		},
-		OnInteractionError: func(ev *gateway.InteractionCreateEvent, err error) {
-			// Log the error by default.
-			// TODO: fix this once we resolve
-			// https://github.com/diamondburned/arikawa/issues/361.
-			log.Printf("session: error handling interaction %v: %v", ev.ID, err)
 		},
 	}
 	h.AddSyncHandler(func(ev *gateway.ReadyEvent) {
@@ -374,30 +361,6 @@ func (s *Session) WithContext(ctx context.Context) *Session {
 	cpy := *s
 	cpy.Client = s.Client.WithContext(ctx)
 	return &cpy
-}
-
-// AddInteractionHandler adds an interaction handler function to be handled with
-// the gateway and the API client. Use this as a compatibility layer for bots
-// that support both methods of hosting.
-//
-// AddInteractionHandler will automatically send the return value of the
-// interaction handler to the API. If the return value cannot be sent
-// successfully, then s.OnInteractionError will be called.
-func (s *Session) AddInteractionHandler(h webhook.InteractionHandler) {
-	// State doesn't override this, but it doesn't touch
-	// InteractionCreateEvents, so it shouldn't need to.
-	s.AddHandler(func(ev *gateway.InteractionCreateEvent) {
-		if resp := h.HandleInteraction(&ev.InteractionEvent); resp != nil {
-			if err := s.RespondInteraction(ev.ID, ev.Token, *resp); err != nil {
-				s.OnInteractionError(ev, err)
-			}
-		}
-	})
-}
-
-// AddInteractionHandlerFunc is a function variant of AddInteractionHandler.
-func (s *Session) AddInteractionHandlerFunc(f webhook.InteractionHandlerFunc) {
-	s.AddInteractionHandler(f)
 }
 
 // SendGateway is a helper to send messages over the gateway. It will check

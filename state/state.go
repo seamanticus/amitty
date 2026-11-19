@@ -12,7 +12,6 @@ import (
 	"github.com/ayn2op/arikawa/v3/discord"
 	"github.com/ayn2op/arikawa/v3/gateway"
 	"github.com/ayn2op/arikawa/v3/session"
-	"github.com/ayn2op/arikawa/v3/session/shard"
 	"github.com/ayn2op/arikawa/v3/state/store"
 	"github.com/ayn2op/arikawa/v3/state/store/defaultstore"
 	"github.com/ayn2op/arikawa/v3/utils/handler"
@@ -22,18 +21,6 @@ var (
 	MaxFetchMembers uint = api.MaxMemberFetchLimit
 	MaxFetchGuilds  uint = api.MaxGuildFetchLimit
 )
-
-// NewShardFunc creates a shard constructor with its own state registry and
-// handlers. The given opts function is called everytime the State is created.
-// The user should initialize handlers and intents in the opts function.
-func NewShardFunc(opts func(*shard.Manager, *State)) shard.NewShardFunc {
-	return func(m *shard.Manager, id *gateway.Identifier) (shard.Shard, error) {
-		sessn := session.NewCustom(*id, api.NewClient(id.Token), handler.New())
-		state := NewFromSession(sessn, defaultstore.New())
-		opts(m, state)
-		return state, nil
-	}
-}
 
 // State is the cache to store events coming from Discord as well as data from
 // API calls.
