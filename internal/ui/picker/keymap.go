@@ -1,10 +1,10 @@
 package picker
 
 import (
-	"github.com/ayn2op/discordo/internal/config"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/keybind"
 	"github.com/ayn2op/tview/picker"
+	"github.com/seamanticus/discordo/internal/config"
 )
 
 func pickerKeybind(keybinds config.PickerKeybinds) func(tview.KeyMsg) picker.Action {

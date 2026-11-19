@@ -5,11 +5,6 @@ import (
 	"time"
 
 	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/discordo/internal/config"
-	"github.com/ayn2op/discordo/internal/markdown"
-	"github.com/ayn2op/discordo/internal/ui"
-	"github.com/ayn2op/discordo/internal/ui/images"
-	"github.com/ayn2op/discordo/internal/voice"
 	"github.com/ayn2op/ningen/v3"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/box"
@@ -24,6 +19,11 @@ import (
 	"github.com/ayn2op/tview/spacer"
 	"github.com/ayn2op/tview/text"
 	"github.com/ayn2op/tview/viewport"
+	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/discordo/internal/markdown"
+	"github.com/seamanticus/discordo/internal/ui"
+	"github.com/seamanticus/discordo/internal/ui/images"
+	"github.com/seamanticus/discordo/internal/voice"
 	"github.com/yuin/goldmark/v2/ast"
 )
 

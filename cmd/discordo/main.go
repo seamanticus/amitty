@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/ayn2op/discordo/cmd"
+	"github.com/seamanticus/discordo/cmd"
 )
 
 func main() {

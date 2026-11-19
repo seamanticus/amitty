@@ -12,13 +12,13 @@ import (
 	"github.com/ayn2op/arikawa/v3/api"
 	"github.com/ayn2op/arikawa/v3/discord"
 	"github.com/ayn2op/arikawa/v3/utils/httputil"
-	"github.com/ayn2op/discordo/internal/consts"
-	"github.com/ayn2op/discordo/internal/ui"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/ayn2op/tview/picker"
 	"github.com/ayn2op/tview/text"
 	"github.com/ncruces/zenity"
+	"github.com/seamanticus/discordo/internal/consts"
+	"github.com/seamanticus/discordo/internal/ui"
 	"github.com/skratchdot/open-golang/open"
 )
 

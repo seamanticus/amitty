@@ -9,13 +9,13 @@ import (
 	"github.com/ayn2op/arikawa/v3/discord"
 	"github.com/ayn2op/arikawa/v3/gateway"
 	"github.com/ayn2op/arikawa/v3/utils/ws"
-	"github.com/ayn2op/discordo/internal/ui"
-	"github.com/ayn2op/discordo/internal/ui/chat/composer"
-	"github.com/ayn2op/discordo/internal/ui/chat/guildstree"
-	"github.com/ayn2op/discordo/internal/ui/chat/reactionspicker"
 	"github.com/ayn2op/ningen/v3"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
+	"github.com/seamanticus/discordo/internal/ui"
+	"github.com/seamanticus/discordo/internal/ui/chat/composer"
+	"github.com/seamanticus/discordo/internal/ui/chat/guildstree"
+	"github.com/seamanticus/discordo/internal/ui/chat/reactionspicker"
 )
 
 // closeCodeAuthenticationFailed is the close code of the gateway for a token it rejects.

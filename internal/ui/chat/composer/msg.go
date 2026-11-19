@@ -15,12 +15,12 @@ import (
 	"github.com/ayn2op/arikawa/v3/gateway"
 	"github.com/ayn2op/arikawa/v3/utils/json/option"
 	"github.com/ayn2op/arikawa/v3/utils/sendpart"
-	"github.com/ayn2op/discordo/internal/config"
-	"github.com/ayn2op/discordo/internal/ui/autocomplete/emojis"
-	"github.com/ayn2op/discordo/internal/ui/autocomplete/mentions"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/ncruces/zenity"
+	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/discordo/internal/ui/autocomplete/emojis"
+	"github.com/seamanticus/discordo/internal/ui/autocomplete/mentions"
 	"golang.design/x/clipboard"
 )
 

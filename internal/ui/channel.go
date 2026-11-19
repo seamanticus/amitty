@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/discordo/internal/config"
 	"github.com/ayn2op/ningen/v3"
+	"github.com/seamanticus/discordo/internal/config"
 )
 
 // ChannelToString returns how channel is shown in the UI: an icon for its type and its name, or the recipients' names for a DM.

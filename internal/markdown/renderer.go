@@ -6,9 +6,9 @@ import (
 	"time"
 
 	md "github.com/ayn2op/arikawa/v3/markdown"
-	"github.com/ayn2op/discordo/internal/config"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/text"
+	"github.com/seamanticus/discordo/internal/config"
 	"github.com/yuin/goldmark/v2/ast"
 )
 

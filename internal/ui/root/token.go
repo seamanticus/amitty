@@ -3,9 +3,9 @@ package root
 import (
 	"log/slog"
 
-	"github.com/ayn2op/discordo/internal/consts"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
+	"github.com/seamanticus/discordo/internal/consts"
 	"github.com/zalando/go-keyring"
 )
 

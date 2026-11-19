@@ -10,10 +10,6 @@ import (
 
 	"github.com/ayn2op/arikawa/v3/discord"
 	"github.com/ayn2op/arikawa/v3/gateway"
-	"github.com/ayn2op/discordo/internal/config"
-	"github.com/ayn2op/discordo/internal/ui"
-	uitree "github.com/ayn2op/discordo/internal/ui/tree"
-	"github.com/ayn2op/discordo/internal/voice"
 	"github.com/ayn2op/ningen/v3"
 	"github.com/ayn2op/ningen/v3/states/read"
 	"github.com/ayn2op/tview"
@@ -23,6 +19,10 @@ import (
 	"github.com/ayn2op/tview/tree"
 	"github.com/ayn2op/tview/viewport"
 	"github.com/gdamore/tcell/v3"
+	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/discordo/internal/ui"
+	uitree "github.com/seamanticus/discordo/internal/ui/tree"
+	"github.com/seamanticus/discordo/internal/voice"
 )
 
 type dmNode struct{}

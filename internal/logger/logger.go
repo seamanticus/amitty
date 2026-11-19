@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ayn2op/discordo/internal/consts"
+	"github.com/seamanticus/discordo/internal/consts"
 )
 
 const fileName = "logs.txt"

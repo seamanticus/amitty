@@ -9,10 +9,10 @@ import (
 	"github.com/ayn2op/arikawa/v3/gateway"
 	"github.com/ayn2op/arikawa/v3/state"
 	"github.com/ayn2op/arikawa/v3/state/store/defaultstore"
-	"github.com/ayn2op/discordo/internal/config"
 	"github.com/ayn2op/ningen/v3"
 	"github.com/ayn2op/ningen/v3/states/read"
 	"github.com/ayn2op/tview/tree"
+	"github.com/seamanticus/discordo/internal/config"
 )
 
 func TestModelMoveDMToFront(t *testing.T) {

@@ -7,10 +7,10 @@ import (
 
 	"github.com/ayn2op/arikawa/v3/discord"
 	"github.com/ayn2op/arikawa/v3/gateway"
-	"github.com/ayn2op/discordo/internal/ui"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/ayn2op/tview/viewport"
+	"github.com/seamanticus/discordo/internal/ui"
 )
 
 // Msg is implemented by the messages the list sends itself, which must reach it whatever has the focus.

@@ -7,7 +7,7 @@ import (
 	stdHttp "net/http"
 
 	"github.com/ayn2op/arikawa/v3/api"
-	"github.com/ayn2op/discordo/pkg/tzlocal"
+	"github.com/seamanticus/discordo/pkg/tzlocal"
 )
 
 func Headers() stdHttp.Header {

@@ -6,11 +6,11 @@ import (
 	"slices"
 
 	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/discordo/pkg/discordemoji"
 	"github.com/ayn2op/ningen/v3"
 	"github.com/ayn2op/tview"
 	tviewimage "github.com/ayn2op/tview/image"
 	"github.com/ayn2op/tview/text"
+	"github.com/seamanticus/discordo/pkg/discordemoji"
 )
 
 // Rows is how tall custom emojis are drawn, the same in every pane, as they share the images by URL.

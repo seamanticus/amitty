@@ -3,9 +3,9 @@ package tree
 import (
 	"fmt"
 
-	"github.com/ayn2op/discordo/internal/ui"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/tree"
+	"github.com/seamanticus/discordo/internal/ui"
 )
 
 // YankID copies the ID of node to the clipboard.

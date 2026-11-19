@@ -16,10 +16,10 @@ import (
 	"sync"
 
 	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/discordo/internal/ui/images"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	tviewimage "github.com/ayn2op/tview/image"
+	"github.com/seamanticus/discordo/internal/ui/images"
 	_ "golang.org/x/image/webp"
 )
 

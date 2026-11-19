@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	"github.com/ayn2op/discordo/pkg/tzlocal"
+	"github.com/seamanticus/discordo/pkg/tzlocal"
 )
 
 // Go always uses UTC as the local time zone on Android.

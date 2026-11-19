@@ -1,4 +1,4 @@
-# Discordo &middot; [![discord](https://img.shields.io/discord/1297292231299956788?color=5865F2&logo=discord&logoColor=white)](https://discord.com/invite/VzF9UFn2aB) [![license](https://img.shields.io/github/license/ayn2op/discordo?logo=github)](https://github.com/ayn2op/discordo/blob/master/LICENSE)
+# Discordo &middot; [![discord](https://img.shields.io/discord/1297292231299956788?color=5865F2&logo=discord&logoColor=white)](https://discord.com/invite/VzF9UFn2aB) [![license](https://img.shields.io/github/license/seamanticus/discordo?logo=github)](https://github.com/seamanticus/discordo/blob/master/LICENSE)
 
 Discordo is a lightweight, secure, and feature-rich Discord terminal client.
 
@@ -9,7 +9,7 @@ Discordo is a lightweight, secure, and feature-rich Discord terminal client.
 
 ### Prebuilt binaries
 
-You can download and install a [prebuilt binary here](https://nightly.link/ayn2op/discordo/workflows/ci/main) for Windows, macOS, or Linux.
+You can download and install a [prebuilt binary here](https://nightly.link/seamanticus/discordo/workflows/ci/master) for Linux.
 
 ### Package managers
 
@@ -31,9 +31,9 @@ scoop install discordo
 Requires [Go](https://go.dev/dl). Voice support requires a C compiler, and `libpulse` or `libasound` on Linux.
 
 ```sh
-git clone https://github.com/ayn2op/discordo
+git clone https://github.com/seamanticus/discordo
 cd discordo
-go build .
+go build ./cmd/discordo
 ```
 
 #### Tags

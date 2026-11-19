@@ -3,8 +3,8 @@ package login
 import (
 	"log/slog"
 
-	"github.com/ayn2op/discordo/internal/ui"
 	"github.com/ayn2op/tview"
+	"github.com/seamanticus/discordo/internal/ui"
 )
 
 // selectTabMsg switches to the tab at an index.

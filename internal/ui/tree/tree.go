@@ -2,14 +2,14 @@
 package tree
 
 import (
-	"github.com/ayn2op/discordo/internal/config"
-	"github.com/ayn2op/discordo/internal/ui"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/box"
 	"github.com/ayn2op/tview/layout"
 	"github.com/ayn2op/tview/tree"
 	"github.com/ayn2op/tview/viewport"
 	"github.com/gdamore/tcell/v3"
+	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/discordo/internal/ui"
 )
 
 // ScrollMsg scrolls the tree to ScrollState, before passing on Msg if the tree sent one.

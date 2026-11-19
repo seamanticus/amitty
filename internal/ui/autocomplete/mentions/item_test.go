@@ -8,10 +8,10 @@ import (
 	"github.com/ayn2op/arikawa/v3/discord"
 	"github.com/ayn2op/arikawa/v3/state"
 	"github.com/ayn2op/arikawa/v3/state/store/defaultstore"
-	"github.com/ayn2op/discordo/internal/config"
-	"github.com/ayn2op/discordo/internal/ui/autocomplete"
 	"github.com/ayn2op/ningen/v3"
 	tviewimage "github.com/ayn2op/tview/image"
+	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/discordo/internal/ui/autocomplete"
 )
 
 func TestItems(t *testing.T) {

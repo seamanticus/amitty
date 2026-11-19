@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/discordo/internal/ui/emojis"
-	"github.com/ayn2op/discordo/internal/ui/images"
 	tviewimage "github.com/ayn2op/tview/image"
+	"github.com/seamanticus/discordo/internal/ui/emojis"
+	"github.com/seamanticus/discordo/internal/ui/images"
 )
 
 func TestModelPreviewSources(t *testing.T) {

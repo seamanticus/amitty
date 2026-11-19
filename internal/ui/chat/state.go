@@ -8,10 +8,10 @@ import (
 	"github.com/ayn2op/arikawa/v3/gateway"
 	"github.com/ayn2op/arikawa/v3/utils/httputil/httpdriver"
 	"github.com/ayn2op/arikawa/v3/utils/ws"
-	"github.com/ayn2op/discordo/internal/ui"
 	"github.com/ayn2op/ningen/v3/states/read"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
+	"github.com/seamanticus/discordo/internal/ui"
 )
 
 func onRequest(req httpdriver.Request) error {

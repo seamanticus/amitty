@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ayn2op/discordo/internal/config"
 	"github.com/gdamore/tcell/v3"
+	"github.com/seamanticus/discordo/internal/config"
 )
 
 func TestRendererWriteCodeBlock(t *testing.T) {

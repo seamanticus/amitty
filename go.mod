@@ -1,4 +1,4 @@
-module github.com/ayn2op/discordo
+module github.com/seamanticus/discordo
 
 go 1.27.0
 

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/ayn2op/arikawa/v3/discord"
-	"github.com/ayn2op/discordo/internal/ui"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/button"
 	"github.com/ayn2op/tview/cmd"
@@ -15,6 +14,7 @@ import (
 	"github.com/ayn2op/tview/row"
 	"github.com/ayn2op/tview/slider"
 	"github.com/ayn2op/tview/text"
+	"github.com/seamanticus/discordo/internal/ui"
 )
 
 const (

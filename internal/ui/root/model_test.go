@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ayn2op/discordo/internal/config"
 	"github.com/gdamore/tcell/v3"
+	"github.com/seamanticus/discordo/internal/config"
 )
 
 func TestNewModel(t *testing.T) {

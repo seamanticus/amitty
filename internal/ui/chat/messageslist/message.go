@@ -9,14 +9,14 @@ import (
 	"github.com/ayn2op/arikawa/v3/discord"
 	md "github.com/ayn2op/arikawa/v3/markdown"
 	"github.com/ayn2op/arikawa/v3/state"
-	"github.com/ayn2op/discordo/internal/markdown"
-	"github.com/ayn2op/discordo/internal/ui/emojis"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/layout"
 	"github.com/ayn2op/tview/row"
 	"github.com/ayn2op/tview/text"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
+	"github.com/seamanticus/discordo/internal/markdown"
+	"github.com/seamanticus/discordo/internal/ui/emojis"
 	"github.com/yuin/goldmark/v2/ast"
 )
 

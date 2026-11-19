@@ -11,14 +11,14 @@ import (
 
 	"github.com/ayn2op/arikawa/v3/discord"
 	"github.com/ayn2op/arikawa/v3/state"
-	"github.com/ayn2op/discordo/internal/config"
-	"github.com/ayn2op/discordo/internal/ui/emojis"
 	"github.com/ayn2op/ningen/v3"
 	"github.com/ayn2op/tview"
 	tviewimage "github.com/ayn2op/tview/image"
 	"github.com/ayn2op/tview/layout"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/vt"
+	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/discordo/internal/ui/emojis"
 )
 
 func testConfig(t *testing.T) *config.Config {

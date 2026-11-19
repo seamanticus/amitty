@@ -5,9 +5,9 @@ import (
 	"errors"
 
 	"github.com/ayn2op/arikawa/v3/utils/httputil"
-	"github.com/ayn2op/discordo/internal/http"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
+	"github.com/seamanticus/discordo/internal/http"
 )
 
 type TokenMsg string

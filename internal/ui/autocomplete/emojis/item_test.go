@@ -7,8 +7,8 @@ import (
 
 	"github.com/ayn2op/arikawa/v3/discord"
 	"github.com/ayn2op/arikawa/v3/state"
-	"github.com/ayn2op/discordo/internal/config"
 	"github.com/ayn2op/ningen/v3"
+	"github.com/seamanticus/discordo/internal/config"
 )
 
 func TestItems(t *testing.T) {
