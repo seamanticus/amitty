@@ -7,8 +7,10 @@ import (
 	"strings"
 )
 
-// zoneinfoDirs are where /etc/localtime may link into.
-var zoneinfoDirs = []string{"/usr/share/zoneinfo/", "../usr/share/zoneinfo/", "/etc/zoneinfo/", "../etc/zoneinfo/"}
+// zoneinfoDirs returns where /etc/localtime may link into.
+func zoneinfoDirs() [4]string {
+	return [...]string{"/usr/share/zoneinfo/", "../usr/share/zoneinfo/", "/etc/zoneinfo/", "../etc/zoneinfo/"}
+}
 
 // Name returns the IANA name of the system's time zone, such as America/New_York.
 func Name() (string, error) {
@@ -33,7 +35,7 @@ func fromFiles(localtime, timezone string) (string, error) {
 }
 
 func zoneFromLink(target string) (string, bool) {
-	for _, dir := range zoneinfoDirs {
+	for _, dir := range zoneinfoDirs() {
 		if name, ok := strings.CutPrefix(target, dir); ok {
 			return name, true
 		}
