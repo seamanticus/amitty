@@ -264,15 +264,6 @@ func TestModelSelectLastOwn(t *testing.T) {
 	}
 }
 
-func TestWaveformRail(t *testing.T) {
-	waveform := make([]byte, 256)
-	waveform[255] = 255
-
-	if got, want := strings.Join(waveformRail(waveform), ""), strings.Repeat("▁", 28)+"█"; got != want {
-		t.Errorf("got %q, want %q", got, want)
-	}
-}
-
 func TestModelMessageURLs(t *testing.T) {
 	t.Run("schemes", func(t *testing.T) {
 		ml := newTestModel(t, testConfig(t))

@@ -23,11 +23,6 @@ type olderMessagesLoadedMsg struct {
 
 func (olderMessagesLoadedMsg) isMsg() {}
 
-// voiceMsg reports that the status of the voice message player changed.
-type voiceMsg struct{}
-
-func (voiceMsg) isMsg() {}
-
 // ReplyMsg asks to reply to Message by Name, mentioning its author if Mention is set.
 type ReplyMsg struct {
 	Message discord.Message

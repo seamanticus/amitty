@@ -24,9 +24,6 @@ func (m Model) ShortHelp() []keybind.Keybind {
 		if len(selectedMessage.Attachments) != 0 || len(m.selectedURLs()) != 0 {
 			help = append(help, keybinds.Open.Keybind)
 		}
-		if isVoiceMessage(*selectedMessage) {
-			help = append(help, keybinds.Play.Keybind)
-		}
 	}
 
 	return help
@@ -39,9 +36,6 @@ func (m Model) FullHelp() [][]keybind.Keybind {
 		actions, manage, attachments = m.messageHelp(*message)
 	}
 
-	if m.voiceStatus.ID.IsValid() {
-		attachments = append(attachments, keybinds.SeekBackward.Keybind, keybinds.SeekForward.Keybind)
-	}
 	actions = append(actions, keybinds.Cancel.Keybind)
 
 	return [][]keybind.Keybind{
@@ -86,10 +80,6 @@ func (m Model) messageHelp(message discord.Message) (actions, manage, attachment
 
 	if len(message.Attachments) != 0 {
 		attachments = append(attachments, keybinds.Download.Keybind)
-	}
-
-	if isVoiceMessage(message) {
-		attachments = append(attachments, keybinds.Play.Keybind)
 	}
 
 	return actions, manage, attachments

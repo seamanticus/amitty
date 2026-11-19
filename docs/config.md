@@ -538,26 +538,6 @@ Maximum height. 0 makes the list as tall as needed.
 
 Default: `0`
 
-# voice
-
-## voice.sensitivity
-
-How loud the microphone must be for what is said to be sent, in dB below the loudest it can be.
-
-Default: `-40.0`
-
-## voice.volume
-
-How loud everyone is played, in percent.
-
-Default: `100`
-
-## voice.volume_step
-
-How much louder or quieter, in percent, a voice member is played per keypress.
-
-Default: `10`
-
 # icons
 
 ## icons.guild_category
@@ -600,16 +580,6 @@ Default: `"≡ "`
 
 Default: `"s-"`
 
-## icons.voice_muted
-
-Shown after the members of a voice channel who are muted or deafened.
-
-Default: `" (muted)"`
-
-## icons.voice_deafened
-
-Default: `" (deafened)"`
-
 # keybinds
 
 Global shortcuts. A keybind is a key such as "ctrl+k", or a list of keys.
@@ -629,22 +599,6 @@ Default: `"alt+m"`
 ## keybinds.toggle_channels_picker
 
 Default: `"ctrl+k"`
-
-## keybinds.toggle_mute
-
-Start or stop sending what the microphone captures to the voice channel joined.
-
-Default: `"alt+v"`
-
-## keybinds.toggle_deafen
-
-Stop or start playing what is said in the voice channel joined. Stopping also mutes.
-
-Default: `"alt+d"`
-
-## keybinds.leave_voice
-
-Default: `"alt+l"`
 
 ## keybinds.toggle_help
 
@@ -793,28 +747,6 @@ Default: `"K"`
 ### keybinds.guilds_tree.select_next_unread
 
 Default: `"J"`
-
-### keybinds.guilds_tree.toggle_voice
-
-Join the highlighted voice channel to listen, or leave it.
-
-Default: `"v"`
-
-### keybinds.guilds_tree.increase_volume
-
-Play the highlighted voice member louder or quieter.
-
-Default: `">"`
-
-### keybinds.guilds_tree.decrease_volume
-
-Default: `"<"`
-
-### keybinds.guilds_tree.toggle_member_mute
-
-Mute the highlighted voice member, or unmute them to 100% if they are.
-
-Default: `"0"`
 
 ## keybinds.members_tree
 
@@ -984,22 +916,6 @@ Default: `"a"`
 Download one of the selected message's attachments.
 
 Default: `"D"`
-
-### keybinds.messages_list.play
-
-Play, pause or resume the selected voice message.
-
-Default: `"p"`
-
-### keybinds.messages_list.seek_backward
-
-Seek the voice message that is playing or paused.
-
-Default: `["h", "left"]`
-
-### keybinds.messages_list.seek_forward
-
-Default: `["l", "right"]`
 
 ### keybinds.messages_list.yank_content
 
@@ -1243,18 +1159,6 @@ Default: `{ foreground = "red" }`
 ### theme.guilds_tree.offline_style
 
 Default: `{ foreground = "gray" }`
-
-### theme.guilds_tree.speaking_style
-
-The style of whoever is speaking in the voice channel joined.
-
-Default: `{ foreground = "green" }`
-
-### theme.guilds_tree.voice_limit_style
-
-The style of how full a voice channel that has a user limit is.
-
-Default: `{ foreground = "dodgerblue" }`
 
 ## theme.members_tree
 

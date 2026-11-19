@@ -28,7 +28,7 @@ scoop install discordo
 
 ### Building from source
 
-Requires [Go](https://go.dev/dl). Voice support requires a C compiler, and `libpulse` or `libasound` on Linux.
+Requires [Go](https://go.dev/dl).
 
 ```sh
 git clone https://github.com/seamanticus/discordo
@@ -38,7 +38,6 @@ go build ./cmd/discordo
 
 #### Tags
 
-- `no_voice` to build without voice support.
 - `no_syntax_highlighting` to build without syntax highlighting in code blocks.
 
 ## Usage

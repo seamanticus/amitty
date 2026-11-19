@@ -247,10 +247,6 @@ type (
 
 type GuildsTreeThemeConfig struct {
 	TreeThemeConfig
-	// The style of whoever is speaking in the voice channel joined.
-	SpeakingStyle Style `toml:"speaking_style"`
-	// The style of how full a voice channel that has a user limit is.
-	VoiceLimitStyle Style `toml:"voice_limit_style"`
 }
 
 type TreeThemeConfig struct {
@@ -299,8 +295,6 @@ func defaultTheme() ThemeConfig {
 		Border: focus,
 		GuildsTree: GuildsTreeThemeConfig{
 			TreeThemeConfig: tree,
-			SpeakingStyle:   Style{plain.Foreground(color.Green)},
-			VoiceLimitStyle: Style{plain.Foreground(color.DodgerBlue)},
 		},
 		MembersTree: tree,
 		ScrollBar:   ScrollBarThemeConfig{TrackStyle: dim},

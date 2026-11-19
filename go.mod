@@ -18,7 +18,6 @@ require (
 	github.com/bogdanfinn/fhttp v0.7.3
 	github.com/bogdanfinn/tls-client v1.18.1
 	github.com/gdamore/tcell/v3 v3.6.1-0.20261105165643-4cedad629677
-	github.com/gen2brain/malgo v0.11.27
 	github.com/gorilla/websocket v1.5.3
 	github.com/mattn/go-shellwords v1.0.16
 	github.com/ncruces/zenity v0.10.15
@@ -26,8 +25,6 @@ require (
 	github.com/sahilm/fuzzy v0.1.3
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
-	github.com/thomas-vilte/dave-go v0.5.1
-	github.com/tphakala/go-opus v1.4.0
 	github.com/yuin/goldmark/v2 v2.1.16
 	golang.design/x/clipboard v0.11.0
 	golang.org/x/image v0.48.0
@@ -45,7 +42,6 @@ require (
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/dchest/jsmin v1.0.0 // indirect
-	github.com/disgoorg/godave v0.3.0 // indirect
 	github.com/dlclark/regexp2/v2 v2.13.0 // indirect
 	github.com/ebitengine/purego v0.11.3 // indirect
 	github.com/gdamore/encoding v1.0.1 // indirect
@@ -56,9 +52,8 @@ require (
 	github.com/molecule-man/go-brrr v1.3.1 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/randall77/makefat v0.0.0-20260406194835-1b91746796b7 // indirect
+	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/tam7t/hpkp v0.0.0-20160821193359-2b70b4024ed5 // indirect
-	github.com/thomas-vilte/mls-go v1.6.0 // indirect
-	github.com/tphakala/simd v1.16.0 // indirect
 	github.com/twmb/murmur3 v1.2.2 // indirect
 	go4.org v0.0.0-20261028031214-ed6929a230fe // indirect
 	golang.design/x/x11 v0.2.0 // indirect

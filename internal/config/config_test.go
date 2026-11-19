@@ -75,23 +75,16 @@ func TestLoad(t *testing.T) {
 		}
 	})
 
-	for _, step := range []string{"0", "-5", "201", "9223372036854775807"} {
-		t.Run("out of range volume step "+step+" uses default", func(t *testing.T) {
-			path := filepath.Join(t.TempDir(), "volume-step.toml")
-			if err := os.WriteFile(path, []byte("[voice]\nvolume_step = "+step), os.ModePerm); err != nil {
-				t.Fatal(err)
-			}
-
-			cfg, err := Load(path)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			if cfg.Voice.VolumeStep != 10 {
-				t.Fatalf("got = %v, want = 10", cfg.Voice.VolumeStep)
-			}
-		})
-	}
+	t.Run("a config from before voice was removed still loads", func(t *testing.T) {
+		path := filepath.Join(t.TempDir(), "voice.toml")
+		old := "[voice]\nvolume_step = 10\n[keybinds]\ntoggle_mute = \"alt+v\"\n"
+		if err := os.WriteFile(path, []byte(old), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := Load(path); err != nil {
+			t.Fatal(err)
+		}
+	})
 
 	t.Run("missing file uses defaults", func(t *testing.T) {
 		path := filepath.Join(t.TempDir(), "missing.toml")

@@ -227,8 +227,6 @@ func (m Model) update(msg tview.Msg) (Model, tview.Cmd) {
 	switch msg := msg.(type) {
 	case gateway.Event:
 		return m, cmd.Batch{m.applyEvent(msg), listen(m.events)}
-	case guildstree.VoiceMsg:
-		return m, m.updatePane(paneGuildsTree, msg)
 	case tview.FocusMsg:
 		m.windowUnfocused = !msg.Focused
 		return m, nil
@@ -365,10 +363,6 @@ func (m Model) update(msg tview.Msg) (Model, tview.Cmd) {
 		case keybind.Matches(msg, keybinds.ToggleChannelsPicker.Keybind):
 			m.togglePicker()
 			return m, nil
-		// The guilds tree is what the voice channel joined is in.
-		case keybind.Matches(msg, keybinds.ToggleMute.Keybind, keybinds.ToggleDeafen.Keybind, keybinds.LeaveVoice.Keybind):
-			return m, m.updatePane(paneGuildsTree, msg)
-
 		case keybind.Matches(msg, keybinds.Logout.Keybind):
 			return m, ui.ShowDialog(
 				"Are you sure you want to log out?",

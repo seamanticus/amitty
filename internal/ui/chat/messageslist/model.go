@@ -23,7 +23,6 @@ import (
 	"github.com/seamanticus/discordo/internal/markdown"
 	"github.com/seamanticus/discordo/internal/ui"
 	"github.com/seamanticus/discordo/internal/ui/images"
-	"github.com/seamanticus/discordo/internal/voice"
 	"github.com/yuin/goldmark/v2/ast"
 )
 
@@ -58,21 +57,15 @@ type Model struct {
 	focused     bool
 	footer      string
 	avatarWidth int
-	// voicePlayer plays the voice message played last, and voiceStatus is what it last said of it.
-	voicePlayer *voice.Player
-	voiceStatus voice.PlayerStatus
-	// seeking reports whether the waveform of the voice message is dragged, which is sought once it is let go of.
-	seeking bool
 }
 
 func NewModel(cfg *config.Config, state *ningen.State) Model {
 	ml := Model{
-		cursor:      -1,
-		target:      -1,
-		cfg:         cfg,
-		state:       state,
-		renderer:    markdown.NewRenderer(cfg),
-		voicePlayer: voice.NewPlayer(),
+		cursor:   -1,
+		target:   -1,
+		cfg:      cfg,
+		state:    state,
+		renderer: markdown.NewRenderer(cfg),
 	}
 
 	ml.scrollState.ScrollToEnd()
@@ -273,8 +266,7 @@ func (m Model) buildItem(index int) tview.Widget {
 		return item.separator
 	}
 
-	// A voice message shows its player, which changes as it plays.
-	if item.view == nil || isVoiceMessage(item.message) {
+	if item.view == nil {
 		item.view = m.itemView(item)
 	}
 	return item.view
@@ -290,9 +282,6 @@ func (m Model) itemView(item *messageItem) tview.Widget {
 	body := column.New(messageText(m.renderMessage(*message, root, style, item.grouped))).Height(layout.Shrink)
 	for _, embed := range m.embedViews(*message, root) {
 		body = body.Push(embed)
-	}
-	if isVoiceMessage(*message) {
-		body = body.Push(m.voiceMessageView(message.Attachments[0]))
 	}
 
 	for _, source := range m.previewSources(*message) {
@@ -569,13 +558,7 @@ func (m Model) contentRoot(item *messageItem) ast.Node {
 
 var _ tview.Model[Model] = Model{}
 
-// Init waits for the status of the voice message player to change.
-func (m Model) Init() tview.Cmd {
-	return cmd.Task(func() tview.Msg {
-		<-m.voicePlayer.Updates()
-		return voiceMsg{}
-	})
-}
+func (Model) Init() tview.Cmd { return nil }
 
 // Update returns m changed in response to msg and a command to run, or nil.
 func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
@@ -609,14 +592,6 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 			return m, m.open()
 		case keybind.Matches(msg, keybinds.OpenInBrowser.Keybind):
 			return m, m.openInBrowser()
-		case keybind.Matches(msg, keybinds.Play.Keybind):
-			if message, ok := m.selectedMessage(); ok && isVoiceMessage(*message) {
-				return m, m.play(message.Attachments[0])
-			}
-		case keybind.Matches(msg, keybinds.SeekBackward.Keybind):
-			return m, m.seek(m.voiceStatus.Position - seekStep)
-		case keybind.Matches(msg, keybinds.SeekForward.Keybind):
-			return m, m.seek(m.voiceStatus.Position + seekStep)
 		case keybind.Matches(msg, keybinds.Download.Keybind):
 			return m, m.download()
 		case keybind.Matches(msg, keybinds.React.Keybind):
@@ -634,32 +609,6 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 		}
 	case olderMessagesLoadedMsg:
 		return m, m.prependOlder(msg)
-	case playMsg:
-		return m, m.play(discord.Attachment(msg))
-	case seekPressMsg:
-		m.seeking = true
-		m.voiceStatus.Position = time.Duration(msg)
-		return m, nil
-	case seekMsg:
-		m.voiceStatus.Position = time.Duration(msg)
-		if m.seeking {
-			return m, nil
-		}
-
-		return m, m.seek(m.voiceStatus.Position)
-	case seekReleaseMsg:
-		m.seeking = false
-		return m, m.seek(m.voiceStatus.Position)
-	case voiceMsg:
-		status := m.voicePlayer.Status()
-		// The waveform shows where it is dragged to rather than what is playing, while that voice message is the one loaded.
-		m.seeking = m.seeking && status.ID == m.voiceStatus.ID
-		if m.seeking {
-			status.Position = m.voiceStatus.Position
-		}
-
-		m.voiceStatus = status
-		return m, m.Init()
 	case scrollMsg:
 		m.scrollState = viewport.ScrollState(msg)
 		// Older messages are fetched once as the list is scrolled to the top, rather than on each scroll there.

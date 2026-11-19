@@ -24,7 +24,7 @@ func (m Model) selectDesc(node *tree.Node, desc string) string {
 		return desc
 	}
 
-	if m.expandable(node) {
+	if expandable(node) {
 		if node.Expanded() {
 			return "collapse"
 		}
@@ -40,36 +40,9 @@ func (m Model) selectDesc(node *tree.Node, desc string) string {
 	return desc
 }
 
-// toggleVoiceKeybinds returns the keybind that joins or leaves the highlighted voice channel, if it is one.
-func (m Model) toggleVoiceKeybinds() []keybind.Keybind {
-	channel := m.voiceChannel(m.current)
-	if channel == nil {
-		return nil
-	}
-
-	toggleVoice := m.cfg.Keybinds.GuildsTree.ToggleVoice.Keybind
-	if m.voiceSession.Status().ChannelID == channel.ID {
-		toggleVoice = toggleVoice.WithHelp(toggleVoice.Help().Key, "leave voice")
-	}
-
-	return []keybind.Keybind{toggleVoice}
-}
-
-// volumeKeybinds returns the keybinds that play the highlighted voice member louder or quieter, if it is one.
-func (m Model) volumeKeybinds() []keybind.Keybind {
-	if _, channel := m.voiceMember(m.current); channel == nil {
-		return nil
-	}
-
-	cfg := m.cfg.Keybinds.GuildsTree
-	return []keybind.Keybind{cfg.IncreaseVolume.Keybind, cfg.DecreaseVolume.Keybind, cfg.ToggleMemberMute.Keybind}
-}
-
 func (m Model) ShortHelp() []keybind.Keybind {
 	cfg := m.cfg.Keybinds.GuildsTree
 	shortHelp := append(uitree.SelectHelp(m.root, m.current, cfg.TreeKeybinds), m.selectCurrentKeybind())
-	shortHelp = append(shortHelp, m.toggleVoiceKeybinds()...)
-	shortHelp = append(shortHelp, m.volumeKeybinds()...)
 	if m.canCollapseParent(m.current) {
 		shortHelp = append(shortHelp, cfg.CollapseParentNode.Keybind)
 	}
@@ -86,8 +59,7 @@ func (m Model) FullHelp() [][]keybind.Keybind {
 		{cfg.ScrollUp.Keybind, cfg.ScrollDown.Keybind, cfg.ScrollTop.Keybind, cfg.ScrollBottom.Keybind, cfg.ScrollLeft.Keybind, cfg.ScrollRight.Keybind},
 		selectGroup,
 		{cfg.SelectPreviousUnread.Keybind, cfg.SelectNextUnread.Keybind},
-		append([]keybind.Keybind{cfg.YankID.Keybind}, m.toggleVoiceKeybinds()...),
-		m.volumeKeybinds(),
+		{cfg.YankID.Keybind},
 	}
 }
 

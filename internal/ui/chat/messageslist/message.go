@@ -294,11 +294,6 @@ func (m Model) drawDefaultMessage(builder *markdown.Builder, message discord.Mes
 	m.drawLayout(builder, message, baseStyle, grouped, content)
 
 	attachmentStyle := tview.MergeStyle(baseStyle, m.cfg.Theme.MessagesList.AttachmentStyle.Style)
-	// A voice message is shown as its player.
-	if isVoiceMessage(message) {
-		return
-	}
-
 	for _, attachment := range message.Attachments {
 		builder.NewLine()
 		if !m.cfg.UI.MessagesList.Attachments.ShowLinks {

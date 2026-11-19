@@ -66,7 +66,6 @@ func (k Keybind) MarshalTOML() ([]byte, error) {
 func (k Keybinds) Global() []keybind.Keybind {
 	return []keybind.Keybind{
 		k.ToggleGuildsTree.Keybind, k.ToggleMembersTree.Keybind, k.ToggleChannelsPicker.Keybind,
-		k.ToggleMute.Keybind, k.ToggleDeafen.Keybind, k.LeaveVoice.Keybind,
 		k.ToggleHelp.Keybind, k.ToggleFullHelp.Keybind, k.Suspend.Keybind,
 		k.FocusGuildsTree.Keybind, k.FocusMembersTree.Keybind, k.FocusMessagesList.Keybind, k.FocusComposer.Keybind,
 		k.FocusPrevious.Keybind, k.FocusNext.Keybind,
@@ -122,13 +121,6 @@ type GuildsTreeKeybinds struct {
 	// Highlight the previous or next unread guild or channel, wrapping around.
 	SelectPreviousUnread Keybind `toml:"select_previous_unread"`
 	SelectNextUnread     Keybind `toml:"select_next_unread"`
-	// Join the highlighted voice channel to listen, or leave it.
-	ToggleVoice Keybind `toml:"toggle_voice"`
-	// Play the highlighted voice member louder or quieter.
-	IncreaseVolume Keybind `toml:"increase_volume"`
-	DecreaseVolume Keybind `toml:"decrease_volume"`
-	// Mute the highlighted voice member, or unmute them to 100% if they are.
-	ToggleMemberMute Keybind `toml:"toggle_member_mute"`
 }
 
 type MessagesListKeybinds struct {
@@ -158,11 +150,6 @@ type MessagesListKeybinds struct {
 	React Keybind `toml:"react"`
 	// Download one of the selected message's attachments.
 	Download Keybind `toml:"download"`
-	// Play, pause or resume the selected voice message.
-	Play Keybind `toml:"play"`
-	// Seek the voice message that is playing or paused.
-	SeekBackward Keybind `toml:"seek_backward"`
-	SeekForward  Keybind `toml:"seek_forward"`
 
 	// Yank (copy) the selected message's content/url/id.
 	YankContent Keybind `toml:"yank_content"`
@@ -226,11 +213,6 @@ type Keybinds struct {
 	// Hide/show the members tree.
 	ToggleMembersTree    Keybind `toml:"toggle_members_tree"`
 	ToggleChannelsPicker Keybind `toml:"toggle_channels_picker"`
-	// Start or stop sending what the microphone captures to the voice channel joined.
-	ToggleMute Keybind `toml:"toggle_mute"`
-	// Stop or start playing what is said in the voice channel joined. Stopping also mutes.
-	ToggleDeafen Keybind `toml:"toggle_deafen"`
-	LeaveVoice   Keybind `toml:"leave_voice"`
 	// Hide/show keybind help.
 	ToggleHelp Keybind `toml:"toggle_help"`
 	// Switch between compact and full keybind help.
@@ -301,9 +283,6 @@ func defaultKeybinds() Keybinds {
 		ToggleGuildsTree:     key("toggle guilds", "alt+g"),
 		ToggleMembersTree:    key("toggle members", "alt+m"),
 		ToggleChannelsPicker: key("channels picker", "ctrl+k"),
-		ToggleMute:           key("toggle mute", "alt+v"),
-		ToggleDeafen:         key("toggle deafen", "alt+d"),
-		LeaveVoice:           key("leave voice", "alt+l"),
 		ToggleHelp:           key("toggle help", "alt+."),
 		ToggleFullHelp:       key("full help", "ctrl+."),
 		Suspend:              key("suspend", "ctrl+z"),
@@ -325,10 +304,6 @@ func defaultKeybinds() Keybinds {
 			TreeKeybinds:         tree,
 			SelectPreviousUnread: key("prev unread", "K"),
 			SelectNextUnread:     key("next unread", "J"),
-			ToggleVoice:          key("join voice", "v"),
-			IncreaseVolume:       key("volume up", ">"),
-			DecreaseVolume:       key("volume down", "<"),
-			ToggleMemberMute:     key("mute", "0"),
 		},
 		MembersTree: tree,
 		MessagesList: MessagesListKeybinds{
@@ -349,9 +324,6 @@ func defaultKeybinds() Keybinds {
 			OpenInBrowser: key("open browser", "O"),
 			React:         key("react", "a"),
 			Download:      key("download", "D"),
-			Play:          key("play", "p"),
-			SeekBackward:  key("seek back", "h", "left"),
-			SeekForward:   key("seek forward", "l", "right"),
 
 			YankContent: key("copy text", "y"),
 			YankURL:     key("copy url", "u"),

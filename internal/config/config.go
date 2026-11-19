@@ -83,15 +83,6 @@ type (
 		Receive bool `toml:"receive"`
 	}
 
-	Voice struct {
-		// How loud the microphone must be for what is said to be sent, in dB below the loudest it can be.
-		Sensitivity float64 `toml:"sensitivity"`
-		// How loud everyone is played, in percent.
-		Volume int `toml:"volume"`
-		// How much louder or quieter, in percent, a voice member is played per keypress.
-		VolumeStep int `toml:"volume_step"`
-	}
-
 	Icons struct {
 		GuildCategory   string `toml:"guild_category"`
 		GuildText       string `toml:"guild_text"`
@@ -105,10 +96,6 @@ type (
 		GuildAnnouncement string `toml:"guild_announcement"`
 		GuildForum        string `toml:"guild_forum"`
 		GuildStore        string `toml:"guild_store"`
-
-		// Shown after the members of a voice channel who are muted or deafened.
-		VoiceMuted    string `toml:"voice_muted"`
-		VoiceDeafened string `toml:"voice_deafened"`
 	}
 
 	PickerConfig struct {
@@ -210,7 +197,6 @@ type (
 
 		// Layout and behavior of the widgets.
 		UI    UIConfig `toml:"ui"`
-		Voice Voice    `toml:"voice"`
 		Icons Icons    `toml:"icons"`
 
 		// Global shortcuts. A keybind is a key such as "ctrl+k", or a list of keys.
@@ -254,8 +240,7 @@ func Default() Config {
 		MembersTree: pane,
 		Composer:    ComposerConfig{MaxHeight: 10},
 
-		UI:    defaultUI(),
-		Voice: Voice{Sensitivity: -40, Volume: 100, VolumeStep: 10},
+		UI: defaultUI(),
 		Icons: Icons{
 			GuildText:       "#",
 			GuildVoice:      "♪ ",
@@ -268,9 +253,6 @@ func Default() Config {
 			GuildAnnouncement: "a-",
 			GuildForum:        "≡ ",
 			GuildStore:        "s-",
-
-			VoiceMuted:    " (muted)",
-			VoiceDeafened: " (deafened)",
 		},
 
 		Keybinds: defaultKeybinds(),
@@ -328,10 +310,6 @@ func (cfg *Config) applyDefaults() {
 		if pane.WidthPercent <= 0 || pane.WidthPercent >= 100 {
 			pane.WidthPercent = 20
 		}
-	}
-
-	if cfg.Voice.VolumeStep <= 0 || cfg.Voice.VolumeStep > 200 {
-		cfg.Voice.VolumeStep = 10
 	}
 
 	if cfg.DateSeparator.Format == "" {
