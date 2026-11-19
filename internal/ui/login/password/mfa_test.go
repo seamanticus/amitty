@@ -109,7 +109,7 @@ func TestRequestCode(t *testing.T) {
 			client := authClient(discordtest.Client(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				calls.Add(1)
 				reply(tt.status, tt.body)(w, r)
-			})), dhttp.Build{})
+			})), dhttp.Build{}, "")
 			failed, ok := requestCode(t.Context(), client, tk, methodTOTP, "123456").(FailedMsg)
 			if !ok || failed.Err == nil {
 				t.Fatalf("got %#v, want FailedMsg", failed)
@@ -171,7 +171,7 @@ func TestRequestSMS(t *testing.T) {
 		client := authClient(discordtest.Client(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			calls.Add(1)
 			w.WriteHeader(http.StatusBadGateway)
-		})), dhttp.Build{})
+		})), dhttp.Build{}, "")
 		if msg := requestSMS(t.Context(), client, tk); !isFailed(msg) {
 			t.Fatalf("got %#v, want FailedMsg", msg)
 		}

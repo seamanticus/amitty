@@ -45,9 +45,10 @@ const (
 	codeInvalidSession httputil.ErrorCode = 60009
 )
 
-// ticket is the pending second step of a login that the password alone did not complete.
+// ticket is the pending second step of a login that the password alone did not complete; fingerprint is what the login was sent with, which the step must repeat.
 type ticket struct {
 	id, instance string
+	fingerprint  string
 	allowed      [methodCount]bool
 }
 
@@ -106,7 +107,7 @@ func submitCode(build dhttp.Build, t ticket, m method, code string, final bool) 
 	return cmd.Task(func() tview.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), dhttp.AuthTimeout)
 		defer cancel()
-		return countdownOr(requestCode(ctx, authClient(dhttp.NewClient(""), build), t, m, code), final)
+		return countdownOr(requestCode(ctx, authClient(dhttp.NewClient(""), build, t.fingerprint), t, m, code), final)
 	})
 }
 
@@ -142,7 +143,7 @@ func sendSMS(build dhttp.Build, t ticket) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), dhttp.AuthTimeout)
 		defer cancel()
-		return requestSMS(ctx, authClient(dhttp.NewClient(""), build), t)
+		return requestSMS(ctx, authClient(dhttp.NewClient(""), build, t.fingerprint), t)
 	})
 }
 

@@ -150,24 +150,34 @@ func TestRequestLogin(t *testing.T) {
 	})
 }
 
+// evidence: witnesses
 func TestAuthClient(t *testing.T) {
-	var referer, platform string
-	client := discordtest.Client(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		referer, platform = r.Header.Get("Referer"), r.Header.Get("Sec-Ch-Ua-Platform")
-		_, _ = w.Write([]byte(`{"token":"t"}`))
-	}))
-	requestLogin(t.Context(), authClient(client, dhttp.Build{}), "a", "b")
-	if referer != "https://discord.com/login" {
-		t.Errorf("Referer = %q, want the login page", referer)
-	}
-	if platform == "" {
-		t.Error("browser headers were not sent")
+	for _, fingerprint := range []string{"", "1.x"} {
+		var referer, platform, got string
+		var sent bool
+		client := discordtest.Client(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			referer, platform = r.Header.Get("Referer"), r.Header.Get("Sec-Ch-Ua-Platform")
+			_, sent = r.Header["X-Fingerprint"]
+			got = r.Header.Get("X-Fingerprint")
+			_, _ = w.Write([]byte(`{"token":"t"}`))
+		}))
+		requestLogin(t.Context(), authClient(client, dhttp.Build{}, fingerprint), "a", "b")
+		if referer != "https://discord.com/login" {
+			t.Errorf("Referer = %q, want the login page", referer)
+		}
+		if platform == "" {
+			t.Error("browser headers were not sent")
+		}
+		// An empty header would still count as a fingerprint, so none is sent.
+		if got != fingerprint || sent != (fingerprint != "") {
+			t.Errorf("X-Fingerprint = %q (sent %v), want %q", got, sent, fingerprint)
+		}
 	}
 }
 
 func TestSubmitLogin(t *testing.T) {
 	for _, final := range []bool{false, true} {
-		if _, ok := submitLogin(dhttp.Build{}, "a", "b", final).(cmd.Task); !ok {
+		if _, ok := submitLogin(dhttp.Build{}, "f", "a", "b", final).(cmd.Task); !ok {
 			t.Fatal("submitLogin does not run as a task, so it would block Update")
 		}
 	}
@@ -217,7 +227,7 @@ func TestAuthClientPostsOnce(t *testing.T) {
 		client := authClient(discordtest.Client(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			calls.Add(1)
 			w.WriteHeader(code)
-		})), dhttp.Build{})
+		})), dhttp.Build{}, "")
 		requestLogin(t.Context(), client, "a", "b")
 		if n := calls.Load(); n != 1 {
 			t.Fatalf("status %d: credentials posted %d times, want 1", code, n)

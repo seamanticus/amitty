@@ -46,6 +46,8 @@ type Model struct {
 
 	// code is the second step; its zero value means the form is shown.
 	code codeForm
+	// fingerprint ties the logins of this form to their second step; fetched before the first login and kept, as Discord grants only 3 per IP per 2 minutes.
+	fingerprint string
 }
 
 // NewModel returns an empty form whose login requests identify as build.
@@ -67,8 +69,15 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 		// The password is not needed for the second step, so it is not kept.
 		m.password, m.passwordCursor = "", 0
 		m.submitting = false
+		msg.ticket.fingerprint = m.fingerprint
 		m.code = codeForm{ticket: msg.ticket, method: msg.ticket.first(), focus: codeFocusInput}
 		return m, nil
+	case FingerprintMsg:
+		if !m.submitting {
+			return m, nil
+		}
+		m.fingerprint = msg.fingerprint
+		return m, submitLogin(m.build, m.fingerprint, m.login, m.password, msg.final)
 	case SMSSentMsg:
 		m.submitting = false
 		m.code.phone = msg.phone
@@ -85,7 +94,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 		if m.coding() {
 			return m, submitCode(m.build, m.code.ticket, m.code.method, m.code.text, true)
 		}
-		return m, submitLogin(m.build, m.login, m.password, true)
+		return m, m.submit(true)
 	case FailedMsg:
 		m.submitting = false
 		m.retryIn, m.retryReason = 0, ""
@@ -122,9 +131,17 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 			return m, nil
 		}
 		m.submitting = true
-		return m, submitLogin(m.build, m.login, m.password, false)
+		return m, m.submit(false)
 	}
 	return m, nil
+}
+
+// submit logs in with the form, first fetching the fingerprint if there is none yet.
+func (m Model) submit(final bool) tview.Cmd {
+	if m.fingerprint == "" {
+		return fetchFingerprint(m.build, final)
+	}
+	return submitLogin(m.build, m.fingerprint, m.login, m.password, final)
 }
 
 // coding reports whether the code form is shown.

@@ -78,7 +78,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 		var command tview.Cmd
 		m.password, command = m.password.Update(msg)
 		return m, cmd.Batch{showErrorDialog(msg.Err), command}
-	case password.CountdownMsg, password.MFAMsg, password.SMSSentMsg:
+	case password.CountdownMsg, password.FingerprintMsg, password.MFAMsg, password.SMSSentMsg:
 		// Like a failure, these reach the password tab even when another tab is shown.
 		var command tview.Cmd
 		m.password, command = m.password.Update(msg)

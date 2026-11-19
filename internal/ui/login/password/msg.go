@@ -41,12 +41,12 @@ type (
 	submitMsg   struct{}
 )
 
-// submitLogin posts the credentials once. A first attempt whose connection failed starts the countdown to a retry; a final one fails.
-func submitLogin(build dhttp.Build, login, password string, final bool) tview.Cmd {
+// submitLogin posts the credentials once with fingerprint. A first attempt whose connection failed starts the countdown to a retry; a final one fails.
+func submitLogin(build dhttp.Build, fingerprint, login, password string, final bool) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), dhttp.AuthTimeout)
 		defer cancel()
-		return countdownOr(requestLogin(ctx, authClient(dhttp.NewClient(""), build), login, password), final)
+		return countdownOr(requestLogin(ctx, authClient(dhttp.NewClient(""), build, fingerprint), login, password), final)
 	})
 }
 
@@ -82,10 +82,13 @@ func retryable(err error) bool {
 	return ok
 }
 
-// authClient makes client send the headers of the web client's login page and post once: retrying is the login's decision, not the transport's.
-func authClient(client *api.Client, build dhttp.Build) *api.Client {
+// authClient makes client send the headers of the web client's login page, with fingerprint if set, and post once: retrying is the login's decision, not the transport's.
+func authClient(client *api.Client, build dhttp.Build, fingerprint string) *api.Client {
 	headers := dhttp.Headers(build)
 	headers.Set("Referer", "https://discord.com/login")
+	if fingerprint != "" {
+		headers.Set("X-Fingerprint", fingerprint)
+	}
 	client.OnRequest = append(client.OnRequest, httputil.WithHeaders(headers))
 	// 0 would retry forever.
 	client.Retries = 1
