@@ -1,0 +1,36 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>amitty captcha</title>
+<style>
+  body { font-family: sans-serif; background: #313338; color: #dbdee1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 90vh; }
+</style>
+<p id="note">Discord asks for a captcha before amitty can log in.</p>
+<div id="captcha"></div>
+<script id="challenge" type="application/json">CHALLENGE</script>
+<script>
+const challenge = JSON.parse(document.getElementById("challenge").textContent);
+const note = document.getElementById("note");
+function answer(key) {
+  fetch(location.pathname + "/answer", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key }),
+  }).then(response => {
+    note.textContent = response.ok ? "Done. Close this tab and return to amitty." : "amitty did not take the answer (" + response.status + ").";
+  }).catch(() => {
+    note.textContent = "amitty is no longer waiting for this captcha.";
+  });
+}
+function ready() {
+  const id = hcaptcha.render("captcha", {
+    sitekey: challenge.sitekey,
+    theme: "dark",
+    size: challenge.invisible ? "invisible" : "normal",
+    callback: answer,
+  });
+  // Discord rejects the answer unless the challenge was made with its rqdata.
+  if (challenge.rqdata) hcaptcha.setData(id, { rqdata: challenge.rqdata });
+  if (challenge.invisible) hcaptcha.execute(id);
+}
+</script>
+<script src="https://js.hcaptcha.com/1/api.js?onload=ready&render=explicit&recaptchacompat=off" async defer></script>
