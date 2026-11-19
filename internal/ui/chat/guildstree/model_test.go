@@ -148,7 +148,7 @@ func TestModelRefreshReadState(t *testing.T) {
 		m.createChannelNode(guildNode, channel)
 		channelNode := guildNode.Children()[0]
 
-		m.refreshReadState(&read.UpdateEvent{ReadState: gateway.ReadState{ChannelID: 2}, GuildID: guild.ID})
+		m.refreshReadState(&read.UpdateEvent{ChannelID: 2, GuildID: guild.ID})
 
 		if got, want := guildNode.Spans()[0].Text, m.guildText(guild); got != want {
 			t.Errorf("guild node text = %q, want %q", got, want)
