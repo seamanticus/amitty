@@ -261,16 +261,17 @@ type TreeThemeConfig struct {
 
 // StatusStyle returns the style for a user with status.
 func (t TreeThemeConfig) StatusStyle(status discord.Status) tview.Style {
-	switch status {
-	case discord.OnlineStatus:
+	switch status.Visibility() {
+	case discord.ShownOnline:
 		return t.OnlineStyle.Style
-	case discord.IdleStatus:
+	case discord.ShownIdle:
 		return t.IdleStyle.Style
-	case discord.DoNotDisturbStatus:
+	case discord.ShownDoNotDisturb:
 		return t.DNDStyle.Style
-	default:
+	case discord.ShownOffline:
 		return t.OfflineStyle.Style
 	}
+	panic("invariant: unknown visibility")
 }
 
 func defaultTheme() ThemeConfig {

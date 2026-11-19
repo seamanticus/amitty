@@ -70,14 +70,15 @@ func (m Model) Shown() bool {
 	if channel == nil {
 		return false
 	}
-	switch channel.Type {
-	case discord.GroupDM:
+	switch channel.Type.Kind() {
+	case discord.GroupDMKind:
 		return true
-	case discord.GuildPublicThread, discord.GuildPrivateThread, discord.GuildAnnouncementThread:
+	case discord.ThreadKind, discord.DirectMessageKind:
 		return false
-	default:
+	case discord.CategoryKind, discord.ForumKind, discord.GuildChannelKind, discord.UnknownChannelKind:
 		return channel.GuildID.IsValid()
 	}
+	panic("invariant: unknown channel kind")
 }
 
 // SetChannel shows the members of channel and requests its member list.
@@ -281,16 +282,7 @@ func (m Model) status(guildID discord.GuildID, userID discord.UserID) discord.St
 
 // statusRank orders members as Discord does: online, idle, do not disturb, then offline.
 func statusRank(status discord.Status) int {
-	switch status {
-	case discord.OnlineStatus:
-		return 0
-	case discord.IdleStatus:
-		return 1
-	case discord.DoNotDisturbStatus:
-		return 2
-	default:
-		return 3
-	}
+	return int(status.Visibility())
 }
 
 func (m Model) parent(node *tree.Node) *tree.Node {

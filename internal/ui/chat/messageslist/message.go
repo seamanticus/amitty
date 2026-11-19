@@ -53,20 +53,20 @@ func (m Model) writeMessage(builder *markdown.Builder, message discord.Message, 
 		return
 	}
 
-	switch message.Type {
-	case discord.DefaultMessage:
+	switch message.Type.Kind() {
+	case discord.PlainMessageKind:
 		if message.Reference != nil && message.Reference.Type == discord.MessageReferenceTypeForward {
 			m.drawForwardedMessage(builder, message, baseStyle, grouped)
 		} else {
 			m.drawDefaultMessage(builder, message, root, baseStyle, grouped)
 		}
-	case discord.GuildMemberJoinMessage:
+	case discord.MemberJoinMessageKind:
 		m.drawLayout(builder, message, baseStyle, false, func() { builder.Write("joined the server.", baseStyle) })
-	case discord.InlinedReplyMessage:
+	case discord.ReplyMessageKind:
 		m.drawDefaultMessage(builder, message, root, baseStyle, false)
-	case discord.ChannelPinnedMessage:
+	case discord.PinMessageKind:
 		drawPinnedMessage(builder, message, baseStyle)
-	default:
+	case discord.SystemMessageKind, discord.UnknownMessageKind:
 		m.drawLayout(builder, message, baseStyle, false, nil)
 	}
 }

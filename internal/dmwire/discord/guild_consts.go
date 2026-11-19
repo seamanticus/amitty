@@ -186,3 +186,30 @@ const (
 	InvisibleStatus    Status = "invisible"
 	OfflineStatus      Status = "offline"
 )
+
+// Visibility is how a status shows to others: invisible looks offline, as does a status unknown to dmwire. Unlike Status, it is closed, and its order is the order Discord lists members in.
+type Visibility uint8
+
+const (
+	ShownOnline Visibility = iota
+	ShownIdle
+	ShownDoNotDisturb
+	ShownOffline
+	visibilityCount
+)
+
+// Visibility returns how s shows to others.
+func (s Status) Visibility() Visibility {
+	switch s {
+	case OnlineStatus:
+		return ShownOnline
+	case IdleStatus:
+		return ShownIdle
+	case DoNotDisturbStatus:
+		return ShownDoNotDisturb
+	case InvisibleStatus, OfflineStatus, UnknownStatus:
+		return ShownOffline
+	default:
+		return ShownOffline
+	}
+}

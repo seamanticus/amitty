@@ -251,7 +251,43 @@ const (
 
 // IsThread reports whether t is one of the thread types.
 func (t ChannelType) IsThread() bool {
-	return t == GuildAnnouncementThread || t == GuildPublicThread || t == GuildPrivateThread
+	return t.Kind() == ThreadKind
+}
+
+// ChannelKind groups channel types by how a client shows them. Unlike ChannelType, which carries whatever Discord sends, it is closed.
+type ChannelKind uint8
+
+const (
+	// UnknownChannelKind is a type Discord added after dmwire.
+	UnknownChannelKind ChannelKind = iota
+	DirectMessageKind
+	GroupDMKind
+	CategoryKind
+	ForumKind
+	ThreadKind
+	// GuildChannelKind is any other channel of a guild: text, voice, stage, announcement, store or directory.
+	GuildChannelKind
+	channelKindCount
+)
+
+// Kind returns the group of t.
+func (t ChannelType) Kind() ChannelKind {
+	switch t {
+	case DirectMessage:
+		return DirectMessageKind
+	case GroupDM:
+		return GroupDMKind
+	case GuildCategory:
+		return CategoryKind
+	case GuildForum:
+		return ForumKind
+	case GuildAnnouncementThread, GuildPublicThread, GuildPrivateThread:
+		return ThreadKind
+	case GuildText, GuildVoice, GuildStageVoice, GuildAnnouncement, GuildStore, GuildDirectory:
+		return GuildChannelKind
+	default:
+		return UnknownChannelKind
+	}
 }
 
 // https://discord.com/developers/docs/resources/channel#overwrite-object

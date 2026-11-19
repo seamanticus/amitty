@@ -200,6 +200,45 @@ const (
 	GuildApplicationPremiumSubscriptionMessage
 )
 
+// MessageKind groups message types by how a client shows them. Unlike MessageType, which carries whatever Discord sends, it is closed.
+type MessageKind uint8
+
+const (
+	// UnknownMessageKind is a type Discord added after dmwire.
+	UnknownMessageKind MessageKind = iota
+	// PlainMessageKind is a message someone wrote, which may be a forward.
+	PlainMessageKind
+	ReplyMessageKind
+	MemberJoinMessageKind
+	PinMessageKind
+	// SystemMessageKind is any other notice Discord posts: calls, boosts, renames, threads, commands, stages.
+	SystemMessageKind
+	messageKindCount
+)
+
+// Kind returns the group of t.
+func (t MessageType) Kind() MessageKind {
+	switch t {
+	case DefaultMessage:
+		return PlainMessageKind
+	case InlinedReplyMessage:
+		return ReplyMessageKind
+	case GuildMemberJoinMessage:
+		return MemberJoinMessageKind
+	case ChannelPinnedMessage:
+		return PinMessageKind
+	case RecipientAddMessage, RecipientRemoveMessage, CallMessage, ChannelNameChangeMessage, ChannelIconChangeMessage,
+		NitroBoostMessage, NitroTier1Message, NitroTier2Message, NitroTier3Message, ChannelFollowAddMessage,
+		GuildDiscoveryDisqualifiedMessage, GuildDiscoveryRequalifiedMessage, GuildDiscoveryGracePeriodInitialWarning, GuildDiscoveryGracePeriodFinalWarning,
+		ThreadCreatedMessage, ChatInputCommandMessage, ThreadStarterMessage, GuildInviteReminderMessage, ContextMenuCommand,
+		AutoModerationActionMessage, RoleSubscriptionPurchaseMessage, InteractionPremiumUpsellMessage,
+		StageStartMessage, StageEndMessage, StageSpeakerMessage, StageTopicMessage, GuildApplicationPremiumSubscriptionMessage:
+		return SystemMessageKind
+	default:
+		return UnknownMessageKind
+	}
+}
+
 type MessageFlags enum.Enum
 
 // https://discord.com/developers/docs/resources/channel#message-object-message-flags

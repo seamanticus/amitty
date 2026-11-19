@@ -126,17 +126,19 @@ func (s *Channel) ChannelSet(channel *discord.Channel, update bool) error {
 	// Update the reference if we can.
 	s.channels[channel.ID] = cpy
 
-	switch channel.Type {
-	case discord.DirectMessage:
+	switch channel.Type.Kind() {
+	case discord.DirectMessageKind:
 		// Safety bound check.
 		if len(channel.DMRecipients) != 1 {
 			return fmt.Errorf("DirectMessage channel %d doesn't have 1 recipient", channel.ID)
 		}
 		s.privates[channel.DMRecipients[0].ID] = channel.ID
 		return nil
-	case discord.GroupDM:
+	case discord.GroupDMKind:
 		s.guildChs[0] = addChannelID(s.guildChs[0], channel.ID)
 		return nil
+	case discord.CategoryKind, discord.ForumKind, discord.ThreadKind, discord.GuildChannelKind, discord.UnknownChannelKind:
+		// Indexed by guild, below.
 	}
 
 	// Ensure that if the channel is not a DM or group DM channel, then it must
@@ -157,17 +159,19 @@ func (s *Channel) ChannelRemove(channel *discord.Channel) error {
 	delete(s.channels, channel.ID)
 
 	// Wipe the channel off the DM recipient index, if available.
-	switch channel.Type {
-	case discord.DirectMessage:
+	switch channel.Type.Kind() {
+	case discord.DirectMessageKind:
 		// Safety bound check.
 		if len(channel.DMRecipients) != 1 {
 			return fmt.Errorf("DirectMessage channel %d doesn't have 1 recipient", channel.ID)
 		}
 		delete(s.privates, channel.DMRecipients[0].ID)
 		return nil
-	case discord.GroupDM:
+	case discord.GroupDMKind:
 		s.guildChs[0] = removeChannelID(s.guildChs[0], channel.ID)
 		return nil
+	case discord.CategoryKind, discord.ForumKind, discord.ThreadKind, discord.GuildChannelKind, discord.UnknownChannelKind:
+		// Indexed by guild, below.
 	}
 
 	s.guildChs[channel.GuildID] = removeChannelID(s.guildChs[channel.GuildID], channel.ID)

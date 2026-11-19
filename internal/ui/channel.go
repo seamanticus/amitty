@@ -48,8 +48,10 @@ func ChannelToString(channel discord.Channel, icons config.Icons, state *ningen.
 		icon = icons.GuildForum
 	case discord.GuildStore:
 		icon = icons.GuildStore
+	case discord.GuildDirectory:
+		// No icon is configurable for directories.
 	default:
-		// Types Discord added after dmwire, and directories, have no icon.
+		// Types Discord added after dmwire have no icon.
 	}
 
 	return icon + channel.Name

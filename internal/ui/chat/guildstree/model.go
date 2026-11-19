@@ -241,18 +241,18 @@ func (m Model) createChannelNode(parent *tree.Node, channel discord.Channel) {
 	indents := m.cfg.Sidebar.Indents
 	channelNode := tree.NewNode(m.channelText(channel)).SetReference(channel.ID)
 	setNodeNameStyle(channelNode, m.channelNodeStyle(channel))
-	switch channel.Type {
-	case discord.DirectMessage:
+	switch channel.Type.Kind() {
+	case discord.DirectMessageKind:
 		channelNode.SetIndent(indents.DM)
-	case discord.GroupDM:
+	case discord.GroupDMKind:
 		channelNode.SetIndent(indents.GroupDM)
-	case discord.GuildCategory:
+	case discord.CategoryKind:
 		channelNode.SetIndent(indents.Category)
 		channelNode.SetExpandable(true).SetExpanded(true)
-	case discord.GuildForum:
+	case discord.ForumKind:
 		channelNode.SetIndent(indents.Forum)
 		channelNode.SetExpandable(true).SetExpanded(false)
-	default:
+	case discord.ThreadKind, discord.GuildChannelKind, discord.UnknownChannelKind:
 		channelNode.SetIndent(indents.Channel)
 	}
 	parent.AddChild(channelNode)
@@ -351,15 +351,6 @@ func (m Model) createChannelNodes(node *tree.Node, channels []discord.Channel) {
 		if parent := m.channelNodes[channel.ParentID]; parent != nil {
 			m.createChannelNode(parent, channel)
 		}
-	}
-}
-
-func isThread(channelType discord.ChannelType) bool {
-	switch channelType {
-	case discord.GuildPublicThread, discord.GuildPrivateThread, discord.GuildAnnouncementThread:
-		return true
-	default:
-		return false
 	}
 }
 

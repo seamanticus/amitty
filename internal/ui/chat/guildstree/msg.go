@@ -102,7 +102,7 @@ func (m Model) expandForum(node *tree.Node, forum discord.Channel) {
 	}
 
 	for _, child := range channels {
-		if child.ParentID == forum.ID && isThread(child.Type) {
+		if child.ParentID == forum.ID && child.Type.IsThread() {
 			m.createChannelNode(node, child)
 		}
 	}
