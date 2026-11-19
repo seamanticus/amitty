@@ -80,6 +80,8 @@ func (am AllowedMentions) Verify() error {
 			if len(am.Users) > 0 {
 				return errors.New(`parse has AllowUserMention and Users slice is not empty`)
 			}
+		case AllowEveryoneMention:
+			// No ID list to conflict with.
 		}
 	}
 
