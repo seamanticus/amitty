@@ -29,13 +29,13 @@ func initClipboard() tview.Cmd {
 }
 
 func (m *Model) showLogin() tview.Cmd {
-	l := login.NewModel(m.cfg, m.build)
+	l := login.NewModel(m.cfg, m.build, m.network)
 	m.screen = loginScreen(l)
 	return m.show(l.Init())
 }
 
 func (m *Model) showChat(token string) tview.Cmd {
-	c := chat.NewModel(m.cfg, m.build, token)
+	c := chat.NewModel(m.cfg, m.build, m.network, token)
 	m.screen = chatScreen(c)
 	init := c.Init()
 	if m.resize != nil {

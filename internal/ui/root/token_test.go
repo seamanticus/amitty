@@ -78,7 +78,7 @@ func newModel(t *testing.T, store tokenstore.Store, token string) Model {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return NewModel(cfg, http.Build{}, store, token)
+	return NewModel(cfg, http.Build{}, http.Network{}, store, token)
 }
 
 func TestNewModelScreen(t *testing.T) {

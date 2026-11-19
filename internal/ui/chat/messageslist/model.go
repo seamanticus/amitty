@@ -19,6 +19,7 @@ import (
 	"github.com/ayn2op/tview/viewport"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	dhttp "github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/markdown"
 	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/internal/ui"
@@ -46,6 +47,8 @@ type Model struct {
 
 	cfg   *config.Config
 	state *ningen.State
+	// media fetches attachments and images.
+	media dhttp.Media
 	// channel is the selected channel, or nil for none.
 	channel *discord.Channel
 	items   []messageItem
@@ -59,8 +62,9 @@ type Model struct {
 	avatarWidth int
 }
 
-func NewModel(cfg *config.Config, state *ningen.State) Model {
+func NewModel(cfg *config.Config, state *ningen.State, media dhttp.Media) Model {
 	ml := Model{
+		media:    media,
 		cursor:   -1,
 		target:   -1,
 		cfg:      cfg,

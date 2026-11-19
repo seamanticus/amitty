@@ -108,7 +108,7 @@ func (m Model) updateCaptcha(msg tview.Msg) (Model, tview.Cmd) {
 		m.captcha, m.captchaOpenErr = nil, ""
 		m.solution = msg.solution
 		m.status = "Authenticating..."
-		return m, exchangeTicket(m.build, m.fingerprint, m.solution, m.privateKey, msg.ticket, false)
+		return m, exchangeTicket(m.build, m.network, m.fingerprint, m.solution, m.privateKey, msg.ticket, false)
 	}
 	return m, nil
 }

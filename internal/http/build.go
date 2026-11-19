@@ -9,7 +9,6 @@ import (
 	"strconv"
 
 	fhttp "github.com/bogdanfinn/fhttp"
-	"github.com/seamanticus/amitty/internal/tls"
 )
 
 // Build is the web client build that requests and the gateway identify as. Its zero value is the build generated into the source.
@@ -34,8 +33,8 @@ const (
 
 var buildNumberRegex = regexp.MustCompile(`"BUILD_NUMBER":\s*"(\d+)"`)
 
-// FetchBuild reads the current build number from the login page of the web client, through the same TLS fingerprint as every other request.
-func FetchBuild(ctx context.Context) (Build, error) {
+// FetchBuild reads the current build number from the login page of the web client, through network and the same TLS fingerprint as every other request.
+func FetchBuild(ctx context.Context, network Network) (Build, error) {
 	req, err := fhttp.NewRequestWithContext(ctx, fhttp.MethodGet, loginPageURL, nil)
 	if err != nil {
 		return Build{}, fmt.Errorf("fetch build: %w", err)
@@ -44,7 +43,7 @@ func FetchBuild(ctx context.Context) (Build, error) {
 	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
 	req.Header.Set("User-Agent", BrowserUserAgent())
 
-	resp, err := tls.NewClient().Do(req)
+	resp, err := network.TLSClient().Do(req)
 	if err != nil {
 		return Build{}, fmt.Errorf("fetch build: %w", err)
 	}

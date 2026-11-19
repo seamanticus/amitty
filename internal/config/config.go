@@ -175,6 +175,9 @@ type (
 		// The command that decrypts the stored token: it reads the file on stdin and writes the token to stdout. It runs before the screen starts, so a terminal pinentry works.
 		TokenDecryptCmd string `toml:"token-decrypt-cmd"`
 
+		// The proxy every connection to Discord goes through, such as "socks5h://127.0.0.1:9050" or "http://user:pass@host:3128"; "" connects directly. Schemes: http, https, socks5, socks5h (both SOCKS5 schemes resolve names at the proxy). The environment is not read, and nothing bypasses a set proxy.
+		Proxy string `toml:"proxy"`
+
 		// "default" (unknown), "online", "dnd", "idle", "invisible" or "offline".
 		Status           discord.Status `toml:"status"`
 		HideBlockedUsers bool           `toml:"hide_blocked_users"`

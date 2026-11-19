@@ -31,6 +31,12 @@ The command that decrypts the stored token: it reads the file on stdin and write
 
 Default: `"gpg --decrypt --quiet"`
 
+# proxy
+
+The proxy every connection to Discord goes through, such as "socks5h://127.0.0.1:9050" or "http://user:pass@host:3128"; "" connects directly. Schemes: http, https, socks5, socks5h (both SOCKS5 schemes resolve names at the proxy). The environment is not read, and nothing bypasses a set proxy.
+
+Default: `""`
+
 # status
 
 "default" (unknown), "online", "dnd", "idle", "invisible" or "offline".

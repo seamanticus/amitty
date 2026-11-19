@@ -55,11 +55,11 @@ type connCreateMsg struct {
 // connCloseMsg says conn is closed; the model forgets it only if it is still the current one.
 type connCloseMsg struct{ conn *gatewayConn }
 
-func connect(build http.Build) tview.Cmd {
+func connect(build http.Build, network http.Network) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
 		headers := http.Headers(build)
 		headers.Set("User-Agent", http.BrowserUserAgent())
-		dialer := gateway.NewDialer()
+		dialer := gateway.NewDialer(network)
 		conn, _, err := dialer.Dial(remoteAuthGatewayURL, headers)
 		if err != nil {
 			return err
@@ -341,11 +341,11 @@ type retryMsg struct {
 }
 
 // exchangeTicket redeems ticket once, with the captcha solution if set. A first attempt whose connection failed starts the countdown to a retry; a final one fails.
-func exchangeTicket(build http.Build, fingerprint string, solution captcha.Solution, privateKey *rsa.PrivateKey, ticket string, final bool) tview.Cmd {
+func exchangeTicket(build http.Build, network http.Network, fingerprint string, solution captcha.Solution, privateKey *rsa.PrivateKey, ticket string, final bool) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), http.AuthTimeout)
 		defer cancel()
-		client := ticketClient(http.NewClient(""), build, fingerprint)
+		client := ticketClient(http.NewClient(network, ""), build, fingerprint)
 		client.OnRequest = append(client.OnRequest, solution.Option())
 		return retryOr(redeemTicket(ctx, client, privateKey, ticket), ticket, final)
 	})

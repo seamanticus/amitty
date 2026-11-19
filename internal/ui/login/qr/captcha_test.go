@@ -74,7 +74,7 @@ func TestRedeemTicketCaptcha(t *testing.T) {
 
 func TestModelCaptcha(t *testing.T) {
 	exchanging := func() Model {
-		m := NewModel(dhttp.Build{})
+		m := NewModel(dhttp.Build{}, dhttp.Network{})
 		m.status = "Authenticating..."
 		return m
 	}

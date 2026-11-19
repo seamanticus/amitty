@@ -103,11 +103,11 @@ func failed(err error) FailedMsg {
 }
 
 // submitCode posts the code once, with the same retry rule as the password.
-func submitCode(build dhttp.Build, t ticket, m method, code string, final bool) tview.Cmd {
+func submitCode(build dhttp.Build, network dhttp.Network, t ticket, m method, code string, final bool) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), dhttp.AuthTimeout)
 		defer cancel()
-		return countdownOr(requestCode(ctx, authClient(dhttp.NewClient(""), build, t.fingerprint), t, m, code), final)
+		return countdownOr(requestCode(ctx, authClient(dhttp.NewClient(network, ""), build, t.fingerprint), t, m, code), final)
 	})
 }
 
@@ -139,11 +139,11 @@ func requestCode(ctx context.Context, client *api.Client, t ticket, m method, co
 }
 
 // sendSMS asks Discord once to text a code for t; a failure is not retried, so no second SMS is sent.
-func sendSMS(build dhttp.Build, t ticket) tview.Cmd {
+func sendSMS(build dhttp.Build, network dhttp.Network, t ticket) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), dhttp.AuthTimeout)
 		defer cancel()
-		return requestSMS(ctx, authClient(dhttp.NewClient(""), build, t.fingerprint), t)
+		return requestSMS(ctx, authClient(dhttp.NewClient(network, ""), build, t.fingerprint), t)
 	})
 }
 

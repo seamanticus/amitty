@@ -12,11 +12,11 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
-	"github.com/seamanticus/amitty/internal/tls"
 )
 
-func NewClient(token string) *api.Client {
-	httpClient := httputil.NewClientWithDriver(OmitEmptyHeaders(wrapClient(tls.NewClient(tls_client.WithCookieJar(tls_client.NewCookieJar())))))
+// NewClient returns an API client for token, or for none before login, that connects through network.
+func NewClient(network Network, token string) *api.Client {
+	httpClient := httputil.NewClientWithDriver(OmitEmptyHeaders(wrapClient(network.TLSClient(tls_client.WithCookieJar(tls_client.NewCookieJar())))))
 	client := api.NewCustomClient(token, httpClient)
 	client.UserAgent = BrowserUserAgent()
 	return client

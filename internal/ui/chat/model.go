@@ -94,8 +94,8 @@ type Model struct {
 	cfg *config.Config
 }
 
-// NewModel returns the chat of the account with token, whose requests and gateway identify as build.
-func NewModel(cfg *config.Config, build http.Build, token string) Model {
+// NewModel returns the chat of the account with token, whose requests and gateway identify as build and connect through network.
+func NewModel(cfg *config.Config, build http.Build, network http.Network, token string) Model {
 	m := Model{
 		typers: make(map[discord.UserID]time.Time),
 		images: make(map[discord.URL]tviewimage.Widget),
@@ -118,8 +118,8 @@ func NewModel(cfg *config.Config, build http.Build, token string) Model {
 			gateway.DebounceMessageReactions,
 	})
 
-	session := session.NewWithGateway(clientgateway.New(id), handler.New())
-	session.Client = http.NewClient(token)
+	session := session.NewWithGateway(clientgateway.New(network, id), handler.New())
+	session.Client = http.NewClient(network, token)
 	state := state.NewFromSession(session, defaultstore.New())
 	m.state = ningen.FromState(state)
 
@@ -138,7 +138,7 @@ func NewModel(cfg *config.Config, build http.Build, token string) Model {
 
 	m.guildsTree = guildstree.NewModel(cfg, m.state)
 	m.membersTree = memberstree.NewModel(cfg, m.state)
-	m.messagesList = messageslist.NewModel(cfg, m.state)
+	m.messagesList = messageslist.NewModel(cfg, m.state, http.NewMedia(network))
 	m.composer = composer.NewModel(cfg, m.state)
 	m.channelsPicker = channelspicker.NewModel(cfg)
 	m.attachmentsPicker = attachmentspicker.NewModel(cfg)

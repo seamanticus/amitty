@@ -17,6 +17,7 @@ import (
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/state"
+	dhttp "github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/internal/ui/emojis"
 )
@@ -33,7 +34,7 @@ func testConfig(t *testing.T) *config.Config {
 // newTestModel returns a list showing channel 1, logged in as user 1.
 func newTestModel(t *testing.T, cfg *config.Config) *Model {
 	t.Helper()
-	ml := NewModel(cfg, ningen.FromState(state.New("")))
+	ml := NewModel(cfg, ningen.FromState(state.New("")), dhttp.Media{})
 	if err := ml.state.MyselfSet(discord.User{ID: 1}, false); err != nil {
 		t.Fatal(err)
 	}

@@ -18,11 +18,11 @@ type FingerprintMsg struct {
 }
 
 // fetchFingerprint gets the fingerprint that ties a login to its two-factor step, as the web client does before it posts credentials.
-func fetchFingerprint(build dhttp.Build, final bool) tview.Cmd {
+func fetchFingerprint(build dhttp.Build, network dhttp.Network, final bool) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), dhttp.AuthTimeout)
 		defer cancel()
-		msg := requestFingerprint(ctx, authClient(dhttp.NewClient(""), build, ""))
+		msg := requestFingerprint(ctx, authClient(dhttp.NewClient(network, ""), build, ""))
 		if fp, ok := msg.(FingerprintMsg); ok {
 			fp.final = final
 			return fp

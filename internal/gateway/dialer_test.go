@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	"github.com/gorilla/websocket"
+	"github.com/seamanticus/amitty/internal/http"
 )
 
 func TestNewDialer(t *testing.T) {
-	dialer := NewDialer()
+	dialer := NewDialer(http.Network{})
 	t.Run("spoofed TLS", func(t *testing.T) {
 		if dialer.NetDialTLSContext == nil {
 			t.Error("TLS dialer is nil")

@@ -34,6 +34,8 @@ const (
 type Model struct {
 	// build is what the login requests identify as.
 	build dhttp.Build
+	// network is how they connect.
+	network dhttp.Network
 
 	login, password string
 	// loginCursor and passwordCursor are the byte offsets of the cursor in login and password.
@@ -62,9 +64,9 @@ type Model struct {
 	solution captcha.Solution
 }
 
-// NewModel returns an empty form whose login requests identify as build.
-func NewModel(build dhttp.Build) Model {
-	return Model{build: build}
+// NewModel returns an empty form whose login requests identify as build and connect through network.
+func NewModel(build dhttp.Build, network dhttp.Network) Model {
+	return Model{build: build, network: network}
 }
 
 func (Model) Label() string {
@@ -103,7 +105,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 			return m, nil
 		}
 		m.fingerprint = msg.fingerprint
-		return m, submitLogin(m.build, m.fingerprint, m.solution, m.login, m.password, msg.final)
+		return m, submitLogin(m.build, m.network, m.fingerprint, m.solution, m.login, m.password, msg.final)
 	case SMSSentMsg:
 		m.submitting = false
 		m.code.phone = msg.phone
@@ -118,7 +120,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 		}
 		m.retryIn, m.retryReason = 0, ""
 		if m.coding() {
-			return m, submitCode(m.build, m.code.ticket, m.code.method, m.code.text, true)
+			return m, submitCode(m.build, m.network, m.code.ticket, m.code.method, m.code.text, true)
 		}
 		return m, m.submit(true)
 	case CaptchaMsg, CaptchaPageMsg, CaptchaOpenFailedMsg, CaptchaSolvedMsg:
@@ -172,9 +174,9 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 // submit logs in with the form, first fetching the fingerprint if there is none yet.
 func (m Model) submit(final bool) tview.Cmd {
 	if m.fingerprint == "" {
-		return fetchFingerprint(m.build, final)
+		return fetchFingerprint(m.build, m.network, final)
 	}
-	return submitLogin(m.build, m.fingerprint, m.solution, m.login, m.password, final)
+	return submitLogin(m.build, m.network, m.fingerprint, m.solution, m.login, m.password, final)
 }
 
 // coding reports whether the code form is shown.

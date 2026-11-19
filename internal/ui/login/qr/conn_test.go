@@ -105,7 +105,7 @@ func TestListen(t *testing.T) {
 
 		done := make(chan error, 1)
 		go func() {
-			done <- tview.NewApplication(gatewayModel{Model: NewModel(dhttp.Build{}), conn: conn}, tview.WithScreen(screen)).Run()
+			done <- tview.NewApplication(gatewayModel{Model: NewModel(dhttp.Build{}, dhttp.Network{}), conn: conn}, tview.WithScreen(screen)).Run()
 		}()
 		select {
 		case err := <-done:

@@ -39,17 +39,19 @@ type Model struct {
 	cfg *config.Config
 	// build is what every request and the gateway identify as, fetched once at startup.
 	build http.Build
+	// network is how they connect.
+	network http.Network
 	// store keeps the token between runs.
 	store tokenstore.Store
 }
 
 // NewModel returns the application, opening the chat with token if set and the login otherwise.
-func NewModel(cfg *config.Config, build http.Build, store tokenstore.Store, token string) Model {
-	m := Model{cfg: cfg, build: build, store: store, helpVisible: cfg.Help.Enabled}
+func NewModel(cfg *config.Config, build http.Build, network http.Network, store tokenstore.Store, token string) Model {
+	m := Model{cfg: cfg, build: build, network: network, store: store, helpVisible: cfg.Help.Enabled}
 	if token == "" {
-		m.screen = loginScreen(login.NewModel(cfg, build))
+		m.screen = loginScreen(login.NewModel(cfg, build, network))
 	} else {
-		m.screen = chatScreen(chat.NewModel(cfg, build, token))
+		m.screen = chatScreen(chat.NewModel(cfg, build, network, token))
 	}
 	return m
 }

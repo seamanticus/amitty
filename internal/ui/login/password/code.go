@@ -98,13 +98,13 @@ func (m Model) updateCode(msg tview.Msg) (Model, tview.Cmd) {
 			return m, nil
 		}
 		m.submitting = true
-		return m, submitCode(m.build, m.code.ticket, m.code.method, m.code.text, false)
+		return m, submitCode(m.build, m.network, m.code.ticket, m.code.method, m.code.text, false)
 	case sendSMSMsg:
 		if m.submitting || m.code.method != methodSMS {
 			return m, nil
 		}
 		m.submitting = true
-		return m, sendSMS(m.build, m.code.ticket)
+		return m, sendSMS(m.build, m.network, m.code.ticket)
 	}
 	return m, nil
 }

@@ -55,7 +55,13 @@ func Run() error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	build := fetchBuild()
+	network, err := http.ParseNetwork(cfg.Proxy)
+	if err != nil {
+		return fmt.Errorf("config: %w", err)
+	}
+	slog.Info("network", "via", network)
+
+	build := fetchBuild(network)
 
 	store, token, err := loadToken(cfg)
 	if err != nil {
@@ -79,7 +85,7 @@ func Run() error {
 		screen.EnableFocus()
 	}
 
-	return tview.NewApplication(root.NewModel(cfg, build, store, token), tview.WithScreen(screen)).Run()
+	return tview.NewApplication(root.NewModel(cfg, build, network, store, token), tview.WithScreen(screen)).Run()
 }
 
 // loadToken opens the token store of cfg and decrypts its token before the screen starts, so a passphrase prompt owns the terminal. An empty token means none is stored.
@@ -107,10 +113,10 @@ func loadToken(cfg *config.Config) (tokenstore.Store, string, error) {
 }
 
 // fetchBuild fetches the current build number before the screen starts, falling back to the generated one with a warning on stderr and in the log.
-func fetchBuild() http.Build {
+func fetchBuild(network http.Network) http.Build {
 	ctx, cancel := context.WithTimeout(context.Background(), buildTimeout)
 	defer cancel()
-	build, err := http.FetchBuild(ctx)
+	build, err := http.FetchBuild(ctx, network)
 	if err != nil {
 		fallback := http.Build{}
 		slog.Warn("failed to fetch the build number; using the generated one", "err", err, "build", fallback.Number())

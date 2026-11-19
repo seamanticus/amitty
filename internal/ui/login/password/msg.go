@@ -39,11 +39,11 @@ type (
 )
 
 // submitLogin posts the credentials once with fingerprint and, if set, the captcha solution. A first attempt whose connection failed starts the countdown to a retry; a final one fails.
-func submitLogin(build dhttp.Build, fingerprint string, solution captcha.Solution, login, password string, final bool) tview.Cmd {
+func submitLogin(build dhttp.Build, network dhttp.Network, fingerprint string, solution captcha.Solution, login, password string, final bool) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), dhttp.AuthTimeout)
 		defer cancel()
-		return countdownOr(requestLogin(ctx, withSolution(authClient(dhttp.NewClient(""), build, fingerprint), solution), login, password), final)
+		return countdownOr(requestLogin(ctx, withSolution(authClient(dhttp.NewClient(network, ""), build, fingerprint), solution), login, password), final)
 	})
 }
 

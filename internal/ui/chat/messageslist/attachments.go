@@ -14,6 +14,7 @@ import (
 	"github.com/ayn2op/tview/cmd"
 	"github.com/ayn2op/tview/picker"
 	"github.com/ayn2op/tview/text"
+	fhttp "github.com/bogdanfinn/fhttp"
 	"github.com/seamanticus/amitty/internal/consts"
 	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
@@ -180,8 +181,8 @@ func openURL(url string) tview.Cmd {
 }
 
 // Get requests the file at url, by a new link to it if that one expired.
-func (m Model) Get(url string) (*http.Response, error) {
-	resp, err := http.Get(url)
+func (m Model) Get(url string) (*fhttp.Response, error) {
+	resp, err := m.media.Get(context.Background(), url)
 	if err != nil || resp.StatusCode == http.StatusOK {
 		return resp, err
 	}
@@ -198,7 +199,7 @@ func (m Model) Get(url string) (*http.Response, error) {
 	}
 
 	if len(links.URLs) != 0 {
-		if resp, err = http.Get(links.URLs[0].Refreshed); err != nil || resp.StatusCode == http.StatusOK {
+		if resp, err = m.media.Get(context.Background(), links.URLs[0].Refreshed); err != nil || resp.StatusCode == http.StatusOK {
 			return resp, err
 		}
 		resp.Body.Close() //nolint:errcheck
