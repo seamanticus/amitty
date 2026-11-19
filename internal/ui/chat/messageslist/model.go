@@ -341,7 +341,12 @@ func (m Model) itemView(item *messageItem) tui.Widget {
 	if message.Type == discord.InlinedReplyMessage && !m.blocked(message.Author) {
 		builder := new(markdown.Builder)
 		m.drawReply(builder, *message, style)
-		view = column.New(messageText(builder.Finish()), view).Height(layout.Shrink)
+		var reply tui.Widget = messageText(builder.Finish())
+		// The quote's background fills its line; a tint around the card merges under it, so the quote keeps its own shade.
+		if bg := m.cfg.Theme.MessagesList.ReplyStyle.GetBackground(); bg != tcell.ColorDefault {
+			reply = tint.New(reply, tcell.StyleDefault.Background(bg))
+		}
+		view = column.New(reply, view).Height(layout.Shrink)
 	}
 
 	if alternate := m.cfg.Theme.MessagesList.AlternateStyle.Style; m.alternate(item) && alternate != tcell.StyleDefault {

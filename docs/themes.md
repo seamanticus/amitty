@@ -41,6 +41,7 @@ follows:
 | muted | bright black (color 8), lifted to 3:1 contrast | unfocused titles, reactions, embed details, offline |
 | border | 22% from the background toward the text | borders, tree lines, scroll track |
 | surface | 6% from the background toward the text | the alternate message tint |
+| quote | 12% from the background toward the text | the line a reply quotes, in muted italic |
 | selection | 24% from the background toward blue | the selected message and suggestion |
 
 The palettes are pinned to one upstream commit, so a profile looks the

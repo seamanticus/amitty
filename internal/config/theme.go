@@ -205,6 +205,8 @@ type (
 		SelectedMessageStyle Style `toml:"selected_message_style"`
 		// The style merged under every ui.messages_list.alternate_every-th message, such as `{ background = "#24273a" }`, to tell messages apart. A theme profile tints it from its background.
 		AlternateStyle Style `toml:"alternate_style"`
+		// The style of the line above a reply quoting the message it answers. Its background, if set, fills the line, setting it apart from the reply and the alternate tint. A theme profile tints it slightly.
+		ReplyStyle Style `toml:"reply_style"`
 
 		Embeds MessagesListEmbedsThemeConfig `toml:"embeds"`
 	}
@@ -307,6 +309,7 @@ func defaultTheme() ThemeConfig {
 		ScrollBar:   ScrollBarThemeConfig{TrackStyle: dim},
 		MessagesList: MessagesListThemeConfig{
 			AuthorStyle:          Style{bold},
+			ReplyStyle:           Style{plain.Dim(true).Italic(true)},
 			AuthorColor:          "role",
 			MentionStyle:         Style{blue.Bold(true)},
 			EmojiStyle:           Style{plain.Foreground(color.Green)},

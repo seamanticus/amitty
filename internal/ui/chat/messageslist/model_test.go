@@ -603,3 +603,18 @@ func TestModelAlternate(t *testing.T) {
 		}
 	})
 }
+
+func TestModelDrawReply(t *testing.T) {
+	ml := newTestModel(t, testConfig(t))
+	reply := tcell.StyleDefault.Italic(true).Background(tcell.ColorNavy)
+	ml.cfg.Theme.MessagesList.ReplyStyle = config.Style{Style: reply}
+	var builder markdown.Builder
+	ml.drawReply(&builder, discord.Message{}, tcell.StyleDefault)
+	spans := builder.Finish()
+	if len(spans) == 0 || spans[0].Style != reply {
+		t.Fatalf("indicator = %+v, want it in reply_style", spans)
+	}
+	if last := spans[len(spans)-1]; last.Text != "Original message was deleted" || last.Style != reply {
+		t.Fatalf("deleted note = %+v, want it in reply_style", last)
+	}
+}

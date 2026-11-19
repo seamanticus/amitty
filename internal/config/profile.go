@@ -42,7 +42,8 @@ type roles struct {
 	primary, secondary, accent uint32
 	success, error, warning    uint32
 	link, text, muted          uint32
-	surface, border, selection uint32
+	surface, quote, border     uint32
+	selection                  uint32
 }
 
 func rolesOf(p palette) roles {
@@ -58,6 +59,7 @@ func rolesOf(p palette) roles {
 		text:      p.fg,
 		muted:     readable(c[8], p.bg, p.fg),
 		surface:   mix(p.bg, p.fg, 0.06),
+		quote:     mix(p.bg, p.fg, 0.12),
 		border:    mix(p.bg, p.fg, 0.22),
 		selection: mix(p.bg, c[4], 0.24),
 	}
@@ -132,6 +134,7 @@ func profileTheme(p palette) ThemeConfig {
 	list.MessageStyle = Style{fg(r.text)}
 	list.SelectedMessageStyle = Style{plain.Background(rgb(r.selection))}
 	list.AlternateStyle = Style{plain.Background(rgb(r.surface))}
+	list.ReplyStyle = Style{fg(r.muted).Italic(true).Background(rgb(r.quote))}
 	list.Embeds = MessagesListEmbedsThemeConfig{
 		ProviderStyle:    Style{fg(r.muted).Italic(true)},
 		AuthorStyle:      Style{fg(r.text).Italic(true)},

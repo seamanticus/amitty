@@ -326,7 +326,7 @@ func (m Model) drawForwardedMessage(builder *markdown.Builder, message discord.M
 }
 
 func (m Model) drawReply(builder *markdown.Builder, message discord.Message, baseStyle tui.Style) {
-	dimStyle := baseStyle.Dim(true)
+	dimStyle := tui.MergeStyle(baseStyle, m.cfg.Theme.MessagesList.ReplyStyle.Style)
 	builder.Write(m.cfg.UI.MessagesList.ReplyIndicator, dimStyle)
 	builder.Write(" ", baseStyle)
 
