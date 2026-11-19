@@ -66,6 +66,8 @@ func (t ComponentType) String() string {
 		return "File"
 	case SeparatorComponentType:
 		return "Separator"
+	case ContentInventoryEntryType:
+		return "ContentInventoryEntry"
 	case ContainerComponentType:
 		return "Container"
 	case LabelComponentType:
@@ -225,7 +227,9 @@ func ParseComponent(b []byte) (Component, error) {
 		c = &FileComponent{}
 	case SeparatorComponentType:
 		c = &SeparatorComponent{}
-	// ContentInventory not included since not in spec
+	case ContentInventoryEntryType:
+		// Not in the public spec: kept raw.
+		c = &UnknownComponent{typ: t.Type}
 	case ContainerComponentType:
 		c = &ContainerComponent{}
 	case LabelComponentType:
@@ -343,7 +347,7 @@ const (
 	dangerButtonStyle
 	linkButtonStyleNum
 	premiumButtonStyle
-	basicButtonStyleLen
+	basicButtonStyleCount
 )
 
 // PrimaryButtonStyle is a style for a blurple button.
@@ -430,15 +434,17 @@ func (b *ButtonComponent) UnmarshalJSON(j []byte) error {
 		return err
 	}
 
-	if 0 > msg.Style || msg.Style >= basicButtonStyleLen {
+	if msg.Style < primaryButtonStyle || msg.Style >= basicButtonStyleCount {
 		return fmt.Errorf("unknown button style %d", msg.Style)
 	}
 
 	switch msg.Style {
 	case linkButtonStyleNum:
 		b.Style = LinkButtonStyle(msg.URL)
-	default:
+	case primaryButtonStyle, secondaryButtonStyle, successButtonStyle, dangerButtonStyle, premiumButtonStyle:
 		b.Style = msg.Style
+	default:
+		panic("invariant: button style outside the checked range")
 	}
 
 	return nil

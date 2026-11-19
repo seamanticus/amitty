@@ -235,6 +235,8 @@ func DetermineUploadSize(me *discord.User, guild *discord.Guild) int {
 		limit = max(limit, UploadSizeLimitWithNitroBasic)
 	case discord.NitroFull:
 		limit = max(limit, UploadSizeLimitWithNitroFull)
+	case discord.NoUserNitro:
+		// The default limit.
 	}
 
 	if guild != nil {
@@ -243,6 +245,8 @@ func DetermineUploadSize(me *discord.User, guild *discord.Guild) int {
 			limit = max(limit, UploadSizeLimitWithLevel2Boost)
 		case discord.NitroLevel3:
 			limit = max(limit, UploadSizeLimitWithLevel3Boost)
+		case discord.NoNitroLevel, discord.NitroLevel1:
+			// Level 1 raises no upload limit above the default.
 		}
 	}
 
