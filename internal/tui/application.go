@@ -72,6 +72,8 @@ type Application[M Model[M]] struct {
 	screen Screen
 	// sixels are drawn over their placeholders after each frame.
 	sixels sixels
+	// base colors the cells a frame leaves at the terminal's colors.
+	base Style
 }
 
 // NewApplication creates an application that runs model.
@@ -135,8 +137,11 @@ func (a *Application[M]) Run() error {
 			return msg
 		case Cmd:
 			quit = a.handleCmd(msg)
-			// An image arrives after the frames that hold its placeholders.
-			_, updated = msg.(cmd.SixelImage)
+			// An image arrives after the frames that hold its placeholders, and a new base changes every cell.
+			switch msg.(type) {
+			case cmd.SixelImage, cmd.SetBase:
+				updated = true
+			}
 
 		case KeyMsg:
 			// If we are pasting, collect runes, nothing else.
@@ -302,7 +307,31 @@ func (a *Application[M]) draw() {
 	if view := a.model.View(); view != nil {
 		view.Draw(screen, Rectangle{Width: drawWidth, Height: drawHeight})
 	}
+	applyBase(screen, a.base)
 	a.sixels.show(screen)
+}
+
+// applyBase gives every cell without a foreground or background base's.
+// It runs over the finished frame, as widgets merge styles and a cell's default colors mean the terminal's.
+func applyBase(screen Screen, base Style) {
+	fg, bg := base.GetForeground(), base.GetBackground()
+	if fg == tcell.ColorDefault && bg == tcell.ColorDefault {
+		return
+	}
+	width, height := screen.Size()
+	for y := range height {
+		for x := 0; x < width; {
+			str, style, cellWidth := screen.Get(x, y)
+			if style.GetForeground() == tcell.ColorDefault {
+				style = style.Foreground(fg)
+			}
+			if style.GetBackground() == tcell.ColorDefault {
+				style = style.Background(bg)
+			}
+			screen.Put(x, y, str, style)
+			x += max(cellWidth, 1)
+		}
+	}
 }
 
 // handle passes a message through the model's widget before updating the model with what it makes of it.
@@ -345,6 +374,8 @@ func (a *Application[M]) handleCmd(c Cmd) (quit bool) {
 		}
 	case cmd.SixelImage:
 		a.sixels.set(a.screen, c)
+	case cmd.SetBase:
+		a.base = c.Style
 	case cmd.Suspend:
 		var next Msg
 		a.suspend(func() { next = c() })

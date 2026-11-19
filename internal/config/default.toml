@@ -41,8 +41,11 @@
 # messages_limit = 50
 
 # A color scheme every style of [theme] starts from, such as "Catppuccin Mocha"; "" keeps the terminal's own colors. Styles set under [theme] override it.
-# The profiles are listed in docs/themes.md. Text is colored; the background stays the terminal's.
+# The profiles are listed in docs/themes.md. The profile paints its background and text color everywhere.
 # theme_profile = ""
+
+# Whether a theme profile leaves the background to the terminal, keeping its transparency, and paints only text.
+# inherit_background = false
 
 [markdown]
 

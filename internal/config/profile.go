@@ -102,7 +102,7 @@ func readable(c, bg, fg uint32) uint32 {
 
 func rgb(c uint32) tcell.Color { return tcell.NewHexColor(int32(c)) }
 
-// profileTheme returns the theme of p: the default theme's attributes in p's colors. Backgrounds are left to the terminal, but for the selection and the alternate messages' tint.
+// profileTheme returns the theme of p: the default theme's attributes in p's colors. The selection and the alternate messages take a background blended from p's, which the frame's base paints elsewhere.
 func profileTheme(p palette) ThemeConfig {
 	r := rolesOf(p)
 	plain := tcell.StyleDefault
@@ -146,6 +146,19 @@ func profileTheme(p palette) ThemeConfig {
 	theme.Autocomplete.SelectedStyle = Style{plain.Background(rgb(r.selection))}
 	theme.Help = HelpThemeConfig{ShortKeyStyle: Style{fg(r.muted)}, ShortDescStyle: Style{fg(r.text)}, FullKeyStyle: Style{fg(r.muted)}, FullDescStyle: Style{fg(r.text)}}
 	return theme
+}
+
+// BaseStyle returns the style a frame's uncolored cells take: the profile's text and background, its text alone with inherit_background, or none without a profile.
+func (cfg *Config) BaseStyle() tcell.Style {
+	p, ok := profilePalette(cfg.ThemeProfile)
+	if !ok {
+		return tcell.StyleDefault
+	}
+	style := tcell.StyleDefault.Foreground(rgb(p.fg))
+	if !cfg.InheritBackground {
+		style = style.Background(rgb(p.bg))
+	}
+	return style
 }
 
 // applyProfile sets the theme of the profile name, or leaves the default theme for "".

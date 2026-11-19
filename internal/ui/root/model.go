@@ -133,6 +133,7 @@ var _ tui.Model[Model] = Model{}
 func (m Model) Init() tui.Cmd {
 	return cmd.Batch{
 		cmd.SetTitle(consts.Name),
+		cmd.SetBase{Style: m.cfg.BaseStyle()},
 		initClipboard(),
 		m.screen.Match(login.Model.Init, chat.Model.Init),
 	}

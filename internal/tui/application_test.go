@@ -208,3 +208,30 @@ func BenchmarkApplicationRunBurst(b *testing.B) {
 	}
 	b.ReportMetric(float64(frames)/float64(b.N), "frames/op")
 }
+
+func TestApplyBase(t *testing.T) {
+	screen, err := tcell.NewTerminfoScreenFromTty(vt.NewMockTerm(vt.MockOptSize{X: 3, Y: 1}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := screen.Init(); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(screen.Fini)
+	red, blue, green := tcell.ColorRed, tcell.ColorBlue, tcell.ColorGreen
+	screen.Put(0, 0, "a", tcell.StyleDefault)
+	screen.Put(1, 0, "b", tcell.StyleDefault.Foreground(green))
+	screen.Put(2, 0, "c", tcell.StyleDefault.Background(green).Bold(true))
+	applyBase(screen, tcell.StyleDefault.Foreground(red).Background(blue))
+
+	// evidence: witnesses
+	for x, want := range []tcell.Style{
+		tcell.StyleDefault.Foreground(red).Background(blue),
+		tcell.StyleDefault.Foreground(green).Background(blue),
+		tcell.StyleDefault.Foreground(red).Background(green).Bold(true),
+	} {
+		if _, got, _ := screen.Get(x, 0); got != want {
+			t.Errorf("cell %d = %v, want %v", x, got, want)
+		}
+	}
+}

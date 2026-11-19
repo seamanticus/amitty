@@ -102,3 +102,22 @@ func TestLoadProfile(t *testing.T) {
 		}
 	})
 }
+
+func TestBaseStyle(t *testing.T) {
+	nord, _ := profilePalette("Nord")
+	// evidence: witnesses
+	for _, test := range []struct {
+		profile string
+		inherit bool
+		want    tcell.Style
+	}{
+		{"", false, tcell.StyleDefault},
+		{"Nord", false, tcell.StyleDefault.Foreground(rgb(nord.fg)).Background(rgb(nord.bg))},
+		{"Nord", true, tcell.StyleDefault.Foreground(rgb(nord.fg))},
+	} {
+		cfg := Config{ThemeProfile: test.profile, InheritBackground: test.inherit}
+		if got := cfg.BaseStyle(); got != test.want {
+			t.Errorf("%q inherit %v = %v, want %v", test.profile, test.inherit, got, test.want)
+		}
+	}
+}

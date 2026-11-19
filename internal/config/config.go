@@ -252,8 +252,10 @@ type (
 		// Global shortcuts. A keybind is a key such as "ctrl+k", or a list of keys.
 		Keybinds Keybinds `toml:"keybinds"`
 		// A color scheme every style of [theme] starts from, such as "Catppuccin Mocha"; "" keeps the terminal's own colors. Styles set under [theme] override it.
-		// The profiles are listed in docs/themes.md. Text is colored; the background stays the terminal's.
+		// The profiles are listed in docs/themes.md. The profile paints its background and text color everywhere.
 		ThemeProfile string `toml:"theme_profile"`
+		// Whether a theme profile leaves the background to the terminal, keeping its transparency, and paints only text.
+		InheritBackground bool `toml:"inherit_background"`
 		// Styles of the widgets, each written as
 		// `{ foreground = "", background = "", attributes = "" or ["", ""], underline = "", underline_color = "" }`.
 		Theme ThemeConfig `toml:"theme"`

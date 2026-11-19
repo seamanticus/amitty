@@ -1,6 +1,10 @@
 package cmd
 
-import "image"
+import (
+	"image"
+
+	"github.com/gdamore/tcell/v3"
+)
 
 type Msg any
 
@@ -11,6 +15,11 @@ type Cmd interface{ isCmd() }
 type WriteRaw string
 
 func (WriteRaw) isCmd() {}
+
+// SetBase sets the style every frame starts from: a cell drawn without a foreground or background takes Style's. The zero Style leaves them to the terminal.
+type SetBase struct{ Style tcell.Style }
+
+func (SetBase) isCmd() {}
 
 // SixelImage sets the image that the sixel placeholders of image ID show, already at the size it is drawn, with Cell pixels to a cell. A nil Image forgets it.
 type SixelImage struct {

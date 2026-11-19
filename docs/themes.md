@@ -8,8 +8,11 @@ theme_profile = "Catppuccin Mocha"
 ```
 
 - Text, borders, mentions, links and status dots take the scheme's
-  colors; the background stays your terminal's, so its transparency and
-  font settings keep working.
+  colors, and every cell takes its background, so a scheme looks as
+  designed whatever your terminal's own colors.
+- `inherit_background = true` keeps your terminal's background (and its
+  transparency), coloring only text. A scheme made for a dark
+  background can then be hard to read on a light one.
 - The selected message and every other message card get a background
   tint blended from the scheme's background, so cards stand apart. Set
   `ui.messages_list.alternate_every` to change how often, or `0` to
