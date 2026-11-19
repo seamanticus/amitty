@@ -1,6 +1,7 @@
 package messageslist
 
 import (
+	"errors"
 	"log/slog"
 	"strconv"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	md "github.com/seamanticus/amitty/internal/dmwire/markdown"
 	"github.com/seamanticus/amitty/internal/dmwire/state"
+	"github.com/seamanticus/amitty/internal/dmwire/state/store"
 	"github.com/seamanticus/amitty/internal/markdown"
 	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/seamanticus/amitty/internal/tui/layout"
@@ -220,7 +222,10 @@ func (m Model) memberForMessage(message discord.Message) *discord.Member {
 
 	member, err := m.state.Cabinet.Member(message.GuildID, message.Author.ID)
 	if err != nil {
-		slog.Error("failed to get member from state", "guild_id", message.GuildID, "member_id", message.Author.ID, "err", err)
+		// A member is missing until the gateway sends the members requested with the messages, so each draw before then finds none.
+		if !errors.Is(err, store.ErrNotFound) {
+			slog.Error("failed to get member from state", "guild_id", message.GuildID, "member_id", message.Author.ID, "err", err)
+		}
 		return nil
 	}
 	return member
