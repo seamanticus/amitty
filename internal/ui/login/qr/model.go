@@ -2,6 +2,8 @@ package qr
 
 import (
 	"crypto/rsa"
+	"errors"
+	"fmt"
 	stdimage "image"
 	"time"
 
@@ -37,6 +39,10 @@ type Model struct {
 	heartbeatInterval time.Duration
 	privateKey        *rsa.PrivateKey
 	fingerprint       string
+	// expiresIn is the seconds left before the gateway ends the session, or 0 when none are counted.
+	expiresIn int
+	// ended is set once the login stopped without a token; Renew then starts a new one.
+	ended bool
 
 	// qrCode is the code at one pixel per module, made once as it arrives.
 	qrCode stdimage.Image
@@ -58,7 +64,12 @@ var _ tview.Model[Model] = Model{}
 
 var _ help.KeyMap = Model{}
 
-func (Model) ShortHelp() []keybind.Keybind { return []keybind.Keybind{keys.Back("cancel")} }
+func (m Model) ShortHelp() []keybind.Keybind {
+	if m.ended {
+		return []keybind.Keybind{keys.Renew()}
+	}
+	return []keybind.Keybind{keys.Back("cancel")}
+}
 
 func (m Model) FullHelp() [][]keybind.Keybind { return [][]keybind.Keybind{m.ShortHelp()} }
 
@@ -70,32 +81,51 @@ func (Model) Init() tview.Cmd {
 func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 	switch msg := msg.(type) {
 	case startMsg:
-		m.status = "Connecting to Remote Auth Gateway..."
-		return m, connect(m.build)
+		next := NewModel(m.build)
+		next.status = "Connecting to Remote Auth Gateway..."
+		return next, cmd.Batch{closeConn(m.conn), connect(m.build)}
 	case tview.KeyMsg:
-		if keybind.Matches(msg, keys.Back("")) {
-			m.status = "Canceled"
-			return m, closeConn(m.conn)
+		switch {
+		case m.ended && keybind.Matches(msg, keys.Renew()):
+			return m.Update(startMsg{})
+		case !m.ended && keybind.Matches(msg, keys.Back("")):
+			return m.end("Canceled")
 		}
 		return m, nil
 
 	case connCreateMsg:
+		if m.ended || m.conn != nil {
+			// Canceled while connecting, or a second connect lost the race.
+			return m, closeConn(msg.conn)
+		}
 		m.conn = msg.conn
 		m.status = "Connected. Handshaking..."
 		return m, listen(m.conn)
 	case connCloseMsg:
-		m.conn = nil
+		if msg.conn == m.conn {
+			m.conn = nil
+		}
 		return m, nil
 
 	case helloMsg:
 		m.heartbeatInterval = time.Duration(msg.heartbeatInterval) * time.Millisecond
-		return m, cmd.Batch{listen(m.conn), scheduleHeartbeat(m.heartbeatInterval), generatePrivateKey()}
+		commands := cmd.Batch{listen(m.conn), scheduleHeartbeat(m.conn, m.heartbeatInterval), generatePrivateKey()}
+		// Whole seconds, rounded down, so the code is gone before the gateway ends the session.
+		if m.expiresIn = msg.timeoutMS / 1000; m.expiresIn > 0 {
+			commands = append(commands, tickExpiry(m.conn))
+		}
+		return m, commands
 	case privateKeyMsg:
 		m.privateKey = msg.privateKey
 		return m, sendInit(m.conn, m.privateKey)
 	case nonceProofMsg:
 		return m, cmd.Batch{listen(m.conn), sendNonceProof(m.conn, m.privateKey, msg.encryptedNonce)}
 	case pendingRemoteInitMsg:
+		if !ownsFingerprint(m.privateKey, msg.fingerprint) {
+			return m, cmd.Task(func() tview.Msg {
+				return errors.New("remote auth gateway sent a fingerprint that is not of our key; the code is not shown")
+			})
+		}
 		m.fingerprint = msg.fingerprint
 		return m, cmd.Batch{listen(m.conn), generateQRCode(msg.fingerprint)}
 	case qrCodeMsg:
@@ -113,25 +143,57 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 		return m, nil
 	case pendingLoginMsg:
 		m.status = "Authenticating..."
-		return m, cmd.Batch{closeConn(m.conn), exchangeTicket(m.build, m.fingerprint, m.privateKey, msg.ticket)}
+		m.expiresIn = 0
+		return m, cmd.Batch{closeConn(m.conn), exchangeTicket(m.build, m.fingerprint, m.privateKey, msg.ticket, false)}
+	case retryMsg:
+		if m.ended {
+			return m, nil
+		}
+		if msg.left <= 0 {
+			m.status = "Authenticating..."
+			return m, exchangeTicket(m.build, m.fingerprint, m.privateKey, msg.ticket, true)
+		}
+		m.status = fmt.Sprintf("Connection failed, retrying once in %d s: %v", msg.left, msg.err)
+		return m, tickRetry(msg)
 	case ignoredMsg:
 		return m, listen(m.conn)
 	case cancelMsg:
-		m.status = "Login canceled on mobile"
-		return m, closeConn(m.conn)
+		return m.end("Login canceled on mobile")
+	case expiredMsg:
+		return m.end("Code expired")
 
 	case heartbeatTickMsg:
-		if m.conn == nil {
+		if msg.conn == nil || msg.conn != m.conn {
 			return m, nil
 		}
-		return m, cmd.Batch{scheduleHeartbeat(m.heartbeatInterval), sendHeartbeat(m.conn)}
+		return m, cmd.Batch{scheduleHeartbeat(m.conn, m.heartbeatInterval), sendHeartbeat(m.conn)}
+	case expiryTickMsg:
+		if msg.conn == nil || msg.conn != m.conn || m.ended || m.expiresIn <= 0 {
+			return m, nil
+		}
+		if m.expiresIn--; m.expiresIn == 0 {
+			return m.end("Code expired")
+		}
+		return m, tickExpiry(m.conn)
 
 	case error:
-		m.status = msg.Error()
-		return m, closeConn(m.conn)
+		if m.ended {
+			// A task of the login that already stopped.
+			return m, nil
+		}
+		return m.end(msg.Error())
 	}
 
 	return m, nil
+}
+
+// end stops the login with status, hiding the code and closing the connection.
+func (m Model) end(status string) (Model, tview.Cmd) {
+	m.status = status
+	m.ended = true
+	m.qrCode = nil
+	m.expiresIn = 0
+	return m, closeConn(m.conn)
 }
 
 // View centers the code above the status.
@@ -146,7 +208,15 @@ func (m Model) View() tview.Widget {
 			Height(layout.Shrink)
 	}
 
-	return center.New(column.New(qrCode, text.New(m.status)).
+	var note tview.Widget
+	switch {
+	case m.ended:
+		note = text.New("Press " + keys.Renew().Help().Key + " for a new code")
+	case m.qrCode != nil && m.expiresIn > 0:
+		note = text.New(fmt.Sprintf("Code expires in %d:%02d", m.expiresIn/60, m.expiresIn%60))
+	}
+
+	return center.New(column.New(qrCode, text.New(m.status), note).
 		Spacing(statusSpacing).
 		AlignX(tview.HorizontalAlignmentCenter).
 		Width(layout.Shrink).

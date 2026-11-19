@@ -16,3 +16,6 @@ func OptionPrevious() keybind.Keybind { return keybind.NewSingleKeybind("left", 
 
 // Back leaves a step or cancels a pending login.
 func Back(desc string) keybind.Keybind { return keybind.NewSingleKeybind("esc", desc) }
+
+// Renew starts a new QR login once the last one ended.
+func Renew() keybind.Keybind { return keybind.NewSingleKeybind("r", "new code") }

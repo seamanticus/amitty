@@ -12,6 +12,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -21,7 +22,9 @@ import (
 	"github.com/gdamore/tcell/v3"
 	"github.com/gorilla/websocket"
 	"github.com/seamanticus/amitty/internal/discordtest"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	dhttp "github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/ui/login/keys"
 )
 
 // testKey returns a fresh RSA-2048 key, as the login makes one per attempt.
@@ -337,8 +340,16 @@ func TestModelUpdate(t *testing.T) {
 	t.Run("closing forgets the connection", func(t *testing.T) {
 		m := NewModel(dhttp.Build{})
 		m.conn = &gatewayConn{}
-		if m, _ = m.Update(connCloseMsg{}); m.conn != nil {
+		if m, _ = m.Update(connCloseMsg{m.conn}); m.conn != nil {
 			t.Fatal("connection kept")
+		}
+	})
+
+	t.Run("closing an old connection keeps the current one", func(t *testing.T) {
+		m := NewModel(dhttp.Build{})
+		m.conn = &gatewayConn{}
+		if m, _ = m.Update(connCloseMsg{&gatewayConn{}}); m.conn == nil {
+			t.Fatal("current connection forgotten")
 		}
 	})
 
@@ -363,9 +374,16 @@ func TestListenClosed(t *testing.T) {
 			t.Fatalf("got %#v, want nil so the error case does not close again", msg)
 		}
 	})
-	t.Run("a connection the server closed is an error", func(t *testing.T) {
+	t.Run("a session the server timed out has expired", func(t *testing.T) {
 		client, server := pipe(t)
 		_ = server.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(4003, "timeout"))
+		if msg := run(t, listen(client)); msg != (expiredMsg{}) {
+			t.Fatalf("got %#v, want expiredMsg", msg)
+		}
+	})
+	t.Run("a connection the server closed otherwise is an error", func(t *testing.T) {
+		client, server := pipe(t)
+		_ = server.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(4002, "handshake"))
 		if _, ok := run(t, listen(client)).(error); !ok {
 			t.Fatal("want an error")
 		}
@@ -384,4 +402,178 @@ func TestGenerateQRCode(t *testing.T) {
 	if !ok || msg.qrCode == nil || msg.qrCode.Bounds().Empty() {
 		t.Fatalf("got %#v", msg)
 	}
+}
+
+// evidence: witnesses
+func TestOwnsFingerprint(t *testing.T) {
+	key := testKey(t)
+	spki, err := x509.MarshalPKIXPublicKey(key.Public())
+	if err != nil {
+		t.Fatal(err)
+	}
+	sum := sha256.Sum256(spki)
+	own := base64.RawURLEncoding.EncodeToString(sum[:])
+	for _, tt := range []struct {
+		name        string
+		key         *rsa.PrivateKey
+		fingerprint string
+		want        bool
+	}{
+		{"the key's own", key, own, true},
+		{"padded base64url", key, base64.URLEncoding.EncodeToString(sum[:]), false},
+		{"standard base64", key, base64.StdEncoding.EncodeToString(sum[:]), false},
+		{"another key's", testKey(t), own, false},
+		{"empty", key, "", false},
+		{"no key", nil, own, false},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ownsFingerprint(tt.key, tt.fingerprint); got != tt.want {
+				t.Fatalf("ownsFingerprint = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// evidence: witnesses
+func TestClosedMsg(t *testing.T) {
+	if msg := closedMsg(4003); msg != (expiredMsg{}) {
+		t.Fatalf("4003 = %#v, want expiredMsg", msg)
+	}
+	for _, code := range []int{1000, 4000, 4001, 4002, 4004} {
+		err, ok := closedMsg(code).(error)
+		if !ok || !strings.Contains(err.Error(), strconv.Itoa(code)) {
+			t.Fatalf("%d = %v, want an error naming the code", code, err)
+		}
+	}
+}
+
+// evidence: witnesses
+func TestRetryOr(t *testing.T) {
+	refused := &httputil.HTTPError{Status: http.StatusBadGateway}
+	for _, tt := range []struct {
+		name  string
+		msg   tview.Msg
+		final bool
+		retry bool
+	}{
+		{"a first failed connection", refused, false, true},
+		{"a final failed connection", refused, true, false},
+		{"a rejected ticket", &httputil.HTTPError{Status: http.StatusBadRequest}, false, false},
+		{"a token", TokenMsg("t"), false, false},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			got := retryOr(tt.msg, "tk", tt.final)
+			retry, ok := got.(retryMsg)
+			if ok != tt.retry {
+				t.Fatalf("got %#v, retry want %v", got, tt.retry)
+			}
+			if ok && (retry.ticket != "tk" || retry.left != dhttp.RetryDelay) {
+				t.Fatalf("got %#v", retry)
+			}
+			if !ok && got != tt.msg {
+				t.Fatalf("got %#v, want %#v unchanged", got, tt.msg)
+			}
+		})
+	}
+}
+
+func TestModelLifecycle(t *testing.T) {
+	press := func(m Model, key string) (Model, tview.Cmd) {
+		return m.Update(tview.KeyMsg(tcell.NewEventKey(tcell.KeyRune, key, tcell.ModNone)))
+	}
+	live := func() Model {
+		m := NewModel(dhttp.Build{})
+		m.conn = &gatewayConn{}
+		return m
+	}
+
+	t.Run("hello starts the expiry countdown in whole seconds", func(t *testing.T) {
+		m, command := live().Update(helloMsg{heartbeatInterval: 41250, timeoutMS: 142637})
+		if m.expiresIn != 142 {
+			t.Fatalf("expiresIn = %d, want 142", m.expiresIn)
+		}
+		if batch, ok := command.(cmd.Batch); !ok || len(batch) != 4 {
+			t.Fatalf("command = %#v, want listen, heartbeat, key generation and expiry tick", command)
+		}
+	})
+
+	t.Run("the countdown ends the login at zero", func(t *testing.T) {
+		m := live()
+		m.expiresIn = 2
+		m, command := m.Update(expiryTickMsg{m.conn})
+		if m.expiresIn != 1 || m.ended || command == nil {
+			t.Fatalf("expiresIn = %d, ended = %v, command = %v", m.expiresIn, m.ended, command)
+		}
+		if m, _ = m.Update(expiryTickMsg{m.conn}); !m.ended || m.status != "Code expired" || m.qrCode != nil {
+			t.Fatalf("ended = %v, status = %q", m.ended, m.status)
+		}
+	})
+
+	t.Run("a tick of an old connection is dropped", func(t *testing.T) {
+		m := live()
+		m.expiresIn = 5
+		for _, msg := range []tview.Msg{expiryTickMsg{&gatewayConn{}}, heartbeatTickMsg{&gatewayConn{}}} {
+			if got, command := m.Update(msg); command != nil || got.expiresIn != 5 {
+				t.Fatalf("%T: expiresIn = %d, command = %v", msg, got.expiresIn, command)
+			}
+		}
+	})
+
+	t.Run("the gateway's timeout ends the login", func(t *testing.T) {
+		if m, _ := live().Update(expiredMsg{}); !m.ended || m.status != "Code expired" {
+			t.Fatalf("ended = %v, status = %q", m.ended, m.status)
+		}
+	})
+
+	t.Run("a fingerprint of another key is an error and shows no code", func(t *testing.T) {
+		m := live()
+		m.privateKey = testKey(t)
+		m, command := m.Update(pendingRemoteInitMsg{fingerprint: "not-ours"})
+		if _, ok := run(t, command).(error); !ok || m.fingerprint != "" {
+			t.Fatalf("fingerprint = %q, command = %#v", m.fingerprint, command)
+		}
+	})
+
+	t.Run("r renews only an ended login", func(t *testing.T) {
+		m := live()
+		if _, command := press(m, "r"); command != nil {
+			t.Fatal("r restarted a running login")
+		}
+		m, _ = m.end("Code expired")
+		if help := m.ShortHelp(); len(help) != 1 || help[0].Help() != keys.Renew().Help() {
+			t.Fatalf("help = %v, want only renew", help)
+		}
+		m, command := press(m, "r")
+		if m.ended || m.conn != nil || !strings.Contains(m.status, "Connecting") || command == nil {
+			t.Fatalf("ended = %v, status = %q, command = %v", m.ended, m.status, command)
+		}
+	})
+
+	t.Run("an ended login closes a connection that arrives late", func(t *testing.T) {
+		m, _ := NewModel(dhttp.Build{}).end("Canceled")
+		late := &gatewayConn{}
+		m, command := m.Update(connCreateMsg{conn: late})
+		if m.conn != nil || command == nil {
+			t.Fatalf("conn = %v, command = %v", m.conn, command)
+		}
+	})
+
+	t.Run("an ended login ignores late errors and retries", func(t *testing.T) {
+		m, _ := NewModel(dhttp.Build{}).end("Code expired")
+		for _, msg := range []tview.Msg{errors.New("late"), retryMsg{ticket: "tk", left: 1}} {
+			if got, command := m.Update(msg); command != nil || got.status != "Code expired" {
+				t.Fatalf("%T: status = %q, command = %v", msg, got.status, command)
+			}
+		}
+	})
+
+	t.Run("a retry counts down, then redeems once more", func(t *testing.T) {
+		m, command := NewModel(dhttp.Build{}).Update(retryMsg{ticket: "tk", left: 3, err: errors.New("refused")})
+		if !strings.Contains(m.status, "retrying once in 3 s: refused") || command == nil {
+			t.Fatalf("status = %q, command = %v", m.status, command)
+		}
+		if m, command = m.Update(retryMsg{ticket: "tk"}); m.status != "Authenticating..." || command == nil {
+			t.Fatalf("status = %q, command = %v", m.status, command)
+		}
+	})
 }

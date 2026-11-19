@@ -3,6 +3,8 @@ package qr
 import (
 	dhttp "github.com/seamanticus/amitty/internal/http"
 
+	"crypto/sha256"
+	"encoding/base64"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -51,7 +53,8 @@ func serveGateway(t *testing.T, acks int) http.HandlerFunc {
 		shown := false
 		for {
 			var msg struct {
-				Op string `json:"op"`
+				Op  string `json:"op"`
+				Key string `json:"encoded_public_key"`
 			}
 			err := conn.ReadJSON(&msg)
 			switch {
@@ -63,7 +66,9 @@ func serveGateway(t *testing.T, acks int) http.HandlerFunc {
 				err = conn.WriteJSON(map[string]any{"op": "heartbeat_ack"})
 			case msg.Op == "init":
 				shown = true
-				err = conn.WriteJSON(map[string]any{"op": "pending_remote_init", "fingerprint": "fingerprint"})
+				spki, _ := base64.StdEncoding.DecodeString(msg.Key)
+				sum := sha256.Sum256(spki)
+				err = conn.WriteJSON(map[string]any{"op": "pending_remote_init", "fingerprint": base64.RawURLEncoding.EncodeToString(sum[:])})
 			}
 			if err != nil {
 				return
@@ -133,13 +138,19 @@ func TestCloseConn(t *testing.T) {
 	// Closing twice must not error, or the error case would close it again forever.
 	for _, name := range []string{"close", "close again"} {
 		t.Run(name, func(t *testing.T) {
-			if msg := closeConn(conn).(cmd.Task)(); msg != (connCloseMsg{}) {
+			if msg := closeConn(conn).(cmd.Task)(); msg != (connCloseMsg{conn}) {
 				t.Fatalf("got %#v, want connCloseMsg", msg)
 			}
 		})
 	}
 	t.Run("listen after close", func(t *testing.T) {
 		if msg := listen(conn).(cmd.Task)(); msg != nil {
+			t.Fatalf("got %#v, want nil", msg)
+		}
+	})
+	// A heartbeat in flight when the login closed the connection must not end the next step with an error.
+	t.Run("heartbeat after close", func(t *testing.T) {
+		if msg := sendHeartbeat(conn).(cmd.Task)(); msg != nil {
 			t.Fatalf("got %#v, want nil", msg)
 		}
 	})

@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	json "encoding/json/v2"
 	"errors"
+	"fmt"
 	"image"
 	"log/slog"
 	"net"
@@ -36,17 +37,22 @@ type gatewayConn struct {
 	writeMu sync.Mutex
 }
 
+// writeJSON writes v, doing nothing once closeConn closed the connection, as a heartbeat may still be in flight.
 func (c *gatewayConn) writeJSON(v any) error {
 	c.writeMu.Lock()
 	defer c.writeMu.Unlock()
-	return c.ws.WriteJSON(v)
+	if err := c.ws.WriteJSON(v); err != nil && !errors.Is(err, net.ErrClosed) {
+		return err
+	}
+	return nil
 }
 
 type connCreateMsg struct {
 	conn *gatewayConn
 }
 
-type connCloseMsg struct{}
+// connCloseMsg says conn is closed; the model forgets it only if it is still the current one.
+type connCloseMsg struct{ conn *gatewayConn }
 
 func connect(build http.Build) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
@@ -64,7 +70,7 @@ func connect(build http.Build) tview.Cmd {
 func closeConn(conn *gatewayConn) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
 		if conn == nil {
-			return connCloseMsg{}
+			return connCloseMsg{conn}
 		}
 
 		// An error here must not reach the error case, which would close the connection again.
@@ -72,7 +78,7 @@ func closeConn(conn *gatewayConn) tview.Cmd {
 			slog.Error("failed to close remote auth gateway connection", "err", err)
 		}
 
-		return connCloseMsg{}
+		return connCloseMsg{conn}
 	})
 }
 
@@ -99,6 +105,9 @@ type pendingLoginMsg struct {
 
 type cancelMsg struct{}
 
+// expiredMsg says the gateway ended the session because its time ran out.
+type expiredMsg struct{}
+
 // ignoredMsg is a gateway message the login does not act on, such as heartbeat_ack.
 type ignoredMsg struct{}
 
@@ -113,12 +122,33 @@ func listen(conn *gatewayConn) tview.Cmd {
 			// closeConn closed the connection.
 			return nil
 		}
+		if closeErr, ok := errors.AsType[*websocket.CloseError](err); ok {
+			return closedMsg(closeErr.Code)
+		}
 		if err != nil {
 			return err
 		}
 
 		return decodeMessage(data)
 	})
+}
+
+// closedMsg is the message for a gateway close code: expiry for 4003, else an error naming the cause.
+func closedMsg(code int) tview.Msg {
+	var cause string
+	switch code {
+	case 4003:
+		return expiredMsg{}
+	case 4000:
+		cause = "invalid version"
+	case 4001:
+		cause = "invalid payload"
+	case 4002:
+		cause = "handshake failed"
+	default:
+		cause = "session closed"
+	}
+	return fmt.Errorf("remote auth gateway: %s (close %d)", cause, code)
 }
 
 func decodeMessage(data []byte) tview.Msg {
@@ -153,12 +183,23 @@ func decodeMessage(data []byte) tview.Msg {
 	}
 }
 
-type heartbeatTickMsg struct{}
+// heartbeatTickMsg is due on conn; the model drops it once conn is no longer current.
+type heartbeatTickMsg struct{ conn *gatewayConn }
 
-func scheduleHeartbeat(interval time.Duration) tview.Cmd {
+func scheduleHeartbeat(conn *gatewayConn, interval time.Duration) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
 		time.Sleep(interval)
-		return heartbeatTickMsg{}
+		return heartbeatTickMsg{conn}
+	})
+}
+
+// expiryTickMsg counts down one second of the time left on conn's code.
+type expiryTickMsg struct{ conn *gatewayConn }
+
+func tickExpiry(conn *gatewayConn) tview.Cmd {
+	return cmd.Task(func() tview.Msg {
+		time.Sleep(time.Second)
+		return expiryTickMsg{conn}
 	})
 }
 
@@ -210,6 +251,19 @@ func sendInit(conn *gatewayConn, privateKey *rsa.PrivateKey) tview.Cmd {
 		}
 		return nil
 	})
+}
+
+// ownsFingerprint reports whether fingerprint is the base64url SHA-256 of key's SPKI, so the code links the phone to this key and no other.
+func ownsFingerprint(key *rsa.PrivateKey, fingerprint string) bool {
+	if key == nil {
+		return false
+	}
+	spki, err := x509.MarshalPKIXPublicKey(key.Public())
+	if err != nil {
+		return false
+	}
+	sum := sha256.Sum256(spki)
+	return base64.RawURLEncoding.EncodeToString(sum[:]) == fingerprint
 }
 
 func sendNonceProof(conn *gatewayConn, privateKey *rsa.PrivateKey, encryptedNonce string) tview.Cmd {
@@ -278,11 +332,35 @@ func decryptUserPayload(privateKey *rsa.PrivateKey, encryptedPayload string) tvi
 	})
 }
 
-func exchangeTicket(build http.Build, fingerprint string, privateKey *rsa.PrivateKey, ticket string) tview.Cmd {
+// retryMsg counts down, with left seconds to go, to the one retry of the exchange of ticket whose connection failed.
+type retryMsg struct {
+	ticket string
+	left   int
+	err    error
+}
+
+// exchangeTicket redeems ticket once. A first attempt whose connection failed starts the countdown to a retry; a final one fails.
+func exchangeTicket(build http.Build, fingerprint string, privateKey *rsa.PrivateKey, ticket string, final bool) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), http.AuthTimeout)
 		defer cancel()
-		return redeemTicket(ctx, ticketClient(http.NewClient(""), build, fingerprint), privateKey, ticket)
+		return retryOr(redeemTicket(ctx, ticketClient(http.NewClient(""), build, fingerprint), privateKey, ticket), ticket, final)
+	})
+}
+
+// retryOr returns msg, or the countdown to a retry when msg is the failure of a first exchange of ticket whose connection failed.
+func retryOr(msg tview.Msg, ticket string, final bool) tview.Msg {
+	if err, ok := msg.(error); ok && !final && http.Retryable(err) {
+		return retryMsg{ticket: ticket, left: http.RetryDelay, err: err}
+	}
+	return msg
+}
+
+// tickRetry sends the countdown one second later.
+func tickRetry(msg retryMsg) tview.Cmd {
+	return cmd.Task(func() tview.Msg {
+		time.Sleep(time.Second)
+		return retryMsg{ticket: msg.ticket, left: msg.left - 1, err: msg.err}
 	})
 }
 
