@@ -1,6 +1,7 @@
 package password
 
 import (
+	"context"
 	"errors"
 
 	"github.com/ayn2op/arikawa/v3/utils/httputil"
@@ -10,6 +11,9 @@ import (
 )
 
 type TokenMsg string
+
+// FailedMsg ends a login attempt that did not produce a token.
+type FailedMsg struct{ Err error }
 
 // inputMsg is the text and cursor that typing in an input left.
 type inputMsg struct {
@@ -33,9 +37,12 @@ func submitLogin(login, password string) tview.Cmd {
 		client := http.NewClient("")
 		client.OnRequest = append(client.OnRequest, httputil.WithHeaders(headers))
 
-		loginResp, err := client.Login(login, password)
+		ctx, cancel := context.WithTimeout(context.Background(), http.AuthTimeout)
+		defer cancel()
+
+		loginResp, err := client.WithContext(ctx).Login(login, password)
 		if err != nil {
-			return err
+			return FailedMsg{err}
 		}
 
 		if loginResp.Token != "" {
@@ -43,9 +50,9 @@ func submitLogin(login, password string) tview.Cmd {
 		}
 
 		if loginResp.MFA {
-			return errors.New("multi-factor authentication is required; use token or QR login")
+			return FailedMsg{errors.New("multi-factor authentication is required; use token or QR login")}
 		}
 
-		return errors.New("login response did not include a token")
+		return FailedMsg{errors.New("login response did not include a token")}
 	})
 }

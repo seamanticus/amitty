@@ -9,6 +9,7 @@ import (
 	"github.com/ayn2op/arikawa/v3/discord"
 	"github.com/ayn2op/arikawa/v3/gateway"
 	"github.com/ayn2op/arikawa/v3/utils/ws"
+	"github.com/ayn2op/discordo/internal/ui"
 	"github.com/ayn2op/discordo/internal/ui/chat/composer"
 	"github.com/ayn2op/discordo/internal/ui/chat/guildstree"
 	"github.com/ayn2op/discordo/internal/ui/chat/reactionspicker"
@@ -20,20 +21,27 @@ import (
 // closeCodeAuthenticationFailed is the close code of the gateway for a token it rejects.
 const closeCodeAuthenticationFailed = 4004
 
+// openTimeout bounds the wait for READY; the session keeps reconnecting on its own afterwards.
+const openTimeout = time.Minute
+
 func openState(state *ningen.State) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
-		err := state.Open(context.Background())
+		ctx, cancel := context.WithTimeout(context.Background(), openTimeout)
+		defer cancel()
+
+		err := state.Open(ctx)
 		if err == nil {
 			return nil
 		}
 
-		slog.Error("failed to open chat state", "err", err)
 		// A rejected token never works again, so say so over the login.
-		if !isAuthenticationFailed(err) {
-			return nil
+		if isAuthenticationFailed(err) {
+			slog.Error("failed to open chat state", "err", err)
+			return LogoutMsg{Err: err}
 		}
 
-		return LogoutMsg{Err: err}
+		// The deadline closes the session, so the chat would otherwise sit empty with no reason given.
+		return ui.ErrorDialog("open chat state", err)
 	})
 }
 

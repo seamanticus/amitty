@@ -1,6 +1,7 @@
 package qr
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -287,7 +288,10 @@ func exchangeTicket(fingerprint string, privateKey *rsa.PrivateKey, ticket strin
 		client := http.NewClient("")
 		client.OnRequest = append(client.OnRequest, httputil.WithHeaders(headers))
 
-		encryptedToken, err := client.ExchangeRemoteAuthTicket(ticket)
+		ctx, cancel := context.WithTimeout(context.Background(), http.AuthTimeout)
+		defer cancel()
+
+		encryptedToken, err := client.WithContext(ctx).ExchangeRemoteAuthTicket(ticket)
 		if err != nil {
 			return err
 		}

@@ -30,6 +30,8 @@ type Model struct {
 	focus focus
 	// buttonHovered reports whether the pointer is over the button.
 	buttonHovered bool
+	// submitting reports whether a login request is in flight, during which submits are ignored.
+	submitting bool
 }
 
 func (Model) Label() string {
@@ -58,10 +60,13 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 			m.focus = (m.focus + focusCount - 1) % focusCount
 		}
 	case submitMsg:
-		if m.login == "" || m.password == "" {
+		if m.submitting || m.login == "" || m.password == "" {
 			return m, nil
 		}
+		m.submitting = true
 		return m, submitLogin(m.login, m.password)
+	case FailedMsg:
+		m.submitting = false
 	}
 	return m, nil
 }
@@ -84,9 +89,13 @@ func (m Model) View() tview.Widget {
 	case m.buttonHovered:
 		buttonStyle = buttonStyle.Underline(true)
 	}
-	submit := button.New(text.New("Login")).
+	label := "Login"
+	if m.submitting {
+		label = "Logging in..."
+	}
+	submit := button.New(text.New(label)).
 		Style(buttonStyle).
-		Width(layout.Fixed(len("Login") + 4)).
+		Width(layout.Fixed(len(label) + 4)).
 		Focused(m.focus == focusButton).
 		Hovered(m.buttonHovered).
 		OnHover(func(hovered bool) tview.Msg { return hoverMsg(hovered) }).

@@ -33,4 +33,13 @@ func TestModelUpdate(t *testing.T) {
 			t.Fatalf("got %v", got)
 		}
 	})
+	t.Run("a submit in flight blocks another until it fails", func(t *testing.T) {
+		if _, command := m.Update(submitMsg{}); command != nil {
+			t.Fatal("second submit started a request")
+		}
+		m, _ = m.Update(FailedMsg{})
+		if _, command := m.Update(submitMsg{}); command == nil {
+			t.Fatal("submit after a failure started no request")
+		}
+	})
 }

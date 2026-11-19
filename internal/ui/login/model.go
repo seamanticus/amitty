@@ -71,6 +71,11 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 	case selectTabMsg:
 		m.active = tab(msg)
 		return m, m.Init()
+	case password.FailedMsg:
+		// The password tab gets it even when inactive, so its submit unlocks.
+		var command tview.Cmd
+		m.password, command = m.password.Update(msg)
+		return m, cmd.Batch{showErrorDialog(msg.Err), command}
 	case error:
 		// The active tab still gets the error, so the QR tab can close its connection.
 		errCmd = showErrorDialog(msg)
