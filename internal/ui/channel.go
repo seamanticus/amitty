@@ -48,6 +48,8 @@ func ChannelToString(channel discord.Channel, icons config.Icons, state *ningen.
 		icon = icons.GuildForum
 	case discord.GuildStore:
 		icon = icons.GuildStore
+	default:
+		// Types Discord added after arikawa, and directories, have no icon.
 	}
 
 	return icon + channel.Name
