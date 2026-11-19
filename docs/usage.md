@@ -9,7 +9,7 @@
 | Composer (bottom) | What you type, with the reply or edit in progress and any attachments. |
 | Members tree (right) | The channel's members by role, or a DM's recipients. |
 
-`alt+g` and `alt+m` hide or show the guilds and members trees.
+`alt+g` and `alt+y` hide or show the guilds and members trees.
 `alt+.` hides or shows the keybind help at the bottom, and `ctrl+.`
 switches it between compact and full: the help always lists the keys
 of the pane that has focus.
@@ -21,15 +21,15 @@ of the pane that has focus.
 | `ctrl+g` | Guilds tree |
 | `ctrl+t` | Messages list |
 | `ctrl+i` | Composer |
-| `ctrl+m` | Members tree |
+| `ctrl+y` | Members tree |
 | `ctrl+h`, `ctrl+l`, `ctrl+left`, `ctrl+right` | The previous or next pane |
 | `ctrl+k` | A picker to jump to any channel by name |
 
 Selecting a channel focuses the composer, unless `auto_focus = false`.
 
-`ctrl+m` and `ctrl+i` reach amitty only in terminals with an enhanced
-keyboard protocol (kitty, ghostty, foot, WezTerm): elsewhere they send
-the same bytes as `enter` and `tab`, so they do nothing there.
+`ctrl+i` reaches amitty only in terminals with an enhanced keyboard
+protocol (kitty, ghostty, foot, WezTerm): elsewhere it sends the same
+byte as `tab`.
 
 ## Guilds tree
 

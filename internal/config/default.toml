@@ -265,7 +265,7 @@
 # height = 2
 
 # "square", "rounded" or "circle". Half blocks have too few pixels to show the shape clearly.
-# shape = "square"
+# shape = "circle"
 
 [ui.messages_list.embeds]
 
@@ -360,7 +360,7 @@
 # toggle_guilds_tree = "alt+g"
 
 # Hide/show the members tree.
-# toggle_members_tree = "alt+m"
+# toggle_members_tree = "alt+y"
 
 # toggle_channels_picker = "ctrl+k"
 
@@ -374,7 +374,7 @@
 
 # focus_guilds_tree = "ctrl+g"
 
-# focus_members_tree = "ctrl+m"
+# focus_members_tree = "ctrl+y"
 
 # focus_messages_list = "ctrl+t"
 

@@ -290,14 +290,14 @@ func defaultKeybinds() Keybinds {
 	}
 	return Keybinds{
 		ToggleGuildsTree:     key("toggle guilds", "alt+g"),
-		ToggleMembersTree:    key("toggle members", "alt+m"),
+		ToggleMembersTree:    key("toggle members", "alt+y"),
 		ToggleChannelsPicker: key("channels picker", "ctrl+k"),
 		ToggleHelp:           key("toggle help", "alt+."),
 		ToggleFullHelp:       key("full help", "ctrl+."),
 		Suspend:              key("suspend", "ctrl+z"),
 
 		FocusGuildsTree:   key("guilds", "ctrl+g"),
-		FocusMembersTree:  key("members", "ctrl+m"),
+		FocusMembersTree:  key("members", "ctrl+y"),
 		FocusMessagesList: key("messages", "ctrl+t"),
 		FocusComposer:     key("composer", "ctrl+i"),
 

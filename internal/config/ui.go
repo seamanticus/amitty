@@ -291,7 +291,7 @@ func defaultUI() UIConfig {
 			AlternateEvery:     2,
 			ImageProtocol:      "auto",
 			Attachments:        attachments,
-			Avatars:            AvatarsUIConfig{Preview: true, Height: 2, Shape: "square"},
+			Avatars:            AvatarsUIConfig{Preview: true, Height: 2, Shape: "circle"},
 			Embeds:             EmbedsUIConfig{Enabled: true},
 			Grouping:           GroupingUIConfig{Enabled: true, Interval: 10 * time.Minute},
 			Reactions:          ReactionsUIConfig{Enabled: true, Separator: " • "},

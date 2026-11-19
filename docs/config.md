@@ -204,7 +204,7 @@ The tabs of the login screen.
 |--------|---------|---------|
 | `preview` | `true` |  |
 | `height` | `2` | The number of rows an avatar takes. It is recommended to use `1` with compact. |
-| `shape` | `"square"` | "square", "rounded" or "circle". Half blocks have too few pixels to show the shape clearly. |
+| `shape` | `"circle"` | "square", "rounded" or "circle". Half blocks have too few pixels to show the shape clearly. |
 
 ## `[ui.messages_list.embeds]`
 
@@ -285,13 +285,13 @@ Global shortcuts. A keybind is a key such as "ctrl+k", or a list of keys.
 | Option | Default | Meaning |
 |--------|---------|---------|
 | `toggle_guilds_tree` | `"alt+g"` | Hide/show the guilds tree. |
-| `toggle_members_tree` | `"alt+m"` | Hide/show the members tree. |
+| `toggle_members_tree` | `"alt+y"` | Hide/show the members tree. |
 | `toggle_channels_picker` | `"ctrl+k"` |  |
 | `toggle_help` | `"alt+."` | Hide/show keybind help. |
 | `toggle_full_help` | `"ctrl+."` | Switch between compact and full keybind help. |
 | `suspend` | `"ctrl+z"` |  |
 | `focus_guilds_tree` | `"ctrl+g"` |  |
-| `focus_members_tree` | `"ctrl+m"` |  |
+| `focus_members_tree` | `"ctrl+y"` |  |
 | `focus_messages_list` | `"ctrl+t"` |  |
 | `focus_composer` | `"ctrl+i"` |  |
 | `focus_previous` | `["ctrl+h", "ctrl+left"]` | Cycle focus between the widgets. |
