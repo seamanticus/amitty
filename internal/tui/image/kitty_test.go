@@ -41,7 +41,7 @@ func TestWidgetKitty(t *testing.T) {
 	})
 	t.Run("sixel draws its own placeholders", func(t *testing.T) {
 		screen := screentest.New(t, 2, 1)
-		New(column(red, red)).Sixel(257).Draw(screen, tui.Rectangle{Width: 2, Height: 1})
+		New(column(red, red)).Width(2).Sixel(257).Draw(screen, tui.Rectangle{Width: 2, Height: 1})
 		str, style, _ := screen.Get(1, 0)
 		if id, row, col, ok := graphics.ParseSixelCell(str, style.GetForeground()); !ok || id != 257 || row != 0 || col != 1 {
 			t.Fatalf("cell = %q, want the second sixel placeholder of image 257", str)
