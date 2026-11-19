@@ -55,12 +55,11 @@ type connCreateMsg struct {
 // connCloseMsg says conn is closed; the model forgets it only if it is still the current one.
 type connCloseMsg struct{ conn *gatewayConn }
 
-func connect(build http.Build, network http.Network) tview.Cmd {
+// connect opens the Remote Auth Gateway through network with the handshake of the web client's login page, which carries no API headers.
+func connect(network http.Network) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
-		headers := http.Headers(build)
-		headers.Set("User-Agent", http.BrowserUserAgent())
 		dialer := gateway.NewDialer(network)
-		conn, _, err := dialer.Dial(remoteAuthGatewayURL, headers)
+		conn, _, err := dialer.Dial(remoteAuthGatewayURL, gateway.HandshakeHeaders())
 		if err != nil {
 			return err
 		}

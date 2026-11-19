@@ -94,7 +94,7 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 	case startMsg:
 		next := NewModel(m.build, m.network)
 		next.status = "Connecting to Remote Auth Gateway..."
-		return next, cmd.Batch{closeConn(m.conn), closeCaptcha(m.captcha), connect(m.build, m.network)}
+		return next, cmd.Batch{closeConn(m.conn), closeCaptcha(m.captcha), connect(m.network)}
 	case tview.KeyMsg:
 		switch {
 		case m.ended && keybind.Matches(msg, keys.Renew()):
