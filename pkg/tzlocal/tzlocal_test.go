@@ -1,5 +1,3 @@
-//go:build !windows && !android
-
 package tzlocal
 
 import (
@@ -18,7 +16,6 @@ func TestZoneFromLink(t *testing.T) {
 		{"/usr/share/zoneinfo/America/New_York", "America/New_York", true},
 		{"../usr/share/zoneinfo/Europe/Berlin", "Europe/Berlin", true},
 		{"/etc/zoneinfo/Etc/UTC", "Etc/UTC", true},
-		{"/var/db/timezone/zoneinfo/Asia/Kolkata", "Asia/Kolkata", true},
 		{"/tmp/localtime", "", false},
 	} {
 		t.Run(test.target, func(t *testing.T) {

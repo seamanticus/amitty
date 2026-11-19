@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"strings"
 	"sync"
@@ -304,10 +303,6 @@ func readSummary(path string) (*gateway.ConversationSummary, error) {
 }
 
 func writeToFile(path string, data []byte) error {
-	if runtime.GOOS == "windows" {
-		return os.WriteFile(path, data, 0600)
-	}
-
 	baseDir := filepath.Dir(path)
 
 	tmp, err := os.CreateTemp(baseDir, "tmp")
