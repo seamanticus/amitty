@@ -36,7 +36,7 @@ package store
 import (
 	"errors"
 
-	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
 )
 
 // ErrNotFound is an error that a store can use to return when something isn't

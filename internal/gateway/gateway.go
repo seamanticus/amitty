@@ -1,10 +1,10 @@
 package gateway
 
 import (
+	"github.com/seamanticus/amitty/internal/dmwire/api"
+	discordgateway "github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 	"github.com/seamanticus/amitty/internal/http"
-	"github.com/seamanticus/dmwire/api"
-	discordgateway "github.com/seamanticus/dmwire/gateway"
-	"github.com/seamanticus/dmwire/utils/ws"
 )
 
 const gatewayURL = "wss://gateway.discord.gg"

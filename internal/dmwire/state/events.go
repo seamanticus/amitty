@@ -1,6 +1,6 @@
 package state
 
-import "github.com/seamanticus/dmwire/gateway"
+import "github.com/seamanticus/amitty/internal/dmwire/gateway"
 
 // events that originated from GuildCreate:
 type (

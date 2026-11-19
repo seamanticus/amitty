@@ -6,8 +6,8 @@ import (
 	"github.com/ayn2op/tview/help"
 	"github.com/ayn2op/tview/keybind"
 	"github.com/ayn2op/tview/tree"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	uitree "github.com/seamanticus/amitty/internal/ui/tree"
-	"github.com/seamanticus/dmwire/discord"
 )
 
 var _ help.KeyMap = Model{}

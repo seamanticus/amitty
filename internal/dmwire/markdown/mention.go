@@ -4,8 +4,8 @@ import (
 	"regexp"
 	"slices"
 
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/state/store"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/state/store"
 	"github.com/yuin/goldmark/v2/ast"
 	"github.com/yuin/goldmark/v2/parser"
 	"github.com/yuin/goldmark/v2/text"

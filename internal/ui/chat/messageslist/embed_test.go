@@ -3,7 +3,7 @@ package messageslist
 import (
 	"testing"
 
-	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
 )
 
 func TestModelEmbedViews(t *testing.T) {

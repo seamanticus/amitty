@@ -7,10 +7,10 @@ import (
 
 	"github.com/ayn2op/tview"
 	tviewimage "github.com/ayn2op/tview/image"
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/ningen"
-	"github.com/seamanticus/dmwire/state"
-	"github.com/seamanticus/dmwire/state/store/defaultstore"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/ningen"
+	"github.com/seamanticus/amitty/internal/dmwire/state"
+	"github.com/seamanticus/amitty/internal/dmwire/state/store/defaultstore"
 )
 
 func TestAll(t *testing.T) {

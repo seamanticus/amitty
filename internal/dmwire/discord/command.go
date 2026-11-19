@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/seamanticus/dmwire/utils/json"
-	"github.com/seamanticus/dmwire/utils/json/option"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
 )
 
 // CommandType is the type of the command, which describes the intended

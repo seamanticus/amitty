@@ -8,11 +8,11 @@ import (
 	"github.com/ayn2op/tview/text"
 	"github.com/sahilm/fuzzy"
 	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/ningen"
 	"github.com/seamanticus/amitty/internal/ui/autocomplete"
 	uiemojis "github.com/seamanticus/amitty/internal/ui/emojis"
 	"github.com/seamanticus/amitty/internal/ui/images"
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/ningen"
 )
 
 // Title is the autocomplete's title for emojis.

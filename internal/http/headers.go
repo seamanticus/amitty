@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	stdHttp "net/http"
 
+	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/pkg/tzlocal"
-	"github.com/seamanticus/dmwire/api"
 )
 
 // Headers returns the headers the web client of build sends with its API requests.

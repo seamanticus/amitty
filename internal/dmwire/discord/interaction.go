@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/seamanticus/dmwire/internal/rfutil"
-	"github.com/seamanticus/dmwire/utils/json"
+	"github.com/seamanticus/amitty/internal/dmwire/internal/rfutil"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json"
 )
 
 // InteractionEvent describes the full incoming interaction event. It may be a

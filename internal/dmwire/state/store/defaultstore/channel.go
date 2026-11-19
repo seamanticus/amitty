@@ -6,8 +6,8 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/state/store"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/state/store"
 )
 
 type Channel struct {

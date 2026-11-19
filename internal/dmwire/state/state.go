@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/seamanticus/dmwire/api"
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/gateway"
-	"github.com/seamanticus/dmwire/session"
-	"github.com/seamanticus/dmwire/state/store"
-	"github.com/seamanticus/dmwire/state/store/defaultstore"
-	"github.com/seamanticus/dmwire/utils/handler"
+	"github.com/seamanticus/amitty/internal/dmwire/api"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/session"
+	"github.com/seamanticus/amitty/internal/dmwire/state/store"
+	"github.com/seamanticus/amitty/internal/dmwire/state/store/defaultstore"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
 )
 
 var (

@@ -18,8 +18,8 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	tviewimage "github.com/ayn2op/tview/image"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/ui/images"
-	"github.com/seamanticus/dmwire/discord"
 	_ "golang.org/x/image/webp"
 )
 

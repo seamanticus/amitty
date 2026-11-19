@@ -8,7 +8,7 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/text"
 	"github.com/seamanticus/amitty/internal/config"
-	md "github.com/seamanticus/dmwire/markdown"
+	md "github.com/seamanticus/amitty/internal/dmwire/markdown"
 	"github.com/yuin/goldmark/v2/ast"
 )
 

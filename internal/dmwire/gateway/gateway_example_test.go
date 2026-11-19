@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/seamanticus/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 )
 
 func Example() {

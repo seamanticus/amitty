@@ -12,10 +12,10 @@ import (
 	tviewimage "github.com/ayn2op/tview/image"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/ui/images"
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/gateway"
 )
 
 func newTestModel(t *testing.T) *Model {

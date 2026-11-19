@@ -10,8 +10,8 @@ import (
 	"mime/multipart"
 	"time"
 
-	"github.com/seamanticus/dmwire/utils/httputil/httpdriver"
-	"github.com/seamanticus/dmwire/utils/json"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json"
 )
 
 // StatusTooManyRequests is the HTTP status code discord sends on rate-limiting.

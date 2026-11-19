@@ -8,10 +8,10 @@ import (
 
 	"github.com/ayn2op/tview/tree"
 	"github.com/seamanticus/amitty/internal/config"
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/gateway"
-	"github.com/seamanticus/dmwire/ningen"
-	"github.com/seamanticus/dmwire/state"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/ningen"
+	"github.com/seamanticus/amitty/internal/dmwire/state"
 )
 
 const guildID, channelID = 1, 2

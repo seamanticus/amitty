@@ -1,8 +1,8 @@
 package gateway
 
 import (
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/utils/ws"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
 
 // Intents for the new Discord API feature, documented at

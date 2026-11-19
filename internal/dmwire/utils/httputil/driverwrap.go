@@ -3,7 +3,7 @@ package httputil
 import (
 	"io"
 
-	"github.com/seamanticus/dmwire/utils/httputil/httpdriver"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
 )
 
 // This file contains mistakes.

@@ -1,6 +1,6 @@
 package api
 
-import "github.com/seamanticus/dmwire/utils/httputil"
+import "github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 
 var EndpointRemoteAuthLogin = EndpointMe + "/remote-auth/login"
 

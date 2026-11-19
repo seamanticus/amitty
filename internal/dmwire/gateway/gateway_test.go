@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/seamanticus/dmwire/api"
-	"github.com/seamanticus/dmwire/internal/testenv"
-	"github.com/seamanticus/dmwire/utils/ws"
+	"github.com/seamanticus/amitty/internal/dmwire/api"
+	"github.com/seamanticus/amitty/internal/dmwire/internal/testenv"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
 
 func doLog(t *testing.T) {

@@ -1,7 +1,7 @@
 package state
 
 import (
-	"github.com/seamanticus/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 )
 
 func (s *State) handleReady(ev *gateway.ReadyEvent) {

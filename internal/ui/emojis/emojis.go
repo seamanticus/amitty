@@ -8,9 +8,9 @@ import (
 	"github.com/ayn2op/tview"
 	tviewimage "github.com/ayn2op/tview/image"
 	"github.com/ayn2op/tview/text"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/ningen"
 	"github.com/seamanticus/amitty/pkg/discordemoji"
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/ningen"
 )
 
 // Rows is how tall custom emojis are drawn, the same in every pane, as they share the images by URL.

@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/seamanticus/dmwire/api"
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/utils/json/option"
+	"github.com/seamanticus/amitty/internal/dmwire/api"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
 	"golang.org/x/time/rate"
 )
 

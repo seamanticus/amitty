@@ -8,9 +8,9 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/ayn2op/tview/viewport"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/ui"
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/gateway"
 )
 
 // Msg is implemented by the messages the list sends itself, which must reach it whatever has the focus.

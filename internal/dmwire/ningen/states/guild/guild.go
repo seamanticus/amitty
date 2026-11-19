@@ -4,9 +4,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/gateway"
-	"github.com/seamanticus/dmwire/utils/handler"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
 )
 
 // State contains additional guild states that are only available on join.

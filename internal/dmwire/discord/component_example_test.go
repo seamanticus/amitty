@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
 )
 
 func ExampleTopLevelComponents_Unmarshal() {

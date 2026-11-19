@@ -8,9 +8,9 @@ import (
 
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
+	"github.com/seamanticus/amitty/internal/dmwire/api"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	dhttp "github.com/seamanticus/amitty/internal/http"
-	"github.com/seamanticus/dmwire/api"
-	"github.com/seamanticus/dmwire/utils/httputil"
 )
 
 // method is a second factor that a two-factor login accepts.

@@ -7,12 +7,12 @@ import (
 
 	"github.com/ayn2op/tview/tree"
 	"github.com/seamanticus/amitty/internal/config"
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/gateway"
-	"github.com/seamanticus/dmwire/ningen"
-	"github.com/seamanticus/dmwire/ningen/states/read"
-	"github.com/seamanticus/dmwire/state"
-	"github.com/seamanticus/dmwire/state/store/defaultstore"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/ningen"
+	"github.com/seamanticus/amitty/internal/dmwire/ningen/states/read"
+	"github.com/seamanticus/amitty/internal/dmwire/state"
+	"github.com/seamanticus/amitty/internal/dmwire/state/store/defaultstore"
 )
 
 func TestModelMoveDMToFront(t *testing.T) {

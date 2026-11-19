@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/seamanticus/dmwire/utils/json"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json"
 )
 
 // https://discord.com/developers/docs/resources/audit-log#audit-log-object

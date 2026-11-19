@@ -12,8 +12,8 @@ import (
 
 	"github.com/ayn2op/tview/cmd"
 	"github.com/seamanticus/amitty/internal/discordtest"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	dhttp "github.com/seamanticus/amitty/internal/http"
-	"github.com/seamanticus/dmwire/utils/httputil"
 )
 
 // reply answers with status and a JSON body.

@@ -12,11 +12,11 @@ import (
 	"github.com/ayn2op/tview/text"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	md "github.com/seamanticus/amitty/internal/dmwire/markdown"
+	"github.com/seamanticus/amitty/internal/dmwire/state"
 	"github.com/seamanticus/amitty/internal/markdown"
 	"github.com/seamanticus/amitty/internal/ui/emojis"
-	"github.com/seamanticus/dmwire/discord"
-	md "github.com/seamanticus/dmwire/markdown"
-	"github.com/seamanticus/dmwire/state"
 	"github.com/yuin/goldmark/v2/ast"
 )
 

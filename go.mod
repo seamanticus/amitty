@@ -11,18 +11,22 @@ require (
 	github.com/bogdanfinn/fhttp v0.7.3
 	github.com/bogdanfinn/tls-client v1.18.1
 	github.com/gdamore/tcell/v3 v3.6.1-0.20261105165643-4cedad629677
+	github.com/gorilla/schema v1.4.1
 	github.com/gorilla/websocket v1.5.3
+	github.com/kylelemons/godebug v1.1.0
 	github.com/mattn/go-shellwords v1.0.16
 	github.com/ncruces/zenity v0.10.15
 	github.com/rockorager/go-uucode v1.2.2
 	github.com/sahilm/fuzzy v0.1.3
-	github.com/seamanticus/dmwire v0.0.0-20261119071804-a3e86ff0c00b
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
+	github.com/twmb/murmur3 v1.2.2
 	github.com/yuin/goldmark/v2 v2.1.16
+	go4.org v0.0.0-20261028031214-ed6929a230fe
 	golang.design/x/clipboard v0.11.0
 	golang.org/x/image v0.48.0
 	golang.org/x/sys v0.50.0
+	golang.org/x/time v0.16.0
 )
 
 require (
@@ -39,7 +43,6 @@ require (
 	github.com/dlclark/regexp2/v2 v2.13.0 // indirect
 	github.com/ebitengine/purego v0.11.3 // indirect
 	github.com/gdamore/encoding v1.0.1 // indirect
-	github.com/gorilla/schema v1.4.1 // indirect
 	github.com/josephspurrier/goversioninfo v1.7.0 // indirect
 	github.com/klauspost/compress v1.20.4 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
@@ -48,8 +51,6 @@ require (
 	github.com/randall77/makefat v0.0.0-20260406194835-1b91746796b7 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/tam7t/hpkp v0.0.0-20160821193359-2b70b4024ed5 // indirect
-	github.com/twmb/murmur3 v1.2.2 // indirect
-	go4.org v0.0.0-20261028031214-ed6929a230fe // indirect
 	golang.design/x/x11 v0.2.0 // indirect
 	golang.org/x/crypto v0.59.0 // indirect
 	golang.org/x/exp/shiny v0.0.0-20261113113407-e3970619a1a4 // indirect
@@ -57,5 +58,4 @@ require (
 	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/term v0.48.0 // indirect
 	golang.org/x/text v0.44.0 // indirect
-	golang.org/x/time v0.16.0 // indirect
 )

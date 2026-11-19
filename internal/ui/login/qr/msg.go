@@ -19,10 +19,10 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/gorilla/websocket"
+	"github.com/seamanticus/amitty/internal/dmwire/api"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	"github.com/seamanticus/amitty/internal/gateway"
 	"github.com/seamanticus/amitty/internal/http"
-	"github.com/seamanticus/dmwire/api"
-	"github.com/seamanticus/dmwire/utils/httputil"
 	"github.com/skip2/go-qrcode"
 )
 

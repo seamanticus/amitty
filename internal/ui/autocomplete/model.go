@@ -11,9 +11,9 @@ import (
 	"github.com/ayn2op/tview/viewport"
 	"github.com/rockorager/go-uucode"
 	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/amitty/internal/ui/images"
-	"github.com/seamanticus/dmwire/discord"
 )
 
 // Model is a list of suggestions, hidden while it has none.

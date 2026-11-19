@@ -5,7 +5,7 @@ import (
 	"image"
 
 	tviewimage "github.com/ayn2op/tview/image"
-	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
 )
 
 // RequestedMsg asks for images: Squares by rows tall, Previews by size in pixels.

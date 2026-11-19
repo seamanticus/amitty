@@ -1,12 +1,6 @@
 # dmwire
 
-A Go library for the Discord protocol, as a single user account sees it: text channels and direct messages over the gateway and REST API. No voice, no bot framework, no sharding.
-
-It backs [discordo](https://github.com/seamanticus/discordo), a terminal chat client, and is trimmed to what that client needs.
-
-```sh
-go get github.com/seamanticus/dmwire
-```
+amitty's Discord protocol layer, as a single user account sees it: text channels and direct messages over the gateway and REST API. No voice, no bot framework, no sharding.
 
 ## Packages
 

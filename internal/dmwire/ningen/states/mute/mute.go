@@ -6,10 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/gateway"
-	"github.com/seamanticus/dmwire/state/store"
-	"github.com/seamanticus/dmwire/utils/handler"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/state/store"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
 )
 
 // State implements a queryable channel and guild mute state.

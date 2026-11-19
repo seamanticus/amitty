@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/seamanticus/dmwire/utils/json"
-	"github.com/seamanticus/dmwire/utils/json/option"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
 )
 
 // ChannelFlags are the channel flags combined as a bitfield.

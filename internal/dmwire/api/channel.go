@@ -1,9 +1,9 @@
 package api
 
 import (
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/utils/httputil"
-	"github.com/seamanticus/dmwire/utils/json/option"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
 )
 
 var EndpointChannels = Endpoint + "channels/"

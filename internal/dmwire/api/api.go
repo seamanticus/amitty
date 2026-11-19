@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/seamanticus/dmwire/api/rate"
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/utils/httputil"
-	"github.com/seamanticus/dmwire/utils/httputil/httpdriver"
+	"github.com/seamanticus/amitty/internal/dmwire/api/rate"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
 )
 
 var (
@@ -23,7 +23,7 @@ var (
 	EndpointGatewayBot = EndpointGateway + "/bot"
 )
 
-var UserAgent = "DiscordBot (https://github.com/seamanticus/dmwire)"
+var UserAgent = "DiscordBot (https://github.com/seamanticus/amitty/internal/dmwire)"
 
 type Client struct {
 	*httputil.Client

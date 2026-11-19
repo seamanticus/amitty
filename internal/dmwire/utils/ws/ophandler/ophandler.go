@@ -5,8 +5,8 @@ package ophandler
 import (
 	"context"
 
-	"github.com/seamanticus/dmwire/utils/handler"
-	"github.com/seamanticus/dmwire/utils/ws"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
 
 // Loop starts a background goroutine that starts reading from src and

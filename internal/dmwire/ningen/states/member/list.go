@@ -3,8 +3,8 @@ package member
 import (
 	"sync"
 
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 )
 
 type ListOP struct {

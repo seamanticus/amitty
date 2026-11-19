@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	tviewimage "github.com/ayn2op/tview/image"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/ui/emojis"
 	"github.com/seamanticus/amitty/internal/ui/images"
-	"github.com/seamanticus/dmwire/discord"
 )
 
 func TestModelPreviewSources(t *testing.T) {

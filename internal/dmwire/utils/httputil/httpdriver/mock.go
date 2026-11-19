@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"reflect"
 
-	"github.com/seamanticus/dmwire/utils/json"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json"
 )
 
 var (

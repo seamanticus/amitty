@@ -13,11 +13,11 @@ import (
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/consts"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 	"github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/logger"
 	"github.com/seamanticus/amitty/internal/tokenstore"
 	"github.com/seamanticus/amitty/internal/ui/root"
-	"github.com/seamanticus/dmwire/utils/ws"
 )
 
 // buildTimeout bounds the startup fetch of the build number.

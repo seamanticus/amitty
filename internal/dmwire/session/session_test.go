@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/seamanticus/dmwire/gateway"
-	"github.com/seamanticus/dmwire/internal/testenv"
+	"github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/internal/testenv"
 )
 
 func TestAuthTokenRefresh(t *testing.T) {

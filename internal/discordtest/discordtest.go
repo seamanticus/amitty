@@ -11,10 +11,10 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/vt"
+	"github.com/seamanticus/amitty/internal/dmwire/api"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
 	dhttp "github.com/seamanticus/amitty/internal/http"
-	"github.com/seamanticus/dmwire/api"
-	"github.com/seamanticus/dmwire/utils/httputil"
-	"github.com/seamanticus/dmwire/utils/httputil/httpdriver"
 )
 
 // Client returns an API client without a token whose requests handler serves, with the path and query Discord would get.

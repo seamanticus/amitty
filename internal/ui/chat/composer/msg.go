@@ -14,13 +14,13 @@ import (
 	"github.com/ayn2op/tview/cmd"
 	"github.com/ncruces/zenity"
 	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/dmwire/api"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/sendpart"
 	"github.com/seamanticus/amitty/internal/ui/autocomplete/emojis"
 	"github.com/seamanticus/amitty/internal/ui/autocomplete/mentions"
-	"github.com/seamanticus/dmwire/api"
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/gateway"
-	"github.com/seamanticus/dmwire/utils/json/option"
-	"github.com/seamanticus/dmwire/utils/sendpart"
 	"golang.design/x/clipboard"
 )
 

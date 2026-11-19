@@ -3,8 +3,8 @@ package gateway
 import (
 	"testing"
 
-	discordgateway "github.com/seamanticus/dmwire/gateway"
-	"github.com/seamanticus/dmwire/utils/ws"
+	discordgateway "github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
 
 func TestNew(t *testing.T) {

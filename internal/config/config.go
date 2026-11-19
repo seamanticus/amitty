@@ -12,7 +12,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/seamanticus/amitty/internal/consts"
-	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
 )
 
 const fileName = "config.toml"

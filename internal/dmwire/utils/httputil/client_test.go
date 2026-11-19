@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/seamanticus/dmwire/utils/httputil/httpdriver"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
 )
 
 type staticDriver struct {

@@ -9,12 +9,12 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/seamanticus/dmwire/api"
-	"github.com/seamanticus/dmwire/gateway"
-	"github.com/seamanticus/dmwire/utils/handler"
-	"github.com/seamanticus/dmwire/utils/json/option"
-	"github.com/seamanticus/dmwire/utils/ws"
-	"github.com/seamanticus/dmwire/utils/ws/ophandler"
+	"github.com/seamanticus/amitty/internal/dmwire/api"
+	"github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws/ophandler"
 )
 
 // ErrMFA is returned if the account requires a 2FA code to log in.

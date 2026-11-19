@@ -3,7 +3,7 @@ package option
 import (
 	"testing"
 
-	"github.com/seamanticus/dmwire/utils/json"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json"
 )
 
 func TestNullable(t *testing.T) {

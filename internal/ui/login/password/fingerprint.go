@@ -7,8 +7,8 @@ import (
 
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
+	"github.com/seamanticus/amitty/internal/dmwire/api"
 	dhttp "github.com/seamanticus/amitty/internal/http"
-	"github.com/seamanticus/dmwire/api"
 )
 
 // FingerprintMsg carries the fingerprint that the login of final attempt is sent with.

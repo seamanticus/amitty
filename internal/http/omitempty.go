@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/seamanticus/dmwire/utils/httputil/httpdriver"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
 )
 
 // OmitEmptyHeaders returns driver with headers whose only value is empty left out, as a browser never sends them. dmwire sets Authorization to the token even when there is none, which would otherwise send an empty Authorization before login.

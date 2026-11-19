@@ -4,7 +4,7 @@ package option
 import (
 	"bytes"
 
-	"github.com/seamanticus/dmwire/utils/json"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json"
 )
 
 // Option wraps a type to make it omittable.

@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/seamanticus/dmwire/utils/json/option"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
 )
 
 type User struct {

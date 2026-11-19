@@ -8,7 +8,7 @@ import (
 	"github.com/ayn2op/tview/text"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
-	md "github.com/seamanticus/dmwire/markdown"
+	md "github.com/seamanticus/amitty/internal/dmwire/markdown"
 )
 
 func TestRendererRenderText(t *testing.T) {

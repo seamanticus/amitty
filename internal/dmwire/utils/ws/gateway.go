@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/seamanticus/dmwire/internal/lazytime"
-	"github.com/seamanticus/dmwire/utils/json"
+	"github.com/seamanticus/amitty/internal/dmwire/internal/lazytime"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json"
 )
 
 // ConnectionError is given to the user if the gateway fails to connect to the

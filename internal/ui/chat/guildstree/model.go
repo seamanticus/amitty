@@ -11,12 +11,12 @@ import (
 	"github.com/ayn2op/tview/viewport"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/ningen"
+	"github.com/seamanticus/amitty/internal/dmwire/ningen/states/read"
 	"github.com/seamanticus/amitty/internal/ui"
 	uitree "github.com/seamanticus/amitty/internal/ui/tree"
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/gateway"
-	"github.com/seamanticus/dmwire/ningen"
-	"github.com/seamanticus/dmwire/ningen/states/read"
 )
 
 type dmNode struct{}

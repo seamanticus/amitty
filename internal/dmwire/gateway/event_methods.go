@@ -2,7 +2,7 @@
 
 package gateway
 
-import "github.com/seamanticus/dmwire/utils/ws"
+import "github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 
 func init() {
 	OpUnmarshalers.Add(

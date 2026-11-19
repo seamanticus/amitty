@@ -3,8 +3,8 @@ package messageslist
 import (
 	"github.com/ayn2op/tview/help"
 	"github.com/ayn2op/tview/keybind"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/ui"
-	"github.com/seamanticus/dmwire/discord"
 )
 
 var _ help.KeyMap = Model{}

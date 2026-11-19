@@ -3,10 +3,10 @@ package api
 import (
 	"mime/multipart"
 
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/utils/httputil"
-	"github.com/seamanticus/dmwire/utils/json/option"
-	"github.com/seamanticus/dmwire/utils/sendpart"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/sendpart"
 )
 
 const (

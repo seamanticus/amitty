@@ -4,9 +4,9 @@ import (
 	"io"
 	"net/url"
 
-	"github.com/seamanticus/dmwire/discord" // for clarity
-	"github.com/seamanticus/dmwire/utils/httputil"
-	"github.com/seamanticus/dmwire/utils/json/option"
+	"github.com/seamanticus/amitty/internal/dmwire/discord" // for clarity
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
 )
 
 // MaxGuildFetchLimit is the limit of max guilds per request, as imposed by

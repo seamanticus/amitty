@@ -1,7 +1,7 @@
 package handlerrepo
 
 import (
-	"github.com/seamanticus/dmwire/utils/handler"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
 )
 
 // Unbinder is an interface for separate states to remove their handlers.

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/gateway"
-	"github.com/seamanticus/dmwire/state"
-	"github.com/seamanticus/dmwire/state/store"
-	"github.com/seamanticus/dmwire/state/store/defaultstore"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/state"
+	"github.com/seamanticus/amitty/internal/dmwire/state/store"
+	"github.com/seamanticus/amitty/internal/dmwire/state/store/defaultstore"
 )
 
 var lastMessageSink discord.MessageID

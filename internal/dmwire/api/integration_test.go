@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/internal/testenv"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/internal/testenv"
 )
 
 func TestIntegration(t *testing.T) {

@@ -8,9 +8,9 @@ import (
 
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
+	"github.com/seamanticus/amitty/internal/dmwire/api"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	dhttp "github.com/seamanticus/amitty/internal/http"
-	"github.com/seamanticus/dmwire/api"
-	"github.com/seamanticus/dmwire/utils/httputil"
 )
 
 // retryDelay is how long a login whose connection failed waits before its one retry.

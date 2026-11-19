@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/ayn2op/tview/cmd"
-	"github.com/seamanticus/dmwire/utils/ws"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
 
 // evidence: witnesses

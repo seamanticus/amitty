@@ -12,13 +12,13 @@ import (
 	"github.com/ayn2op/tview/keybind"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/ningen"
+	"github.com/seamanticus/amitty/internal/dmwire/state"
+	"github.com/seamanticus/amitty/internal/dmwire/state/store/defaultstore"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/sendpart"
 	"github.com/seamanticus/amitty/internal/ui/images"
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/gateway"
-	"github.com/seamanticus/dmwire/ningen"
-	"github.com/seamanticus/dmwire/state"
-	"github.com/seamanticus/dmwire/state/store/defaultstore"
-	"github.com/seamanticus/dmwire/utils/sendpart"
 )
 
 // newTestModel returns an enabled composer with the default config.

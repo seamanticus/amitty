@@ -15,10 +15,10 @@ import (
 	"github.com/ayn2op/tview/text"
 	"github.com/ncruces/zenity"
 	"github.com/seamanticus/amitty/internal/consts"
+	"github.com/seamanticus/amitty/internal/dmwire/api"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	"github.com/seamanticus/amitty/internal/ui"
-	"github.com/seamanticus/dmwire/api"
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/utils/httputil"
 	"github.com/skratchdot/open-golang/open"
 )
 

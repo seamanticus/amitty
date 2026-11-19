@@ -15,7 +15,7 @@ linters:
       # Discord wire types (IDs, channel/message types, statuses) arrive in JSON with values dmwire does not list, so default: is the right handling; see TODO.md.
       ignore-types:
         - 'Flags$'
-        - '^github\.com/seamanticus/dmwire/discord\.'
+        - '^github\.com/seamanticus/amitty/internal/dmwire/discord\.'
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0

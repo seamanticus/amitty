@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/utils/json"
-	"github.com/seamanticus/dmwire/utils/json/option"
-	"github.com/seamanticus/dmwire/utils/ws"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
 
 func TestRequestGuildMembersCommand(t *testing.T) {

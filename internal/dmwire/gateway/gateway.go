@@ -15,9 +15,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/seamanticus/dmwire/api"
-	"github.com/seamanticus/dmwire/internal/lazytime"
-	"github.com/seamanticus/dmwire/utils/ws"
+	"github.com/seamanticus/amitty/internal/dmwire/api"
+	"github.com/seamanticus/amitty/internal/dmwire/internal/lazytime"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
 
 var (

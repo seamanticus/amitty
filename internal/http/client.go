@@ -9,10 +9,10 @@ import (
 
 	fhttp "github.com/bogdanfinn/fhttp"
 	tls_client "github.com/bogdanfinn/tls-client"
+	"github.com/seamanticus/amitty/internal/dmwire/api"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
 	"github.com/seamanticus/amitty/internal/tls"
-	"github.com/seamanticus/dmwire/api"
-	"github.com/seamanticus/dmwire/utils/httputil"
-	"github.com/seamanticus/dmwire/utils/httputil/httpdriver"
 )
 
 func NewClient(token string) *api.Client {

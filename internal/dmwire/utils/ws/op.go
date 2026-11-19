@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/seamanticus/dmwire/utils/json"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json"
 )
 
 // OpCode is the type for websocket Op codes. Op codes less than 0 are

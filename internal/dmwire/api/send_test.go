@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/utils/json"
-	"github.com/seamanticus/dmwire/utils/sendpart"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/sendpart"
 )
 
 func TestMarshalAllowedMentions(t *testing.T) {

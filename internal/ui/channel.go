@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/seamanticus/amitty/internal/config"
-	"github.com/seamanticus/dmwire/discord"
-	"github.com/seamanticus/dmwire/ningen"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/ningen"
 )
 
 // ChannelToString returns how channel is shown in the UI: an icon for its type and its name, or the recipients' names for a DM.

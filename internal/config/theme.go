@@ -9,7 +9,7 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
-	"github.com/seamanticus/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
 )
 
 var errInvalidType = errors.New("invalid type")
