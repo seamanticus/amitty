@@ -10,7 +10,6 @@ import (
 	"github.com/seamanticus/amitty/internal/tui/button"
 	"github.com/seamanticus/amitty/internal/tui/internal/screentest"
 	"github.com/seamanticus/amitty/internal/tui/layout"
-	"github.com/seamanticus/amitty/internal/tui/slider"
 	"github.com/seamanticus/amitty/internal/tui/text"
 )
 
@@ -28,6 +27,19 @@ func (r row) Draw(screen tui.Screen, area tui.Rectangle) {
 }
 
 func (row) Handle(msg tui.Msg, area tui.Rectangle) tui.Msg { return msg }
+
+// held is a row that, while held, takes every move as the value 2.
+type held struct {
+	row
+	held bool
+}
+
+func (h held) Handle(msg tui.Msg, area tui.Rectangle) tui.Msg {
+	if m, ok := msg.(tui.MouseMsg); ok && h.held && m.Action == tui.MouseMove {
+		return 2
+	}
+	return msg
+}
 
 // numbers returns a list of count rows labeled 0, 1, and so on.
 func numbers(cursor, count int) Widget {
@@ -92,11 +104,11 @@ func TestWidgetHandle(t *testing.T) {
 		}
 	})
 	t.Run("a drag reaches the item dragged, wherever the pointer went", func(t *testing.T) {
-		sliders := New(-1, 2, func(i int) tui.Widget {
-			return slider.New(0, 2, 0, func(value int) tui.Msg { return value }).Dragging(i == 1)
+		items := New(-1, 2, func(i int) tui.Widget {
+			return held{row: "item", held: i == 1}
 		}).OnChange(func(cursor int) tui.Msg { return moved(cursor) })
 		drag := tui.MouseMsg{EventMouse: tcell.NewEventMouse(9, 9, tcell.ButtonPrimary, tcell.ModNone), Action: tui.MouseMove}
-		if got := sliders.Handle(drag, itemsArea); got != 2 {
+		if got := items.Handle(drag, itemsArea); got != 2 {
 			t.Fatalf("got %v, want 2", got)
 		}
 	})

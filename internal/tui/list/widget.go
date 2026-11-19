@@ -170,7 +170,7 @@ func (w Widget) Handle(msg tui.Msg, area tui.Rectangle) tui.Msg {
 		}
 	case tui.MouseMsg:
 		x, y := m.Position()
-		// A drag reaches every item wherever the pointer went, as does the release that ends it, for a slider pressed in one to follow the pointer.
+		// A drag reaches every item wherever the pointer went, as does the release that ends it, for a widget pressed in one to follow the pointer.
 		drag := m.Action == tui.MouseLeftUp || m.Action == tui.MouseMove && m.Buttons()&tcell.ButtonPrimary != 0
 		if !drag && (m.Action != tui.MouseLeftDown || !area.Contains(x, y)) {
 			return msg
@@ -178,7 +178,7 @@ func (w Widget) Handle(msg tui.Msg, area tui.Rectangle) tui.Msg {
 		starts, sizes, _ := w.layout(area.Width)
 		for i := range w.count {
 			if row := y - area.Y; drag || row >= starts[i] && row < starts[i]+sizes[i] {
-				// The item pressed takes the press first, as a button or slider in it would.
+				// The item pressed takes the press first, as a button in it would.
 				itemArea := tui.Rectangle{X: area.X, Y: area.Y + starts[i], Width: area.Width, Height: sizes[i]}
 				if handled := w.item(i).Handle(msg, itemArea); handled != msg {
 					return handled
