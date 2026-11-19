@@ -6,6 +6,7 @@ import (
 	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/seamanticus/amitty/internal/tui/internal/clip"
 	"github.com/seamanticus/amitty/internal/tui/layout"
+	"github.com/seamanticus/amitty/internal/tui/tint"
 )
 
 // Widget draws items, with the one at the cursor in the selected style, and turns keys and the mouse into the item to move the cursor to.
@@ -139,7 +140,7 @@ func (w Widget) Draw(screen tui.Screen, area tui.Rectangle) {
 			w.item(i).Draw(clipped, itemArea)
 			continue
 		}
-		styled := &styledScreen{Screen: clipped, style: w.selectedStyle}
+		styled := &tint.Screen{Screen: clipped, Style: w.selectedStyle}
 		styled.FillArea(itemArea.X, itemArea.Y, itemArea.Width, itemArea.Height, ' ', tcell.StyleDefault)
 		w.item(i).Draw(styled, itemArea)
 	}
