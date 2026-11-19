@@ -3,7 +3,7 @@ package memberstree
 import (
 	"github.com/ayn2op/tview/help"
 	"github.com/ayn2op/tview/keybind"
-	uitree "github.com/seamanticus/discordo/internal/ui/tree"
+	uitree "github.com/seamanticus/amitty/internal/ui/tree"
 )
 
 var _ help.KeyMap = Model{}

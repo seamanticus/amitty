@@ -3,8 +3,8 @@ package root
 import (
 	"github.com/ayn2op/tview/help"
 	"github.com/ayn2op/tview/keybind"
-	"github.com/seamanticus/discordo/internal/ui/chat"
-	"github.com/seamanticus/discordo/internal/ui/login"
+	"github.com/seamanticus/amitty/internal/ui/chat"
+	"github.com/seamanticus/amitty/internal/ui/login"
 )
 
 var _ help.KeyMap = Model{}

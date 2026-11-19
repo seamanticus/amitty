@@ -11,7 +11,7 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/vt"
-	dhttp "github.com/seamanticus/discordo/internal/http"
+	dhttp "github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/dmwire/api"
 	"github.com/seamanticus/dmwire/utils/httputil"
 	"github.com/seamanticus/dmwire/utils/httputil/httpdriver"

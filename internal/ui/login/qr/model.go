@@ -16,8 +16,8 @@ import (
 	"github.com/ayn2op/tview/layout"
 	"github.com/ayn2op/tview/text"
 	"github.com/gdamore/tcell/v3/color"
-	"github.com/seamanticus/discordo/internal/http"
-	"github.com/seamanticus/discordo/internal/ui/login/keys"
+	"github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/ui/login/keys"
 )
 
 const (

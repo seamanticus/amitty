@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/seamanticus/discordo/internal/discordtest"
-	dhttp "github.com/seamanticus/discordo/internal/http"
+	"github.com/seamanticus/amitty/internal/discordtest"
+	dhttp "github.com/seamanticus/amitty/internal/http"
 )
 
 // evidence: witnesses

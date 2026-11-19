@@ -1,7 +1,7 @@
 package qr
 
 import (
-	dhttp "github.com/seamanticus/discordo/internal/http"
+	dhttp "github.com/seamanticus/amitty/internal/http"
 
 	"strings"
 	"testing"

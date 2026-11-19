@@ -11,12 +11,12 @@ import (
 
 	"github.com/ayn2op/tview"
 	"github.com/gdamore/tcell/v3"
-	"github.com/seamanticus/discordo/internal/config"
-	"github.com/seamanticus/discordo/internal/consts"
-	"github.com/seamanticus/discordo/internal/http"
-	"github.com/seamanticus/discordo/internal/logger"
-	"github.com/seamanticus/discordo/internal/tokenstore"
-	"github.com/seamanticus/discordo/internal/ui/root"
+	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/consts"
+	"github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/logger"
+	"github.com/seamanticus/amitty/internal/tokenstore"
+	"github.com/seamanticus/amitty/internal/ui/root"
 	"github.com/seamanticus/dmwire/utils/ws"
 )
 

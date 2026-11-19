@@ -5,7 +5,7 @@ import (
 	"github.com/ayn2op/tview/help"
 	"github.com/ayn2op/tview/keybind"
 	"github.com/ayn2op/tview/textarea"
-	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/amitty/internal/config"
 )
 
 var _ help.KeyMap = Model{}

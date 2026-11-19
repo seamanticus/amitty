@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	tviewimage "github.com/ayn2op/tview/image"
-	"github.com/seamanticus/discordo/internal/config"
-	"github.com/seamanticus/discordo/internal/ui/autocomplete"
+	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/ui/autocomplete"
 	"github.com/seamanticus/dmwire/discord"
 	"github.com/seamanticus/dmwire/ningen"
 	"github.com/seamanticus/dmwire/state"

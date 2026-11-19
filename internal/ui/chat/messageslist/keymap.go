@@ -3,7 +3,7 @@ package messageslist
 import (
 	"github.com/ayn2op/tview/help"
 	"github.com/ayn2op/tview/keybind"
-	"github.com/seamanticus/discordo/internal/ui"
+	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/dmwire/discord"
 )
 

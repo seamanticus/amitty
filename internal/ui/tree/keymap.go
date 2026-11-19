@@ -5,8 +5,8 @@ import (
 	"github.com/ayn2op/tview/keybind"
 	"github.com/ayn2op/tview/tree"
 	"github.com/ayn2op/tview/viewport"
-	"github.com/seamanticus/discordo/internal/config"
-	"github.com/seamanticus/discordo/internal/ui"
+	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/ui"
 )
 
 // SelectHelp returns the up and down keybinds that move the selection away from current.

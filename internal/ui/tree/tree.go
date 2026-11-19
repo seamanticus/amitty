@@ -1,4 +1,4 @@
-// Package tree holds what discordo's trees share.
+// Package tree holds what amitty's trees share.
 package tree
 
 import (
@@ -8,8 +8,8 @@ import (
 	"github.com/ayn2op/tview/tree"
 	"github.com/ayn2op/tview/viewport"
 	"github.com/gdamore/tcell/v3"
-	"github.com/seamanticus/discordo/internal/config"
-	"github.com/seamanticus/discordo/internal/ui"
+	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/ui"
 )
 
 // ScrollMsg scrolls the tree to ScrollState, before passing on Msg if the tree sent one.

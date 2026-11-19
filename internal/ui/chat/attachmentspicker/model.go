@@ -3,8 +3,8 @@ package attachmentspicker
 import (
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/picker"
-	"github.com/seamanticus/discordo/internal/config"
-	uipicker "github.com/seamanticus/discordo/internal/ui/picker"
+	"github.com/seamanticus/amitty/internal/config"
+	uipicker "github.com/seamanticus/amitty/internal/ui/picker"
 )
 
 type Model struct {

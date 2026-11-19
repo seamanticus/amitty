@@ -10,9 +10,9 @@ import (
 	"github.com/ayn2op/tview/text"
 	"github.com/ayn2op/tview/viewport"
 	"github.com/rockorager/go-uucode"
-	"github.com/seamanticus/discordo/internal/config"
-	"github.com/seamanticus/discordo/internal/ui"
-	"github.com/seamanticus/discordo/internal/ui/images"
+	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/ui"
+	"github.com/seamanticus/amitty/internal/ui/images"
 	"github.com/seamanticus/dmwire/discord"
 )
 

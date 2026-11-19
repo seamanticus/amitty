@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/ayn2op/tview/tree"
-	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/dmwire/discord"
 	"github.com/seamanticus/dmwire/gateway"
 	"github.com/seamanticus/dmwire/ningen"

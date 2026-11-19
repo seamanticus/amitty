@@ -9,8 +9,8 @@ import (
 	"github.com/ayn2op/tview/layout"
 	"github.com/ayn2op/tview/text"
 	"github.com/gdamore/tcell/v3"
-	"github.com/seamanticus/discordo/internal/config"
-	"github.com/seamanticus/discordo/internal/markdown"
+	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/markdown"
 	"github.com/seamanticus/dmwire/discord"
 	"github.com/yuin/goldmark/v2/ast"
 )

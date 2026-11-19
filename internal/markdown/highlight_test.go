@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/gdamore/tcell/v3"
-	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/amitty/internal/config"
 )
 
 func TestRendererWriteCodeBlock(t *testing.T) {

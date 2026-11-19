@@ -11,7 +11,7 @@ import (
 	"github.com/ayn2op/tview/text"
 	"github.com/ayn2op/tview/textinput"
 	"github.com/gdamore/tcell/v3"
-	"github.com/seamanticus/discordo/internal/ui/login/keys"
+	"github.com/seamanticus/amitty/internal/ui/login/keys"
 )
 
 // Model is a token input above a button. Tab and the arrow keys move the focus, Enter in the input moves to the button, and Enter on the button or clicking it logs in.

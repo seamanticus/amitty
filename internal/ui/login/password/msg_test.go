@@ -11,8 +11,8 @@ import (
 	"testing"
 
 	"github.com/ayn2op/tview/cmd"
-	"github.com/seamanticus/discordo/internal/discordtest"
-	dhttp "github.com/seamanticus/discordo/internal/http"
+	"github.com/seamanticus/amitty/internal/discordtest"
+	dhttp "github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/dmwire/utils/httputil"
 )
 

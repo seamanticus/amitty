@@ -11,7 +11,7 @@ import (
 	"sync"
 
 	"github.com/BurntSushi/toml"
-	"github.com/seamanticus/discordo/internal/consts"
+	"github.com/seamanticus/amitty/internal/consts"
 	"github.com/seamanticus/dmwire/discord"
 )
 
@@ -170,7 +170,7 @@ type (
 		// The program opened by the `composer.open_editor` keybind. "default" uses `$EDITOR`.
 		Editor string `toml:"editor"`
 
-		// The command that encrypts the token: it reads the token on stdin and writes what is stored in `$XDG_STATE_HOME/discordo/token.gpg` to stdout.
+		// The command that encrypts the token: it reads the token on stdin and writes what is stored in `$XDG_STATE_HOME/amitty/token.gpg` to stdout.
 		TokenEncryptCmd string `toml:"token-encrypt-cmd"`
 		// The command that decrypts the stored token: it reads the file on stdin and writes the token to stdout. It runs before the screen starts, so a terminal pinentry works.
 		TokenDecryptCmd string `toml:"token-decrypt-cmd"`

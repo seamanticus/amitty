@@ -9,7 +9,7 @@ import (
 	"strconv"
 
 	fhttp "github.com/bogdanfinn/fhttp"
-	"github.com/seamanticus/discordo/internal/tls"
+	"github.com/seamanticus/amitty/internal/tls"
 )
 
 // Build is the web client build that requests and the gateway identify as. Its zero value is the build generated into the source.

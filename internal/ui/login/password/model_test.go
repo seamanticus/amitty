@@ -7,7 +7,7 @@ import (
 
 	"github.com/ayn2op/tview"
 	"github.com/gdamore/tcell/v3"
-	"github.com/seamanticus/discordo/internal/discordtest"
+	"github.com/seamanticus/amitty/internal/discordtest"
 )
 
 var area = tview.Rectangle{Width: 40, Height: 7}

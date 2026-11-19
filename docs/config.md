@@ -21,7 +21,7 @@ Default: `"default"`
 
 # token-encrypt-cmd
 
-The command that encrypts the token: it reads the token on stdin and writes what is stored in `$XDG_STATE_HOME/discordo/token.gpg` to stdout.
+The command that encrypts the token: it reads the token on stdin and writes what is stored in `$XDG_STATE_HOME/amitty/token.gpg` to stdout.
 
 Default: `"gpg --encrypt --default-recipient-self"`
 

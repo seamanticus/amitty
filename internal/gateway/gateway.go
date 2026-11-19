@@ -1,7 +1,7 @@
 package gateway
 
 import (
-	"github.com/seamanticus/discordo/internal/http"
+	"github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/dmwire/api"
 	discordgateway "github.com/seamanticus/dmwire/gateway"
 	"github.com/seamanticus/dmwire/utils/ws"

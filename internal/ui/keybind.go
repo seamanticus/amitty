@@ -5,7 +5,7 @@ import (
 	"github.com/ayn2op/tview/keybind"
 	"github.com/ayn2op/tview/list"
 	"github.com/ayn2op/tview/viewport"
-	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/amitty/internal/config"
 )
 
 // SelectionKeybind binds keybinds to moving a list's selection.

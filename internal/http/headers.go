@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	stdHttp "net/http"
 
-	"github.com/seamanticus/discordo/pkg/tzlocal"
+	"github.com/seamanticus/amitty/pkg/tzlocal"
 	"github.com/seamanticus/dmwire/api"
 )
 

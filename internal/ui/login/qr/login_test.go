@@ -20,8 +20,8 @@ import (
 	"github.com/ayn2op/tview/cmd"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gorilla/websocket"
-	"github.com/seamanticus/discordo/internal/discordtest"
-	dhttp "github.com/seamanticus/discordo/internal/http"
+	"github.com/seamanticus/amitty/internal/discordtest"
+	dhttp "github.com/seamanticus/amitty/internal/http"
 )
 
 // testKey returns a fresh RSA-2048 key, as the login makes one per attempt.

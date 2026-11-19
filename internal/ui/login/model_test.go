@@ -9,10 +9,10 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/gdamore/tcell/v3"
-	"github.com/seamanticus/discordo/internal/config"
-	"github.com/seamanticus/discordo/internal/http"
-	"github.com/seamanticus/discordo/internal/ui"
-	"github.com/seamanticus/discordo/internal/ui/login/password"
+	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/ui"
+	"github.com/seamanticus/amitty/internal/ui/login/password"
 )
 
 func newModel(t *testing.T) Model {

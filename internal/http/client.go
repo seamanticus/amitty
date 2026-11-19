@@ -9,7 +9,7 @@ import (
 
 	fhttp "github.com/bogdanfinn/fhttp"
 	tls_client "github.com/bogdanfinn/tls-client"
-	"github.com/seamanticus/discordo/internal/tls"
+	"github.com/seamanticus/amitty/internal/tls"
 	"github.com/seamanticus/dmwire/api"
 	"github.com/seamanticus/dmwire/utils/httputil"
 	"github.com/seamanticus/dmwire/utils/httputil/httpdriver"

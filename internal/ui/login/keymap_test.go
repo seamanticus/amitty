@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/ayn2op/tview/keybind"
-	"github.com/seamanticus/discordo/internal/config"
-	"github.com/seamanticus/discordo/internal/http"
+	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/http"
 )
 
 func TestModelShortHelp(t *testing.T) {

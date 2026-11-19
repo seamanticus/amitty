@@ -8,7 +8,7 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/ayn2op/tview/viewport"
-	"github.com/seamanticus/discordo/internal/ui"
+	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/dmwire/discord"
 	"github.com/seamanticus/dmwire/gateway"
 )

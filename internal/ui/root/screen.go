@@ -1,8 +1,8 @@
 package root
 
 import (
-	"github.com/seamanticus/discordo/internal/ui/chat"
-	"github.com/seamanticus/discordo/internal/ui/login"
+	"github.com/seamanticus/amitty/internal/ui/chat"
+	"github.com/seamanticus/amitty/internal/ui/login"
 )
 
 // screenTag says which case of screen is set; only Match reads it.

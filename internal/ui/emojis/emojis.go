@@ -8,7 +8,7 @@ import (
 	"github.com/ayn2op/tview"
 	tviewimage "github.com/ayn2op/tview/image"
 	"github.com/ayn2op/tview/text"
-	"github.com/seamanticus/discordo/pkg/discordemoji"
+	"github.com/seamanticus/amitty/pkg/discordemoji"
 	"github.com/seamanticus/dmwire/discord"
 	"github.com/seamanticus/dmwire/ningen"
 )

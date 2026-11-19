@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/seamanticus/discordo/internal/discordtest"
+	"github.com/seamanticus/amitty/internal/discordtest"
 )
 
 // evidence: witnesses

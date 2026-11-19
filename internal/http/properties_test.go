@@ -5,7 +5,7 @@ import (
 	"testing"
 	"uuid"
 
-	"github.com/seamanticus/discordo/internal/tls"
+	"github.com/seamanticus/amitty/internal/tls"
 	"github.com/seamanticus/dmwire/gateway"
 )
 

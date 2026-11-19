@@ -5,7 +5,7 @@ import (
 	"github.com/ayn2op/tview/help"
 	"github.com/ayn2op/tview/keybind"
 	"github.com/ayn2op/tview/tabs"
-	"github.com/seamanticus/discordo/internal/ui/login/keys"
+	"github.com/seamanticus/amitty/internal/ui/login/keys"
 )
 
 func tabsKeybind(key tview.KeyMsg) tabs.Action {

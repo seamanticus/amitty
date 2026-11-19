@@ -1,4 +1,4 @@
-module github.com/seamanticus/discordo
+module github.com/seamanticus/amitty
 
 go 1.27.0
 

@@ -7,8 +7,8 @@ import (
 
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
-	"github.com/seamanticus/discordo/internal/tokenstore"
-	"github.com/seamanticus/discordo/internal/ui"
+	"github.com/seamanticus/amitty/internal/tokenstore"
+	"github.com/seamanticus/amitty/internal/ui"
 )
 
 // storeTimeout bounds one run of the encrypt command.

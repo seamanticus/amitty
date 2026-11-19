@@ -6,7 +6,7 @@ import (
 	"github.com/ayn2op/tview/help"
 	"github.com/ayn2op/tview/keybind"
 	"github.com/ayn2op/tview/tree"
-	uitree "github.com/seamanticus/discordo/internal/ui/tree"
+	uitree "github.com/seamanticus/amitty/internal/ui/tree"
 	"github.com/seamanticus/dmwire/discord"
 )
 

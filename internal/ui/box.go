@@ -4,7 +4,7 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/box"
 	"github.com/ayn2op/tview/text"
-	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/amitty/internal/config"
 )
 
 // Box returns child in a box laid out and styled by cfg, highlighted while focused.

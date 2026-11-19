@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	tviewimage "github.com/ayn2op/tview/image"
-	"github.com/seamanticus/discordo/internal/ui/emojis"
-	"github.com/seamanticus/discordo/internal/ui/images"
+	"github.com/seamanticus/amitty/internal/ui/emojis"
+	"github.com/seamanticus/amitty/internal/ui/images"
 	"github.com/seamanticus/dmwire/discord"
 )
 

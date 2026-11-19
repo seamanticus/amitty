@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/gdamore/tcell/v3"
-	"github.com/seamanticus/discordo/internal/config"
-	"github.com/seamanticus/discordo/internal/http"
-	"github.com/seamanticus/discordo/internal/tokenstore"
+	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/tokenstore"
 )
 
 func TestNewModel(t *testing.T) {

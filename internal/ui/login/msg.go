@@ -4,7 +4,7 @@ import (
 	"log/slog"
 
 	"github.com/ayn2op/tview"
-	"github.com/seamanticus/discordo/internal/ui"
+	"github.com/seamanticus/amitty/internal/ui"
 )
 
 // selectTabMsg switches to the tab at an index.

@@ -9,14 +9,14 @@ import (
 
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
-	"github.com/seamanticus/discordo/internal/config"
-	"github.com/seamanticus/discordo/internal/http"
-	"github.com/seamanticus/discordo/internal/tokenstore"
-	"github.com/seamanticus/discordo/internal/ui"
-	"github.com/seamanticus/discordo/internal/ui/chat"
-	"github.com/seamanticus/discordo/internal/ui/login/password"
-	"github.com/seamanticus/discordo/internal/ui/login/qr"
-	"github.com/seamanticus/discordo/internal/ui/login/token"
+	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/tokenstore"
+	"github.com/seamanticus/amitty/internal/ui"
+	"github.com/seamanticus/amitty/internal/ui/chat"
+	"github.com/seamanticus/amitty/internal/ui/login/password"
+	"github.com/seamanticus/amitty/internal/ui/login/qr"
+	"github.com/seamanticus/amitty/internal/ui/login/token"
 )
 
 func run(t *testing.T, command tview.Cmd) tview.Msg {

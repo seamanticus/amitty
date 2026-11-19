@@ -12,7 +12,7 @@ import (
 	"github.com/ayn2op/tview/text"
 	"github.com/ayn2op/tview/textinput"
 	"github.com/gdamore/tcell/v3"
-	"github.com/seamanticus/discordo/internal/ui/login/keys"
+	"github.com/seamanticus/amitty/internal/ui/login/keys"
 )
 
 // codeFocus is the control of the code form that receives keys.

@@ -12,7 +12,7 @@ import (
 // newStore is a store in a temporary directory with the given commands.
 func newStore(t *testing.T, encrypt, decrypt string) Store {
 	t.Helper()
-	store, err := New(filepath.Join(t.TempDir(), "state", "discordo", FileName), encrypt, decrypt)
+	store, err := New(filepath.Join(t.TempDir(), "state", "amitty", FileName), encrypt, decrypt)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -124,7 +124,7 @@ func TestLoad(t *testing.T) {
 
 	for _, tt := range []struct{ name, decrypt, content string }{
 		{"a failing decrypt", "false", "x"},
-		{"a missing program", "discordo-no-such-program", "x"},
+		{"a missing program", "amitty-no-such-program", "x"},
 		{"an empty token", "cat", " \n"},
 	} {
 		t.Run(tt.name+" is an error, and the file is kept", func(t *testing.T) {

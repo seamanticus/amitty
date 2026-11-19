@@ -3,7 +3,7 @@ package gateway
 import (
 	tls_client "github.com/bogdanfinn/tls-client"
 	"github.com/gorilla/websocket"
-	"github.com/seamanticus/discordo/internal/tls"
+	"github.com/seamanticus/amitty/internal/tls"
 )
 
 func NewDialer() websocket.Dialer {

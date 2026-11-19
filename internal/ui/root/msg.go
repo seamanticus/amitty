@@ -5,9 +5,9 @@ import (
 
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
-	"github.com/seamanticus/discordo/internal/consts"
-	"github.com/seamanticus/discordo/internal/ui/chat"
-	"github.com/seamanticus/discordo/internal/ui/login"
+	"github.com/seamanticus/amitty/internal/consts"
+	"github.com/seamanticus/amitty/internal/ui/chat"
+	"github.com/seamanticus/amitty/internal/ui/login"
 	"golang.design/x/clipboard"
 )
 

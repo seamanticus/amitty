@@ -5,7 +5,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/seamanticus/discordo/internal/config"
+	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/dmwire/discord"
 	"github.com/seamanticus/dmwire/ningen"
 	"github.com/seamanticus/dmwire/state"

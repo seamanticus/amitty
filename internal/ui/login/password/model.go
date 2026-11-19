@@ -15,8 +15,8 @@ import (
 	"github.com/ayn2op/tview/textinput"
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
-	dhttp "github.com/seamanticus/discordo/internal/http"
-	"github.com/seamanticus/discordo/internal/ui/login/keys"
+	dhttp "github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/ui/login/keys"
 )
 
 // focus is the input or button that receives keys.

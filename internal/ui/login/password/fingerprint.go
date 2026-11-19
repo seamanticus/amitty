@@ -7,7 +7,7 @@ import (
 
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
-	dhttp "github.com/seamanticus/discordo/internal/http"
+	dhttp "github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/dmwire/api"
 )
 

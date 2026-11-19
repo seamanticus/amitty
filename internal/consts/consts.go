@@ -8,9 +8,9 @@ import (
 	"sync"
 )
 
-const Name = "discordo"
+const Name = "amitty"
 
-// StateDir returns $XDG_STATE_HOME/discordo, or ~/.local/state/discordo when that is unset or relative, as the XDG base directory spec says.
+// StateDir returns $XDG_STATE_HOME/amitty, or ~/.local/state/amitty when that is unset or relative, as the XDG base directory spec says.
 func StateDir() (string, error) {
 	if dir := os.Getenv("XDG_STATE_HOME"); filepath.IsAbs(dir) {
 		return filepath.Join(dir, Name), nil

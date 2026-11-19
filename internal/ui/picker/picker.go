@@ -1,12 +1,12 @@
-// Package picker holds what discordo's pickers share.
+// Package picker holds what amitty's pickers share.
 package picker
 
 import (
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/picker"
 	"github.com/ayn2op/tview/scrollbar"
-	"github.com/seamanticus/discordo/internal/config"
-	"github.com/seamanticus/discordo/internal/ui"
+	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/ui"
 )
 
 // Model is a picker of items shown in a box titled title.

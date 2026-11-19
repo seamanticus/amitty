@@ -6,9 +6,9 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/picker"
 	"github.com/ayn2op/tview/text"
-	"github.com/seamanticus/discordo/internal/config"
-	"github.com/seamanticus/discordo/internal/ui"
-	uipicker "github.com/seamanticus/discordo/internal/ui/picker"
+	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/ui"
+	uipicker "github.com/seamanticus/amitty/internal/ui/picker"
 	"github.com/seamanticus/dmwire/discord"
 	"github.com/seamanticus/dmwire/ningen"
 )

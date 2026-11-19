@@ -11,9 +11,9 @@ import (
 	"github.com/ayn2op/tview/cmd"
 	tviewimage "github.com/ayn2op/tview/image"
 	"github.com/gdamore/tcell/v3"
-	"github.com/seamanticus/discordo/internal/config"
-	"github.com/seamanticus/discordo/internal/http"
-	"github.com/seamanticus/discordo/internal/ui/images"
+	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/ui/images"
 	"github.com/seamanticus/dmwire/discord"
 	"github.com/seamanticus/dmwire/gateway"
 )

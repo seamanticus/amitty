@@ -7,12 +7,12 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
 	"github.com/ayn2op/tview/column"
-	"github.com/seamanticus/discordo/internal/config"
-	"github.com/seamanticus/discordo/internal/http"
-	"github.com/seamanticus/discordo/internal/ui"
-	"github.com/seamanticus/discordo/internal/ui/login/password"
-	"github.com/seamanticus/discordo/internal/ui/login/qr"
-	"github.com/seamanticus/discordo/internal/ui/login/token"
+	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/ui"
+	"github.com/seamanticus/amitty/internal/ui/login/password"
+	"github.com/seamanticus/amitty/internal/ui/login/qr"
+	"github.com/seamanticus/amitty/internal/ui/login/token"
 )
 
 // tab is a login method shown as a tab.
