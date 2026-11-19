@@ -291,11 +291,11 @@ Global shortcuts. A keybind is a key such as "ctrl+k", or a list of keys.
 | `toggle_full_help` | `"ctrl+."` | Switch between compact and full keybind help. |
 | `suspend` | `"ctrl+z"` |  |
 | `focus_guilds_tree` | `"ctrl+g"` |  |
-| `focus_members_tree` | `"ctrl+y"` |  |
+| `focus_members_tree` | `"ctrl+m"` |  |
 | `focus_messages_list` | `"ctrl+t"` |  |
 | `focus_composer` | `"ctrl+i"` |  |
-| `focus_previous` | `"ctrl+h"` | Cycle focus between the widgets. |
-| `focus_next` | `"ctrl+l"` |  |
+| `focus_previous` | `["ctrl+h", "ctrl+left"]` | Cycle focus between the widgets. |
+| `focus_next` | `["ctrl+l", "ctrl+right"]` |  |
 | `logout` | `"ctrl+d"` | Log out and delete the stored token. Requires re-login upon restart. |
 | `quit` | `"ctrl+c"` |  |
 

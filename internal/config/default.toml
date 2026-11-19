@@ -374,16 +374,16 @@
 
 # focus_guilds_tree = "ctrl+g"
 
-# focus_members_tree = "ctrl+y"
+# focus_members_tree = "ctrl+m"
 
 # focus_messages_list = "ctrl+t"
 
 # focus_composer = "ctrl+i"
 
 # Cycle focus between the widgets.
-# focus_previous = "ctrl+h"
+# focus_previous = ["ctrl+h", "ctrl+left"]
 
-# focus_next = "ctrl+l"
+# focus_next = ["ctrl+l", "ctrl+right"]
 
 # Log out and delete the stored token.
 # Requires re-login upon restart.

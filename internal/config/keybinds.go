@@ -297,12 +297,12 @@ func defaultKeybinds() Keybinds {
 		Suspend:              key("suspend", "ctrl+z"),
 
 		FocusGuildsTree:   key("guilds", "ctrl+g"),
-		FocusMembersTree:  key("members", "ctrl+y"),
+		FocusMembersTree:  key("members", "ctrl+m"),
 		FocusMessagesList: key("messages", "ctrl+t"),
 		FocusComposer:     key("composer", "ctrl+i"),
 
-		FocusPrevious: key("focus prev", "ctrl+h"),
-		FocusNext:     key("focus next", "ctrl+l"),
+		FocusPrevious: key("focus prev", "ctrl+h", "ctrl+left"),
+		FocusNext:     key("focus next", "ctrl+l", "ctrl+right"),
 
 		Picker: PickerKeybinds{
 			SelectionKeybinds: emacs,

@@ -21,11 +21,15 @@ of the pane that has focus.
 | `ctrl+g` | Guilds tree |
 | `ctrl+t` | Messages list |
 | `ctrl+i` | Composer |
-| `ctrl+y` | Members tree |
-| `ctrl+h`, `ctrl+l` | The previous or next pane |
+| `ctrl+m` | Members tree |
+| `ctrl+h`, `ctrl+l`, `ctrl+left`, `ctrl+right` | The previous or next pane |
 | `ctrl+k` | A picker to jump to any channel by name |
 
 Selecting a channel focuses the composer, unless `auto_focus = false`.
+
+`ctrl+m` and `ctrl+i` reach amitty only in terminals with an enhanced
+keyboard protocol (kitty, ghostty, foot, WezTerm): elsewhere they send
+the same bytes as `enter` and `tab`, so they do nothing there.
 
 ## Guilds tree
 
@@ -60,7 +64,8 @@ text or an image from the clipboard, `ctrl+e` writes the message in
 `$EDITOR`, and `ctrl+u` undoes.
 
 The cursor keys follow readline: `ctrl+a` and `ctrl+shift+e` for the
-line's start and end, `alt+b` and `alt+f` by word, `ctrl+w` deletes the
+line's start and end, `alt+b` and `alt+f` (or `alt+left` and
+`alt+right`) by word, `ctrl+w` deletes the
 word behind. A few readline keys need `shift`, as amitty uses the plain
 ones elsewhere; telling `ctrl+shift` from `ctrl` needs a terminal with
 an enhanced keyboard protocol, such as kitty, ghostty or foot.
