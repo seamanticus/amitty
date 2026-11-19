@@ -16,6 +16,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ayn2op/arikawa/v3/api"
 	"github.com/ayn2op/arikawa/v3/utils/httputil"
 	"github.com/ayn2op/tview"
 	"github.com/ayn2op/tview/cmd"
@@ -279,34 +280,40 @@ func decryptUserPayload(privateKey *rsa.PrivateKey, encryptedPayload string) tvi
 
 func exchangeTicket(fingerprint string, privateKey *rsa.PrivateKey, ticket string) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
-		headers := http.Headers()
-		headers.Set("Referer", "https://discord.com/login")
-		if fingerprint != "" {
-			headers.Set("X-Fingerprint", fingerprint)
-		}
-
-		client := http.NewClient("")
-		client.OnRequest = append(client.OnRequest, httputil.WithHeaders(headers))
-
 		ctx, cancel := context.WithTimeout(context.Background(), http.AuthTimeout)
 		defer cancel()
-
-		encryptedToken, err := client.WithContext(ctx).ExchangeRemoteAuthTicket(ticket)
-		if err != nil {
-			return err
-		}
-
-		decodedToken, err := base64.StdEncoding.DecodeString(encryptedToken)
-		if err != nil {
-			return err
-		}
-
-		decryptedToken, err := rsa.DecryptOAEP(sha256.New(), nil, privateKey, decodedToken, nil)
-		if err != nil {
-			return err
-		}
-		return TokenMsg(string(decryptedToken))
+		return redeemTicket(ctx, ticketClient(http.NewClient(""), fingerprint), privateKey, ticket)
 	})
+}
+
+// ticketClient adds to client the login page headers and, if set, the fingerprint of the remote auth session.
+func ticketClient(client *api.Client, fingerprint string) *api.Client {
+	headers := http.Headers()
+	headers.Set("Referer", "https://discord.com/login")
+	if fingerprint != "" {
+		headers.Set("X-Fingerprint", fingerprint)
+	}
+	client.OnRequest = append(client.OnRequest, httputil.WithHeaders(headers))
+	return client
+}
+
+// redeemTicket exchanges ticket for the token encrypted to privateKey and returns a TokenMsg or an error.
+func redeemTicket(ctx context.Context, client *api.Client, privateKey *rsa.PrivateKey, ticket string) tview.Msg {
+	encryptedToken, err := client.WithContext(ctx).ExchangeRemoteAuthTicket(ticket)
+	if err != nil {
+		return err
+	}
+
+	decodedToken, err := base64.StdEncoding.DecodeString(encryptedToken)
+	if err != nil {
+		return err
+	}
+
+	decryptedToken, err := rsa.DecryptOAEP(sha256.New(), nil, privateKey, decodedToken, nil)
+	if err != nil {
+		return err
+	}
+	return TokenMsg(string(decryptedToken))
 }
 
 // startMsg starts connecting to the Remote Auth Gateway.

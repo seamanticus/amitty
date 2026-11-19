@@ -1,0 +1,166 @@
+package password
+
+import (
+	"bytes"
+	"context"
+	json "encoding/json/v2"
+	"errors"
+	"net/http"
+	"strings"
+	"sync/atomic"
+	"testing"
+
+	"github.com/ayn2op/arikawa/v3/utils/httputil"
+	"github.com/ayn2op/tview/cmd"
+	"github.com/seamanticus/discordo/internal/discordtest"
+)
+
+// evidence: witnesses
+func TestRequestLogin(t *testing.T) {
+	const path = "/api/v9/auth/login"
+	reply := func(status int, body string) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(status)
+			_, _ = w.Write([]byte(body))
+		}
+	}
+
+	t.Run("posts the credentials as JSON to the login endpoint", func(t *testing.T) {
+		var got struct{ method, path, contentType, auth, body string }
+		client := discordtest.Client(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var body bytes.Buffer
+			_, _ = body.ReadFrom(r.Body)
+			got.method, got.path, got.contentType, got.auth, got.body = r.Method, r.URL.Path, r.Header.Get("Content-Type"), r.Header.Get("Authorization"), body.String()
+			reply(http.StatusOK, `{"token":"t"}`)(w, r)
+		}))
+		requestLogin(t.Context(), client, "user@example.com", `p"w`)
+
+		if got.method != http.MethodPost || got.path != path {
+			t.Errorf("request = %s %s, want POST %s", got.method, got.path, path)
+		}
+		if !strings.HasPrefix(got.contentType, "application/json") {
+			t.Errorf("Content-Type = %q", got.contentType)
+		}
+		if got.auth != "" {
+			t.Errorf("Authorization = %q, want none before login", got.auth)
+		}
+		var body struct {
+			Login    string `json:"login"`
+			Password string `json:"password"`
+		}
+		if err := json.Unmarshal([]byte(got.body), &body); err != nil {
+			t.Fatalf("body %q: %v", got.body, err)
+		}
+		// The quote must survive encoding, or a password with one would log in as another.
+		if body.Login != "user@example.com" || body.Password != `p"w` {
+			t.Errorf("body = %+v", body)
+		}
+	})
+
+	for _, tt := range []struct {
+		name, body string
+		want       any
+		wantErr    string
+	}{
+		{"token", `{"token":"t"}`, TokenMsg("t"), ""},
+		{"token wins over an mfa flag", `{"token":"t","mfa":true}`, TokenMsg("t"), ""},
+		{"mfa required", `{"mfa":true,"ticket":"x","totp":true}`, nil, "multi-factor authentication is required"},
+		{"no token and no mfa", `{"user_id":"1"}`, nil, "did not include a token"},
+		{"empty object", `{}`, nil, "did not include a token"},
+		{"required actions only", `{"required_actions":["update_password"]}`, nil, "did not include a token"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			msg := requestLogin(t.Context(), discordtest.Client(t, reply(http.StatusOK, tt.body)), "a", "b")
+			if tt.wantErr == "" {
+				if msg != tt.want {
+					t.Fatalf("got %#v, want %#v", msg, tt.want)
+				}
+				return
+			}
+			failed, ok := msg.(FailedMsg)
+			if !ok || failed.Err == nil || !strings.Contains(failed.Err.Error(), tt.wantErr) {
+				t.Fatalf("got %#v, want FailedMsg containing %q", msg, tt.wantErr)
+			}
+		})
+	}
+
+	for _, tt := range []struct {
+		name   string
+		status int
+		body   string
+	}{
+		{"invalid credentials", http.StatusBadRequest, `{"code":50035,"message":"Invalid Form Body","errors":{"login":{"_errors":[{"code":"INVALID_LOGIN"}]}}}`},
+		{"captcha", http.StatusBadRequest, `{"captcha_key":["captcha-required"],"captcha_sitekey":"k","captcha_service":"hcaptcha"}`},
+		{"unauthorized", http.StatusUnauthorized, `{"message":"401: Unauthorized","code":0}`},
+		{"forbidden", http.StatusForbidden, `{"message":"forbidden"}`},
+		{"not JSON", http.StatusOK, `<html>`},
+		{"empty body", http.StatusOK, ``},
+	} {
+		t.Run(tt.name+" fails", func(t *testing.T) {
+			msg := requestLogin(t.Context(), discordtest.Client(t, reply(tt.status, tt.body)), "a", "b")
+			if failed, ok := msg.(FailedMsg); !ok || failed.Err == nil {
+				t.Fatalf("got %#v, want FailedMsg", msg)
+			}
+		})
+	}
+
+	t.Run("an HTTP error keeps its status", func(t *testing.T) {
+		msg := requestLogin(t.Context(), discordtest.Client(t, reply(http.StatusBadRequest, `{"message":"bad"}`)), "a", "b")
+		httpErr, ok := errors.AsType[*httputil.HTTPError](msg.(FailedMsg).Err)
+		if !ok || httpErr.Status != http.StatusBadRequest {
+			t.Fatalf("got %#v, want an HTTPError with status 400", msg)
+		}
+	})
+
+	t.Run("a 4xx is not retried", func(t *testing.T) {
+		var calls atomic.Int32
+		client := discordtest.Client(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			calls.Add(1)
+			reply(http.StatusBadRequest, `{}`)(w, r)
+		}))
+		requestLogin(t.Context(), client, "a", "b")
+		if n := calls.Load(); n != 1 {
+			t.Fatalf("credentials posted %d times, want 1", n)
+		}
+	})
+
+	t.Run("a canceled context fails without a request", func(t *testing.T) {
+		var calls atomic.Int32
+		client := discordtest.Client(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			calls.Add(1)
+			reply(http.StatusOK, `{"token":"t"}`)(w, r)
+		}))
+		ctx, cancel := context.WithCancel(t.Context())
+		cancel()
+		msg := requestLogin(ctx, client, "a", "b")
+		failed, ok := msg.(FailedMsg)
+		if !ok || !errors.Is(failed.Err, context.Canceled) {
+			t.Fatalf("got %#v, want FailedMsg wrapping context.Canceled", msg)
+		}
+		if n := calls.Load(); n != 0 {
+			t.Fatalf("%d requests after cancel, want 0", n)
+		}
+	})
+}
+
+func TestAuthClient(t *testing.T) {
+	var referer, platform string
+	client := discordtest.Client(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		referer, platform = r.Header.Get("Referer"), r.Header.Get("Sec-Ch-Ua-Platform")
+		_, _ = w.Write([]byte(`{"token":"t"}`))
+	}))
+	requestLogin(t.Context(), authClient(client), "a", "b")
+	if referer != "https://discord.com/login" {
+		t.Errorf("Referer = %q, want the login page", referer)
+	}
+	if platform == "" {
+		t.Error("browser headers were not sent")
+	}
+}
+
+func TestSubmitLogin(t *testing.T) {
+	if _, ok := submitLogin("a", "b").(cmd.Task); !ok {
+		t.Fatal("submitLogin does not run as a task, so it would block Update")
+	}
+}

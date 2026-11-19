@@ -121,17 +121,19 @@ func (m *Model) toggleHelp() {
 var _ tview.Model[Model] = Model{}
 
 func (m Model) Init() tview.Cmd {
-	var command tview.Cmd
-	if token := os.Getenv(tokenEnvVarKey); token != "" {
-		command = useToken(token)
-	} else {
-		command = getToken()
-	}
 	return cmd.Batch{
 		cmd.SetTitle(consts.Name),
 		initClipboard(),
-		command,
+		loadToken(),
 	}
+}
+
+// loadToken uses the token in the environment if set, or else the stored one.
+func loadToken() tview.Cmd {
+	if token := os.Getenv(tokenEnvVarKey); token != "" {
+		return useToken(token)
+	}
+	return getToken()
 }
 
 // Update returns m changed in response to msg and a command to run, or nil.
@@ -143,11 +145,11 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 		return m, m.showChat(string(msg))
 
 	case password.TokenMsg:
-		return m, cmd.Batch{m.showChat(string(msg)), setToken(string(msg))}
+		return m, storeToken(string(msg))
 	case qr.TokenMsg:
-		return m, cmd.Batch{m.showChat(string(msg)), setToken(string(msg))}
+		return m, storeToken(string(msg))
 	case token.TokenMsg:
-		return m, cmd.Batch{m.showChat(string(msg)), setToken(string(msg))}
+		return m, storeToken(string(msg))
 
 	case chat.StateClosedMsg:
 		return m, cmd.Quit{}

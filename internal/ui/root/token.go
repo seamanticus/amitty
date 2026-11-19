@@ -35,12 +35,13 @@ func getToken() tview.Cmd {
 	})
 }
 
-func setToken(token string) tview.Cmd {
+// storeToken stores a token from a login, then sends it on to open the chat; a failure to store is logged and the chat opens anyway.
+func storeToken(token string) tview.Cmd {
 	return cmd.Task(func() tview.Msg {
 		if err := keyring.Set(keyringService, keyringUser, token); err != nil {
 			slog.Error("failed to set token to keyring", "err", err)
 		}
-		return nil
+		return tokenMsg(token)
 	})
 }
 
