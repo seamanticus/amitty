@@ -14,8 +14,8 @@ a minimal, keyboard-driven TUI written in Go.
 - replies, edits, reactions, mentions and custom emoji
 - images drawn in the terminal: kitty graphics (kitty, ghostty, Rio),
   sixels (foot) and half blocks everywhere else
-- videos and files open in their own applications with `xdg-open`
-- attachments from a path prompt or the clipboard
+- videos and files open with `xdg-open`, or the openers you set
+- attachments from a path prompt, the clipboard, or your own picker (fzf, yazi)
 - password with 2FA, QR and token logins
 - the token encrypted with gpg, or any tool you choose
 - one proxy for every connection, SOCKS5 included

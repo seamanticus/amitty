@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 
 	fhttp "github.com/bogdanfinn/fhttp"
+	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/consts"
 	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
@@ -31,7 +32,7 @@ func (m Model) open() tui.Cmd {
 }
 
 func (m Model) openInBrowser() tui.Cmd {
-	return m.openWith(func(attachment discord.Attachment) tui.Cmd { return openURL(attachment.URL) })
+	return m.openWith(func(attachment discord.Attachment) tui.Cmd { return m.openURL(attachment.URL) })
 }
 
 func (m Model) openWith(openAttachment func(discord.Attachment) tui.Cmd) tui.Cmd {
@@ -47,7 +48,7 @@ func (m Model) openWith(openAttachment func(discord.Attachment) tui.Cmd) tui.Cmd
 	case total > 1:
 		return m.showAttachmentsList(urls, selectedMessage.Attachments, openAttachment)
 	case len(urls) == 1:
-		return openURL(urls[0])
+		return m.openURL(urls[0])
 	}
 
 	return openAttachment(selectedMessage.Attachments[0])
@@ -76,7 +77,7 @@ func (m Model) showAttachmentsList(urls []string, attachments []discord.Attachme
 		items = append(items, picker.Item{Content: text.New(attachment.Filename), FilterText: attachment.Filename, Reference: openAttachment(attachment)})
 	}
 	for _, url := range urls {
-		items = append(items, picker.Item{Content: text.New(url), FilterText: url, Reference: openURL(url)})
+		items = append(items, picker.Item{Content: text.New(url), FilterText: url, Reference: m.openURL(url)})
 	}
 	return showAttachmentsPicker(items)
 }
@@ -134,11 +135,7 @@ func (m Model) openDownloadedAttachment(attachment discord.Attachment) tui.Cmd {
 			return ui.ErrorDialog("download attachment", errors.Join(err, os.Remove(path)))
 		}
 
-		if err := ui.OpenExternal(context.Background(), path); err != nil {
-			return ui.ErrorDialog("open attachment file", err)
-		}
-
-		return nil
+		return ui.Open(m.cfg.Openers, attachment.ContentType, path, "open attachment file")
 	})
 }
 
@@ -171,13 +168,9 @@ func (m Model) downloadTo(attachment discord.Attachment, destination string) tui
 	})
 }
 
-func openURL(url string) tui.Cmd {
-	return cmd.Task(func() tui.Msg {
-		if err := ui.OpenExternal(context.Background(), url); err != nil {
-			return ui.ErrorDialog("open URL", err)
-		}
-		return nil
-	})
+// openURL opens url with the url opener, or xdg-open.
+func (m Model) openURL(url string) tui.Cmd {
+	return ui.Open(m.cfg.Openers, config.OpenerURL, url, "open URL")
 }
 
 // Get requests the file at url, by a new link to it if that one expired.

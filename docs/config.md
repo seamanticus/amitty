@@ -23,6 +23,22 @@ The program opened by the `composer.open_editor` keybind. "default" uses `$EDITO
 
 Default: `"default"`
 
+## file_picker
+
+The program the `composer.open_file_picker` keybind runs in place of amitty's path prompt, such as "fzf --multi" or "yazi --chooser-file={file}"; "" uses the prompt.
+It runs in the terminal while amitty is suspended. It writes the chosen paths, one per line, to stdout, or to the file named where `{file}` is written.
+
+Default: `""`
+
+## openers
+
+Programs that open attachments by MIME type, and links by the key "url", in place of `xdg-open`, such as
+`{ "video/*" = { command = "mpv {}" }, "text/plain" = { command = "nvim {}", terminal = true }, url = { command = "firefox {}" } }`.
+`{}` is replaced by the file or link, which is appended when there is no `{}`. An exact type wins over a wildcard.
+A command runs in the background unless `terminal = true`, which suspends amitty while it runs.
+
+Default: `{}`
+
 ## token-encrypt-cmd
 
 The command that encrypts the token: it reads the token on stdin and writes what is stored in `$XDG_STATE_HOME/amitty/token.gpg` to stdout.

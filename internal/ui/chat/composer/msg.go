@@ -74,19 +74,32 @@ func (m Model) pickFiles() tui.Cmd {
 	}
 	channelID := selectedChannel.ID
 
+	if picker := m.cfg.FilePicker; picker != "" {
+		return ui.PickFiles(picker, func(paths []string) tui.Msg { return openPicked(channelID, paths) })
+	}
 	show := pathprompt.ShowMsg{
 		Title: "Attach",
 		Submit: func(path string) tui.Cmd {
-			return cmd.Task(func() tui.Msg {
-				file, err := os.Open(path)
-				if err != nil {
-					return ui.ErrorDialog("attach file", err)
-				}
-				return filesPickedMsg{channelID: channelID, files: []sendpart.File{{Name: filepath.Base(path), Reader: file}}}
-			})
+			return cmd.Task(func() tui.Msg { return openPicked(channelID, []string{path}) })
 		},
 	}
 	return cmd.Task(func() tui.Msg { return show })
+}
+
+// openPicked opens the files at paths to attach them in channelID, or reports the first that does not open, closing those opened.
+func openPicked(channelID discord.ChannelID, paths []string) tui.Msg {
+	files := make([]sendpart.File, 0, len(paths))
+	for _, path := range paths {
+		file, err := os.Open(path)
+		if err != nil {
+			for _, opened := range files {
+				closeFile(opened)
+			}
+			return ui.ErrorDialog("attach file", err)
+		}
+		files = append(files, sendpart.File{Name: filepath.Base(path), Reader: file})
+	}
+	return filesPickedMsg{channelID: channelID, files: files}
 }
 
 func closeFiles(files []sendpart.File) cmd.Task {

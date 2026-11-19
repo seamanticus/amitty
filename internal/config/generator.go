@@ -123,6 +123,10 @@ func writeComment(buffer *bytes.Buffer, doc string) {
 
 // encodeValue returns the TOML of field's value. The encoder only writes whole documents, so the value is what follows the key.
 func encodeValue(field field) string {
+	// The encoder writes a map as a table of its own, which has no value to put after the key.
+	if field.value.Kind() == reflect.Map && field.value.Len() == 0 {
+		return "{}"
+	}
 	var line bytes.Buffer
 	if err := toml.NewEncoder(&line).Encode(map[string]any{field.key: field.value.Interface()}); err != nil {
 		log.Fatal(err)

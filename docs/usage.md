@@ -68,11 +68,35 @@ an enhanced keyboard protocol, such as kitty, ghostty or foot.
 ## Files
 
 - **Attaching**: `ctrl+\` asks for a path in the terminal; `tab`
-  completes it from the file system.
+  completes it from the file system. To use another picker, set
+  `file_picker`: amitty suspends itself while it runs, then attaches
+  every path it chose, one per line on its stdout, or in the file named
+  where `{file}` is written:
+
+  ```toml
+  file_picker = "fzf --multi"
+  # file_picker = "yazi --chooser-file={file}"
+  ```
+
 - **Opening**: `o` downloads the attachment to
   `~/.cache/amitty/attachments` and opens it with `xdg-open`, so videos
   go to your video player and documents to their viewer. Types outside
   `allowed_mime_types` (by default images, video and audio) ask first.
+  `O` opens a link or attachment page in the browser.
+- **Openers**: `openers` sets the program for a MIME type, a wildcard,
+  or links (`url`), in place of `xdg-open`. `{}` is the file or link,
+  appended when absent; an exact type wins over a wildcard. Programs
+  start in the background, or with `terminal = true` take the terminal
+  while amitty is suspended:
+
+  ```toml
+  [openers]
+  "video/*" = { command = "mpv {}" }
+  "image/*" = { command = "imv {}" }
+  "text/plain" = { command = "nvim {}", terminal = true }
+  url = { command = "firefox {}" }
+  ```
+
 - **Saving**: `D` asks where to save it, and asks again before
   replacing a file.
 

@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"slices"
+	"strings"
 	"sync"
 
 	"github.com/BurntSushi/toml"
@@ -59,6 +60,37 @@ func (types MIMETypes) Has(mediaType string) bool {
 		matches, _ := path.Match(pattern, mediaType)
 		return matches
 	})
+}
+
+// OpenerURL is the key of the opener for links.
+const OpenerURL = "url"
+
+// Opener is a command that opens a file or link.
+type Opener struct {
+	Command string `toml:"command"`
+	// Whether the command runs in the terminal, suspending amitty, rather than in the background.
+	Terminal bool `toml:"terminal"`
+}
+
+// Openers maps a MIME type, a wildcard such as "video/*", or OpenerURL to its opener.
+type Openers map[string]Opener
+
+// For returns the opener of key, a MIME type or OpenerURL: the one set for it exactly, else for its wildcard, and whether one is set.
+func (o Openers) For(key string) (Opener, bool) {
+	if key != OpenerURL {
+		if mediaType, _, err := mime.ParseMediaType(key); err == nil {
+			key = mediaType
+		}
+	}
+	if opener, ok := o[key]; ok && opener.Command != "" {
+		return opener, true
+	}
+	if major, _, ok := strings.Cut(key, "/"); ok {
+		if opener, ok := o[major+"/*"]; ok && opener.Command != "" {
+			return opener, true
+		}
+	}
+	return Opener{}, false
 }
 
 type (
@@ -176,6 +208,14 @@ type (
 		Mouse bool `toml:"mouse"`
 		// The program opened by the `composer.open_editor` keybind. "default" uses `$EDITOR`.
 		Editor string `toml:"editor"`
+		// The program the `composer.open_file_picker` keybind runs in place of amitty's path prompt, such as "fzf --multi" or "yazi --chooser-file={file}"; "" uses the prompt.
+		// It runs in the terminal while amitty is suspended. It writes the chosen paths, one per line, to stdout, or to the file named where `{file}` is written.
+		FilePicker string `toml:"file_picker"`
+		// Programs that open attachments by MIME type, and links by the key "url", in place of `xdg-open`, such as
+		// `{ "video/*" = { command = "mpv {}" }, "text/plain" = { command = "nvim {}", terminal = true }, url = { command = "firefox {}" } }`.
+		// `{}` is replaced by the file or link, which is appended when there is no `{}`. An exact type wins over a wildcard.
+		// A command runs in the background unless `terminal = true`, which suspends amitty while it runs.
+		Openers Openers `toml:"openers"`
 
 		// The command that encrypts the token: it reads the token on stdin and writes what is stored in `$XDG_STATE_HOME/amitty/token.gpg` to stdout.
 		TokenEncryptCmd string `toml:"token-encrypt-cmd"`
@@ -226,6 +266,7 @@ func Default() Config {
 		AutoFocus: true,
 		Mouse:     true,
 		Editor:    "default",
+		Openers:   Openers{},
 
 		TokenEncryptCmd: "gpg --encrypt --default-recipient-self",
 		TokenDecryptCmd: "gpg --decrypt --quiet",
