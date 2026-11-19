@@ -8,6 +8,7 @@ import (
 	"github.com/ayn2op/tview"
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/discordtest"
+	dhttp "github.com/seamanticus/amitty/internal/http"
 )
 
 var area = tview.Rectangle{Width: 40, Height: 7}
@@ -146,7 +147,7 @@ func TestModelCountdown(t *testing.T) {
 
 	t.Run("each second shows the warning and ticks, and a second submit is still ignored", func(t *testing.T) {
 		m := start()
-		for left := retryDelay; left > 0; left-- {
+		for left := dhttp.RetryDelay; left > 0; left-- {
 			var command tview.Cmd
 			m, command = m.Update(CountdownMsg{left: left, err: reason})
 			if m.retryIn != left || command == nil {

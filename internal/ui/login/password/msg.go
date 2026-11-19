@@ -3,7 +3,6 @@ package password
 import (
 	"context"
 	"errors"
-	"net/http"
 	"time"
 
 	"github.com/ayn2op/tview"
@@ -12,9 +11,6 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	dhttp "github.com/seamanticus/amitty/internal/http"
 )
-
-// retryDelay is how long a login whose connection failed waits before its one retry.
-const retryDelay = 5
 
 type TokenMsg string
 
@@ -52,8 +48,8 @@ func submitLogin(build dhttp.Build, fingerprint, login, password string, final b
 
 // countdownOr returns msg, or the countdown to a retry when msg is a first attempt whose connection failed.
 func countdownOr(msg tview.Msg, final bool) tview.Msg {
-	if failed, ok := msg.(FailedMsg); ok && !final && retryable(failed.Err) {
-		return CountdownMsg{left: retryDelay, err: failed.Err}
+	if failed, ok := msg.(FailedMsg); ok && !final && dhttp.Retryable(failed.Err) {
+		return CountdownMsg{left: dhttp.RetryDelay, err: failed.Err}
 	}
 	return msg
 }
@@ -64,22 +60,6 @@ func tick(msg CountdownMsg) tview.Cmd {
 		time.Sleep(time.Second)
 		return CountdownMsg{left: msg.left - 1, err: msg.err}
 	})
-}
-
-// retryable reports whether err means the login did not reach Discord or a proxy in front of it failed, so posting again is not a second guess at the password.
-func retryable(err error) bool {
-	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-		return false
-	}
-	if httpErr, ok := errors.AsType[*httputil.HTTPError](err); ok {
-		switch httpErr.Status {
-		case http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout:
-			return true
-		}
-		return false
-	}
-	_, ok := errors.AsType[httputil.RequestError](err)
-	return ok
 }
 
 // authClient makes client send the headers of the web client's login page, with fingerprint if set, and post once: retrying is the login's decision, not the transport's.
