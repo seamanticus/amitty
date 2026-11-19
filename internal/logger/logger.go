@@ -2,7 +2,6 @@ package logger
 
 import (
 	"fmt"
-	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -17,7 +16,7 @@ func DefaultPath() string {
 }
 
 // Load opens the log file and configures default logger.
-func Load(path string, level slog.Level) (io.Closer, error) {
+func Load(path string, level slog.Level) (*os.File, error) {
 	if err := os.MkdirAll(filepath.Dir(path), os.ModePerm); err != nil {
 		return nil, err
 	}

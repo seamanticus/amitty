@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"time"
 
 	"github.com/gdamore/tcell/v3"
@@ -49,6 +50,10 @@ func Run() error {
 		return fmt.Errorf("failed to load logger: %w", err)
 	}
 	defer logFile.Close() //nolint:errcheck
+	// A crash in any goroutine leaves the terminal unreadable, so its trace is kept in the log too.
+	if err := debug.SetCrashOutput(logFile, debug.CrashOptions{}); err != nil {
+		return fmt.Errorf("crash output: %w", err)
+	}
 
 	cfg, err := config.Load(*configPath)
 	if err != nil {
