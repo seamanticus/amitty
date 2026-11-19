@@ -3,44 +3,33 @@ package root
 import (
 	"github.com/ayn2op/tview/help"
 	"github.com/ayn2op/tview/keybind"
+	"github.com/seamanticus/discordo/internal/ui/chat"
+	"github.com/seamanticus/discordo/internal/ui/login"
 )
 
 var _ help.KeyMap = Model{}
 
 func (m Model) ShortHelp() []keybind.Keybind {
-	global := []keybind.Keybind{
-		m.cfg.Keybinds.ToggleHelp.Keybind,
-		m.cfg.Keybinds.ToggleFullHelp.Keybind,
-		m.cfg.Keybinds.Suspend.Keybind,
-		m.cfg.Keybinds.Quit.Keybind,
-	}
-	if active := m.activeKeyMap(); active != nil {
-		short := active.ShortHelp()
-		return append(short, global...)
-	}
-	return global
+	return append(m.activeKeyMap().ShortHelp(), m.globalKeybinds()...)
 }
 
 func (m Model) FullHelp() [][]keybind.Keybind {
-	global := []keybind.Keybind{
+	return append(m.activeKeyMap().FullHelp(), m.globalKeybinds())
+}
+
+// globalKeybinds apply on every screen.
+func (m Model) globalKeybinds() []keybind.Keybind {
+	return []keybind.Keybind{
 		m.cfg.Keybinds.ToggleHelp.Keybind,
 		m.cfg.Keybinds.ToggleFullHelp.Keybind,
 		m.cfg.Keybinds.Suspend.Keybind,
 		m.cfg.Keybinds.Quit.Keybind,
 	}
-	if active := m.activeKeyMap(); active != nil {
-		full := active.FullHelp()
-		return append(full, global)
-	}
-	return [][]keybind.Keybind{global}
 }
 
 func (m Model) activeKeyMap() help.KeyMap {
-	switch m.screen {
-	case screenLogin:
-		return m.login
-	case screenChat:
-		return m.chat
-	}
-	return nil
+	return m.screen.Match(
+		func(l login.Model) help.KeyMap { return l },
+		func(c chat.Model) help.KeyMap { return c },
+	)
 }

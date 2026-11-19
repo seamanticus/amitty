@@ -81,46 +81,35 @@ func newModel(t *testing.T, store tokenstore.Store, token string) Model {
 	return NewModel(cfg, http.Build{}, store, token)
 }
 
-func TestModelStart(t *testing.T) {
-	t.Run("a stored token opens the chat", func(t *testing.T) {
-		m := newModel(t, testStore(t), "t")
-		if msg := run(t, m.start()); msg != tokenMsg("t") {
-			t.Fatalf("got %#v", msg)
-		}
-	})
-	t.Run("no stored token shows the login", func(t *testing.T) {
-		m := newModel(t, testStore(t), "")
-		if msg := run(t, m.start()); msg != (loginMsg{}) {
-			t.Fatalf("got %#v", msg)
-		}
-	})
-	t.Run("the environment is not read", func(t *testing.T) {
-		t.Setenv("DISCORDO_TOKEN", "env-token")
-		m := newModel(t, testStore(t), "")
-		if msg := run(t, m.start()); msg != (loginMsg{}) {
-			t.Fatalf("got %#v, want the login", msg)
-		}
-	})
-}
-
-func TestModelTokens(t *testing.T) {
+func TestNewModelScreen(t *testing.T) {
 	t.Run("a stored token opens the chat without storing again", func(t *testing.T) {
 		store := testStore(t)
-		m, _ := newModel(t, store, "").Update(tokenMsg("t"))
-		if m.screen != screenChat {
-			t.Fatalf("screen = %d", m.screen)
+		if m := newModel(t, store, "t"); !m.screen.isChat() {
+			t.Fatal("login shown with a token")
 		}
 		if got, ok := stored(t, store); ok {
 			t.Fatalf("stored %q, want nothing", got)
 		}
 	})
-
-	t.Run("no token shows the login", func(t *testing.T) {
-		if m, _ := newModel(t, testStore(t), "").Update(loginMsg{}); m.screen != screenLogin {
-			t.Fatalf("screen = %d", m.screen)
+	t.Run("no stored token shows the login", func(t *testing.T) {
+		if newModel(t, testStore(t), "").screen.isChat() {
+			t.Fatal("chat shown without a token")
 		}
 	})
+	t.Run("the environment is not read", func(t *testing.T) {
+		t.Setenv("DISCORDO_TOKEN", "env-token")
+		if newModel(t, testStore(t), "").screen.isChat() {
+			t.Fatal("chat shown from the environment")
+		}
+	})
+	t.Run("the zero screen is the login", func(t *testing.T) {
+		if (screen{}).isChat() {
+			t.Fatal("zero screen is the chat")
+		}
+	})
+}
 
+func TestModelTokens(t *testing.T) {
 	// Every login method stores its token before the chat opens with it.
 	for _, tt := range []struct {
 		name string
@@ -133,23 +122,23 @@ func TestModelTokens(t *testing.T) {
 		t.Run(tt.name+" stores, then opens the chat", func(t *testing.T) {
 			store := testStore(t)
 			m, command := newModel(t, store, "").Update(tt.msg)
-			if m.screen == screenChat {
+			if m.screen.isChat() {
 				t.Fatal("chat opened before the token was stored")
 			}
 			msg := run(t, command)
 			if got, ok := stored(t, store); !ok || got != "t" {
 				t.Fatalf("stored = %q, %v", got, ok)
 			}
-			if m, _ = m.Update(msg); m.screen != screenChat || m.dialog != nil {
-				t.Fatalf("screen = %d, dialog = %+v", m.screen, m.dialog)
+			if m, _ = m.Update(msg); !m.screen.isChat() || m.dialog != nil {
+				t.Fatalf("chat = %v, dialog = %+v", m.screen.isChat(), m.dialog)
 			}
 		})
 	}
 
 	t.Run("a failed store still opens the chat, with the reason", func(t *testing.T) {
 		m, command := newModel(t, failingStore(t), "").Update(password.TokenMsg("t"))
-		if m, _ = m.Update(run(t, command)); m.screen != screenChat || m.dialog == nil {
-			t.Fatalf("screen = %d, dialog = %+v", m.screen, m.dialog)
+		if m, _ = m.Update(run(t, command)); !m.screen.isChat() || m.dialog == nil {
+			t.Fatalf("chat = %v, dialog = %+v", m.screen.isChat(), m.dialog)
 		}
 	})
 
@@ -195,8 +184,8 @@ func TestModelTokens(t *testing.T) {
 			run(t, storeToken(store, "t"))
 			m, command := newModel(t, store, "t").Update(chat.LogoutMsg{Err: tt.err})
 			runAll(command)
-			if m.screen != screenLogin || (m.dialog != nil) != tt.wantDialog {
-				t.Fatalf("screen = %d, dialog = %+v", m.screen, m.dialog)
+			if m.screen.isChat() || (m.dialog != nil) != tt.wantDialog {
+				t.Fatalf("chat = %v, dialog = %+v", m.screen.isChat(), m.dialog)
 			}
 			if _, err := os.Stat(store.Path()); !errors.Is(err, os.ErrNotExist) {
 				t.Fatalf("token file kept: %v", err)

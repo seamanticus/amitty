@@ -26,20 +26,8 @@ import (
 	"github.com/seamanticus/discordo/internal/ui/login/token"
 )
 
-// screen is what is shown above help.
-type screen int
-
-const (
-	screenNone screen = iota
-	screenLogin
-	screenChat
-)
-
 type Model struct {
-	// screen is the model shown above help: login, chat, or neither before the token is known.
 	screen screen
-	login  login.Model
-	chat   chat.Model
 	// helpVisible reports whether help is shown below the inner model, and helpShowAll whether it shows every keybind.
 	helpVisible, helpShowAll bool
 	// dialog is the dialog shown, or nil when none is open, and dialogFocus its focused button.
@@ -51,26 +39,41 @@ type Model struct {
 	cfg *config.Config
 	// build is what every request and the gateway identify as, fetched once at startup.
 	build http.Build
-	// store keeps the token between runs, and token is the one it held at startup, or "" to log in.
+	// store keeps the token between runs.
 	store tokenstore.Store
-	token string
 }
 
 // NewModel returns the application, opening the chat with token if set and the login otherwise.
 func NewModel(cfg *config.Config, build http.Build, store tokenstore.Store, token string) Model {
-	return Model{cfg: cfg, build: build, store: store, token: token, helpVisible: cfg.Help.Enabled}
+	m := Model{cfg: cfg, build: build, store: store, helpVisible: cfg.Help.Enabled}
+	if token == "" {
+		m.screen = loginScreen(login.NewModel(cfg, build))
+	} else {
+		m.screen = chatScreen(chat.NewModel(cfg, build, token))
+	}
+	return m
+}
+
+// step is a screen changed by a message and the command it returned.
+type step struct {
+	screen screen
+	cmd    tview.Cmd
 }
 
 // updateScreen updates the model shown above help with msg.
 func (m *Model) updateScreen(msg tview.Msg) tview.Cmd {
-	var cmd tview.Cmd
-	switch m.screen {
-	case screenLogin:
-		m.login, cmd = m.login.Update(msg)
-	case screenChat:
-		m.chat, cmd = m.chat.Update(msg)
-	}
-	return cmd
+	next := m.screen.Match(
+		func(l login.Model) step {
+			l, c := l.Update(msg)
+			return step{loginScreen(l), c}
+		},
+		func(c chat.Model) step {
+			c, command := c.Update(msg)
+			return step{chatScreen(c), command}
+		},
+	)
+	m.screen = next.screen
+	return next.cmd
 }
 
 // helpView returns the help for the keybinds that currently apply.
@@ -129,27 +132,13 @@ func (m Model) Init() tview.Cmd {
 	return cmd.Batch{
 		cmd.SetTitle(consts.Name),
 		initClipboard(),
-		m.start(),
+		m.screen.Match(login.Model.Init, chat.Model.Init),
 	}
-}
-
-// start opens the chat with the stored token, or the login when there is none.
-func (m Model) start() tview.Cmd {
-	return cmd.Task(func() tview.Msg {
-		if m.token == "" {
-			return loginMsg{}
-		}
-		return tokenMsg(m.token)
-	})
 }
 
 // Update returns m changed in response to msg and a command to run, or nil.
 func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 	switch msg := msg.(type) {
-	case loginMsg:
-		return m, m.showLogin()
-	case tokenMsg:
-		return m, m.showChat(string(msg))
 	case storedMsg:
 		command := m.showChat(msg.token)
 		// Shown after the chat, as showing it closes any dialog.
@@ -228,13 +217,11 @@ func (m Model) Update(msg tview.Msg) (Model, tview.Cmd) {
 
 // View shows the inner model above help, with the dialog on top of both when one is open.
 func (m Model) View() tview.Widget {
-	var innerView, helpView tview.Widget
-	switch m.screen {
-	case screenLogin:
-		innerView = m.login.View()
-	case screenChat:
-		innerView = m.chat.View()
-	}
+	var helpView tview.Widget
+	innerView := m.screen.Match(
+		func(l login.Model) tview.Widget { return l.View() },
+		func(c chat.Model) tview.Widget { return c.View() },
+	)
 	if m.helpVisible {
 		helpView = box.New(m.helpView()).Padding(0, 0, m.cfg.Help.Padding[0], m.cfg.Help.Padding[1]).Height(layout.Shrink)
 	}

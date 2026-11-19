@@ -11,12 +11,6 @@ import (
 	"github.com/seamanticus/discordo/internal/ui"
 )
 
-// tokenMsg opens the chat with a token.
-type tokenMsg string
-
-// loginMsg shows the login, as no token is stored.
-type loginMsg struct{}
-
 // storeTimeout bounds one run of the encrypt command.
 const storeTimeout = time.Minute
 

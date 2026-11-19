@@ -13,7 +13,7 @@ import (
 
 // quit quits once the chat, if shown, has closed its session.
 func (m *Model) quit() tview.Cmd {
-	if m.screen == screenChat {
+	if m.screen.isChat() {
 		return m.updateScreen(chat.QuitMsg{})
 	}
 	return cmd.Quit{}
@@ -29,13 +29,15 @@ func initClipboard() tview.Cmd {
 }
 
 func (m *Model) showLogin() tview.Cmd {
-	m.screen, m.login, m.chat = screenLogin, login.NewModel(m.cfg, m.build), chat.Model{}
-	return m.show(m.login.Init())
+	l := login.NewModel(m.cfg, m.build)
+	m.screen = loginScreen(l)
+	return m.show(l.Init())
 }
 
 func (m *Model) showChat(token string) tview.Cmd {
-	m.screen, m.chat, m.login = screenChat, chat.NewModel(m.cfg, m.build, token), login.Model{}
-	init := m.chat.Init()
+	c := chat.NewModel(m.cfg, m.build, token)
+	m.screen = chatScreen(c)
+	init := c.Init()
 	if m.resize != nil {
 		init = cmd.Batch{init, m.updateScreen(m.resize)}
 	}
