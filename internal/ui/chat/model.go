@@ -52,6 +52,8 @@ type Model struct {
 	guildsTreeVisible bool
 	// membersTreeVisible reports whether the members tree is shown right of the messages when the selected channel has members.
 	membersTreeVisible bool
+	// width and pixelWidth are the terminal's width in columns and pixels, 0 until reported, which decide whether "auto" folds the members tree.
+	width, pixelWidth int
 	// overlay is the picker shown on top, which takes all input.
 	overlay overlay
 
@@ -217,6 +219,20 @@ func (m Model) membersTreeShown() bool {
 	return m.membersTreeVisible && m.membersTree.Shown()
 }
 
+// folded reports whether the members tree is drawn under the guilds tree rather than right of the messages.
+func (m Model) folded() bool {
+	tree := m.cfg.MembersTree
+	switch tree.Fold {
+	case config.FoldOff:
+		return false
+	case config.FoldOn:
+		return true
+	case config.FoldAuto:
+		return tree.FoldBelow.Narrower(m.width, m.pixelWidth)
+	}
+	panic("invariant: unknown fold mode")
+}
+
 // cycleFocus focuses the next pane that can take the focus, going backwards if step is -1.
 func (m *Model) cycleFocus(step pane) {
 	next := m.focused
@@ -271,6 +287,11 @@ func (m Model) update(msg tui.Msg) (Model, tui.Cmd) {
 		cell := m.imageCell()
 		cols, rows := msg.Size()
 		width, height := msg.PixelSize()
+		m.width = cols
+		// Kept as last reported, as a resize without pixels may be followed by the terminal's report of them.
+		if width > 0 {
+			m.pixelWidth = width
+		}
 		// A resize without a size in pixels may be followed by the terminal's own report of it.
 		if cols > 0 && rows > 0 && width > 0 && height > 0 {
 			m.cellWidth, m.cellHeight = uint(width/cols), uint(height/rows)
@@ -622,17 +643,19 @@ func (m Model) View() tui.Widget {
 	var right tui.Widget = column.New(messages, m.paneView(paneComposer))
 
 	main := right
-	if m.membersTreeShown() {
+	members := m.membersTreeShown()
+	folded := members && m.folded()
+	if members && !folded {
 		width := m.cfg.MembersTree.WidthPercent
 		main = row.New(
 			column.New(main).Width(layout.FillPortion(100-width)),
 			column.New(m.paneView(paneMembersTree)).Width(layout.FillPortion(width)),
 		)
 	}
-	if m.guildsTreeVisible {
+	if m.guildsTreeVisible || folded {
 		width := m.cfg.Sidebar.WidthPercent
 		main = row.New(
-			column.New(m.paneView(paneGuildsTree)).Width(layout.FillPortion(width)),
+			m.sidebarView(folded).Width(layout.FillPortion(width)),
 			column.New(main).Width(layout.FillPortion(100-width)),
 		)
 	}
@@ -645,5 +668,21 @@ func (m Model) View() tui.Widget {
 		inert.New(main),
 		backdrop.New().Style(m.cfg.Theme.Dialog.BackgroundStyle.Style),
 		center.New(column.New(picker).Width(layout.Fixed(m.cfg.Picker.Width)).Height(layout.Fixed(m.cfg.Picker.Height))),
+	)
+}
+
+// sidebarView returns the guilds tree, if visible, over the members tree if folded; either fills the column alone.
+func (m Model) sidebarView(folded bool) column.Widget {
+	if !folded {
+		return column.New(m.paneView(paneGuildsTree))
+	}
+	members := column.New(m.paneView(paneMembersTree))
+	if !m.guildsTreeVisible {
+		return members
+	}
+	height := m.cfg.MembersTree.FoldHeightPercent
+	return column.New(
+		column.New(m.paneView(paneGuildsTree)).Height(layout.FillPortion(100-height)),
+		members.Height(layout.FillPortion(height)),
 	)
 }

@@ -115,6 +115,9 @@ The members tree pane, sized from the width right of the guilds tree.
 |--------|---------|---------|
 | `visible` | `true` | Whether the pane is visible at start-up. It can still be toggled at runtime with its toggle keybind. |
 | `width_percent` | `20` | Percentage (%) of the available width used by the pane. Valid values are 1-99. Invalid values fall back to 20. |
+| `fold` | `"auto"` | Whether the members tree is folded under the guilds tree, in the sidebar's width: "off", "on", or "auto" while the terminal is narrower than fold_below. |
+| `fold_below` | `120` | The terminal width below which "auto" folds: columns such as 120, or pixels such as "1200px". A terminal that does not report its size in pixels is never folded by pixels. |
+| `fold_height_percent` | `50` | Percentage (%) of the folded column's height the members tree takes, below the guilds tree. Valid values are 1-99. Invalid values fall back to 50. |
 
 ## `[composer]`
 

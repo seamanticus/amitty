@@ -159,6 +159,15 @@
 # Valid values are 1-99. Invalid values fall back to 20.
 # width_percent = 20
 
+# Whether the members tree is folded under the guilds tree, in the sidebar's width: "off", "on", or "auto" while the terminal is narrower than fold_below.
+# fold = "auto"
+
+# The terminal width below which "auto" folds: columns such as 120, or pixels such as "1200px". A terminal that does not report its size in pixels is never folded by pixels.
+# fold_below = 120
+
+# Percentage (%) of the folded column's height the members tree takes, below the guilds tree. Valid values are 1-99. Invalid values fall back to 50.
+# fold_height_percent = 50
+
 [composer]
 
 # Maximum height (in newline-separated rows) the composer grows to before it starts scrolling internally.

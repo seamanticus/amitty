@@ -200,6 +200,16 @@ type (
 		Indents SidebarIndentsConfig `toml:"indents"`
 	}
 
+	MembersTreeConfig struct {
+		PaneConfig
+		// Whether the members tree is folded under the guilds tree, in the sidebar's width: "off", "on", or "auto" while the terminal is narrower than fold_below.
+		Fold FoldMode `toml:"fold"`
+		// The terminal width below which "auto" folds: columns such as 120, or pixels such as "1200px". A terminal that does not report its size in pixels is never folded by pixels.
+		FoldBelow FoldWidth `toml:"fold_below"`
+		// Percentage (%) of the folded column's height the members tree takes, below the guilds tree. Valid values are 1-99. Invalid values fall back to 50.
+		FoldHeightPercent int `toml:"fold_height_percent"`
+	}
+
 	Config struct {
 		// Whether to focus the composer automatically when a channel is selected.
 		// Set to false to preview channels without moving focus.
@@ -244,8 +254,8 @@ type (
 		// The guilds tree pane.
 		Sidebar SidebarConfig `toml:"sidebar"`
 		// The members tree pane, sized from the width right of the guilds tree.
-		MembersTree PaneConfig     `toml:"members_tree"`
-		Composer    ComposerConfig `toml:"composer"`
+		MembersTree MembersTreeConfig `toml:"members_tree"`
+		Composer    ComposerConfig    `toml:"composer"`
 
 		// Layout and behavior of the widgets.
 		UI    UIConfig `toml:"ui"`
@@ -296,7 +306,7 @@ func Default() Config {
 			Markers:    SidebarMarkersConfig{Expanded: "▾ ", Collapsed: "▸ "},
 			Indents:    SidebarIndentsConfig{Guild: 2, Category: 1, Channel: 2, Forum: 2, GroupDM: 1, DM: 2},
 		},
-		MembersTree: pane,
+		MembersTree: MembersTreeConfig{PaneConfig: pane, Fold: FoldAuto, FoldBelow: FoldWidth{size: 120}, FoldHeightPercent: 50},
 		Composer:    ComposerConfig{MaxHeight: 10},
 
 		UI: defaultUI(),
@@ -409,10 +419,13 @@ func (cfg *Config) applyDefaults() {
 		cfg.Composer.MaxHeight = 10
 	}
 
-	for _, pane := range []*PaneConfig{&cfg.Sidebar.PaneConfig, &cfg.MembersTree} {
+	for _, pane := range []*PaneConfig{&cfg.Sidebar.PaneConfig, &cfg.MembersTree.PaneConfig} {
 		if pane.WidthPercent <= 0 || pane.WidthPercent >= 100 {
 			pane.WidthPercent = 20
 		}
+	}
+	if tree := &cfg.MembersTree; tree.FoldHeightPercent <= 0 || tree.FoldHeightPercent >= 100 {
+		tree.FoldHeightPercent = 50
 	}
 
 	if cfg.DateSeparator.Format == "" {

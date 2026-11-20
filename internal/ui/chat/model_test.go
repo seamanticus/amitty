@@ -45,6 +45,42 @@ func TestModelView(t *testing.T) {
 	})
 }
 
+func TestModelFolded(t *testing.T) {
+	m := newTestModel(t)
+	below120 := m.cfg.MembersTree.FoldBelow
+	pixels, err := config.ParseFoldWidth("1200px")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// evidence: witnesses (every fold mode, at each width)
+	want := [...]func(narrow bool) bool{
+		config.FoldOff:  func(bool) bool { return false },
+		config.FoldOn:   func(bool) bool { return true },
+		config.FoldAuto: func(narrow bool) bool { return narrow },
+	}
+	for _, test := range []struct {
+		name          string
+		below         config.FoldWidth
+		cols, pixelsW int
+		narrow        bool
+	}{
+		{"narrow in columns", below120, 100, 0, true},
+		{"wide in columns", below120, 200, 0, false},
+		{"no size yet", below120, 0, 0, false},
+		{"narrow in pixels", pixels, 200, 900, true},
+		{"pixels unknown", pixels, 50, 0, false},
+	} {
+		for mode, folds := range want {
+			m.cfg.MembersTree.Fold, m.cfg.MembersTree.FoldBelow = config.FoldMode(mode), test.below
+			*m, _ = m.Update(tcell.NewEventResize(test.cols, 40))
+			m.pixelWidth = test.pixelsW
+			if got := m.folded(); got != folds(test.narrow) {
+				t.Errorf("%s, mode %d: folded = %v", test.name, mode, got)
+			}
+		}
+	}
+}
+
 func TestModelUpdate(t *testing.T) {
 	t.Run("typing expires unless extended", func(t *testing.T) {
 		m := newTestModel(t)
