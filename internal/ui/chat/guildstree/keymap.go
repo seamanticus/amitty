@@ -51,7 +51,10 @@ func (m Model) ShortHelp() []keybind.Keybind {
 
 func (m Model) FullHelp() [][]keybind.Keybind {
 	cfg := m.cfg.Keybinds.GuildsTree
-	selectGroup := []keybind.Keybind{m.selectCurrentKeybind(), cfg.MoveToParentNode.Keybind}
+	selectGroup := []keybind.Keybind{m.selectCurrentKeybind()}
+	if m.current != nil && len(m.root.PathTo(m.current)) >= 3 {
+		selectGroup = append(selectGroup, cfg.MoveToParentNode.Keybind)
+	}
 	selectGroup = append(selectGroup, m.collapseKeybinds()...)
 
 	return [][]keybind.Keybind{

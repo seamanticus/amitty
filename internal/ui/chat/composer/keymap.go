@@ -53,7 +53,9 @@ func (m Model) FullHelp() [][]keybind.Keybind {
 	}
 
 	compose := []keybind.Keybind{cfg.Send.Keybind, cfg.Newline.Keybind, cfg.Cancel.Keybind, cfg.Undo.Keybind}
-	compose = append(compose, cfg.EditLast.Keybind)
+	if m.canEditLastMessage() {
+		compose = append(compose, cfg.EditLast.Keybind)
+	}
 	if m.sendMessageData.Reference != nil {
 		compose = append(compose, cfg.ToggleReplyMention.Keybind)
 	}

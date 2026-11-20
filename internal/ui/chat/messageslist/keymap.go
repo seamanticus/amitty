@@ -14,10 +14,10 @@ func (m Model) ShortHelp() []keybind.Keybind {
 	help := []keybind.Keybind{
 		keybinds.SelectUp.Keybind,
 		keybinds.SelectDown.Keybind,
-		keybinds.Cancel.Keybind,
 	}
 
 	if selectedMessage, ok := m.selectedMessage(); ok {
+		help = append(help, keybinds.Cancel.Keybind)
 		if !ui.IsMe(m.state, selectedMessage.Author.ID) {
 			help = append(help, keybinds.Reply.Keybind)
 		}
@@ -31,21 +31,18 @@ func (m Model) ShortHelp() []keybind.Keybind {
 
 func (m Model) FullHelp() [][]keybind.Keybind {
 	keybinds := m.cfg.Keybinds.MessagesList
-	var actions, manage, attachments []keybind.Keybind
-	if message, ok := m.selectedMessage(); ok {
-		actions, manage, attachments = m.messageHelp(*message)
-	}
-
-	actions = append(actions, keybinds.Cancel.Keybind)
-
-	return [][]keybind.Keybind{
+	full := [][]keybind.Keybind{
 		{keybinds.SelectUp.Keybind, keybinds.SelectDown.Keybind, keybinds.SelectTop.Keybind, keybinds.SelectBottom.Keybind},
 		{keybinds.ScrollUp.Keybind, keybinds.ScrollDown.Keybind, keybinds.ScrollTop.Keybind, keybinds.ScrollBottom.Keybind},
-		actions,
-		manage,
-		attachments,
-		{keybinds.YankContent.Keybind, keybinds.YankURL.Keybind, keybinds.YankID.Keybind},
 	}
+	// The other keys act on the selected message, so they do nothing without one.
+	message, ok := m.selectedMessage()
+	if !ok {
+		return full
+	}
+	actions, manage, attachments := m.messageHelp(*message)
+	actions = append(actions, keybinds.Cancel.Keybind)
+	return append(full, actions, manage, attachments, []keybind.Keybind{keybinds.YankContent.Keybind, keybinds.YankURL.Keybind, keybinds.YankID.Keybind})
 }
 
 // messageHelp returns the keybinds that act on message: replying to it, managing it and opening what it has.
@@ -63,7 +60,7 @@ func (m Model) messageHelp(message discord.Message) (actions, manage, attachment
 		actions = append(actions, keybinds.React.Keybind)
 	}
 
-	if mine {
+	if m.channel != nil && m.isEditable(messageItem{message: message}, m.channel.ID) {
 		manage = append(manage, keybinds.Edit.Keybind)
 	}
 

@@ -358,3 +358,20 @@ func (w canceling) Handle(msg tui.Msg, area tui.Rectangle) tui.Msg {
 	}
 	return w.Widget.Handle(msg, area)
 }
+
+// ShortHelp returns the picker's keys, or those that save or leave a value being typed.
+func (m Model) ShortHelp() []keybind.Keybind {
+	keybinds := m.cfg.Keybinds.Picker
+	if m.step == stepText {
+		return []keybind.Keybind{keybinds.Select.WithHelp(keybinds.Select.Help().Key, "save"), keybinds.Cancel.WithHelp(keybinds.Cancel.Help().Key, "back")}
+	}
+	return keybinds.ShortHelp()
+}
+
+// FullHelp returns ShortHelp's keys, grouped.
+func (m Model) FullHelp() [][]keybind.Keybind {
+	if m.step == stepText {
+		return [][]keybind.Keybind{m.ShortHelp()}
+	}
+	return m.cfg.Keybinds.Picker.FullHelp()
+}

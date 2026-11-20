@@ -62,9 +62,7 @@ type Model struct {
 
 // NewModel returns a QR login whose requests identify as build and connect through network.
 func NewModel(build http.Build, network http.Network) Model {
-	m := Model{build: build, network: network}
-	m.status = "Press Ctrl+N to open QR login"
-	return m
+	return Model{build: build, network: network, status: "Connecting to Remote Auth Gateway..."}
 }
 
 func (Model) Label() string {

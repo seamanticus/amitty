@@ -20,6 +20,7 @@ func (m Model) FullHelp() [][]keybind.Keybind {
 // globalKeybinds apply on every screen.
 func (m Model) globalKeybinds() []keybind.Keybind {
 	return []keybind.Keybind{
+		m.cfg.Keybinds.Settings.Keybind,
 		m.cfg.Keybinds.ToggleHelp.Keybind,
 		m.cfg.Keybinds.ToggleFullHelp.Keybind,
 		m.cfg.Keybinds.Suspend.Keybind,
@@ -28,6 +29,10 @@ func (m Model) globalKeybinds() []keybind.Keybind {
 }
 
 func (m Model) activeKeyMap() help.KeyMap {
+	// The panel takes every key while it is open.
+	if m.settings != nil {
+		return *m.settings
+	}
 	return m.screen.Match(
 		func(l login.Model) help.KeyMap { return l },
 		func(c chat.Model) help.KeyMap { return c },
