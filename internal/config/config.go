@@ -128,6 +128,16 @@ type (
 		Command string `toml:"command"`
 	}
 
+	Downloads struct {
+		// "ask" asks where to save, starting in dir; "dir" saves straight into dir, numbering the name if it is taken, as in "photo (1).png".
+		Mode DownloadMode `toml:"mode"`
+		// Where downloads go, created if missing; "" uses $XDG_DOWNLOAD_DIR (from the environment or user-dirs.dirs), else ~/Downloads.
+		Dir string `toml:"dir"`
+		// The program that asks where to save in place of amitty's path prompt, such as "yazi --cwd-file={file}", run in dir while amitty is suspended.
+		// It writes the chosen path to stdout, or to the file named where `{file}` is written; a directory chosen gets the file's own name.
+		Picker string `toml:"picker"`
+	}
+
 	TypingIndicator struct {
 		// Whether to send typing status.
 		Send bool `toml:"send"`
@@ -268,6 +278,7 @@ type (
 		Timestamps      Timestamps      `toml:"timestamps"`
 		DateSeparator   DateSeparator   `toml:"date_separator"`
 		Notifications   Notifications   `toml:"notifications"`
+		Downloads       Downloads       `toml:"downloads"`
 		TypingIndicator TypingIndicator `toml:"typing_indicator"`
 		// The guilds tree pane.
 		Sidebar SidebarConfig `toml:"sidebar"`

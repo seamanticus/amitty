@@ -76,11 +76,11 @@ func Open(openers config.Openers, mediaType, target, what string) tui.Cmd {
 	})
 }
 
-// PickFiles returns the command that runs picker, suspending amitty, and passes the paths it chose to picked.
+// PickFiles returns the command that runs picker in dir (the working directory when empty), suspending amitty, and passes the paths it chose to picked.
 // The paths are read from the file a {file} word names, else from the picker's stdout, one per line; no path makes no message.
-func PickFiles(picker string, picked func(paths []string) tui.Msg) tui.Cmd {
+func PickFiles(picker, dir string, picked func(paths []string) tui.Msg) tui.Cmd {
 	return cmd.Suspend(func() tui.Msg {
-		paths, err := runPicker(picker, consts.CacheDir())
+		paths, err := runPicker(picker, consts.CacheDir(), dir)
 		if err != nil {
 			return ErrorDialog("pick files", err)
 		}
@@ -91,8 +91,8 @@ func PickFiles(picker string, picked func(paths []string) tui.Msg) tui.Cmd {
 	})
 }
 
-// runPicker runs picker, making the chooser file for a {file} word in dir.
-func runPicker(picker, dir string) ([]string, error) {
+// runPicker runs picker in workDir, making the chooser file for a {file} word in dir.
+func runPicker(picker, dir, workDir string) ([]string, error) {
 	var chooser string
 	if strings.Contains(picker, "{file}") {
 		file, err := os.CreateTemp(dir, "picked-*")
@@ -118,6 +118,7 @@ func runPicker(picker, dir string) ([]string, error) {
 	}
 
 	command := exec.Command(words[0], words[1:]...)
+	command.Dir = workDir
 	// The picker draws on the terminal through stderr and the tty, as fzf does when its stdout is captured.
 	command.Stdin, command.Stderr = os.Stdin, os.Stderr
 	var out []byte

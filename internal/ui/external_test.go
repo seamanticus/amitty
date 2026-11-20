@@ -84,24 +84,24 @@ func TestRunPicker(t *testing.T) {
 	dir, cache := t.TempDir(), t.TempDir()
 	a, b := filepath.Join(dir, "a"), filepath.Join(dir, "b")
 	t.Run("from stdout", func(t *testing.T) {
-		got, err := runPicker("printf '"+a+`\n`+b+`\n'`, cache)
+		got, err := runPicker("printf '"+a+`\n`+b+`\n'`, cache, "")
 		if err != nil || !slices.Equal(got, []string{a, b}) {
 			t.Fatalf("runPicker = %q, %v", got, err)
 		}
 	})
 	t.Run("from the chooser file", func(t *testing.T) {
-		got, err := runPicker(`sh -c "echo `+a+` > $0" {file}`, cache)
+		got, err := runPicker(`sh -c "echo `+a+` > $0" {file}`, cache, "")
 		if err != nil || !slices.Equal(got, []string{a}) {
 			t.Fatalf("runPicker = %q, %v", got, err)
 		}
 	})
 	t.Run("nothing chosen", func(t *testing.T) {
-		if got, err := runPicker("false", cache); err != nil || got != nil {
+		if got, err := runPicker("false", cache, ""); err != nil || got != nil {
 			t.Fatalf("runPicker = %q, %v, want nothing", got, err)
 		}
 	})
 	t.Run("no program", func(t *testing.T) {
-		if _, err := runPicker("amitty-no-such-picker", cache); err == nil {
+		if _, err := runPicker("amitty-no-such-picker", cache, ""); err == nil {
 			t.Fatal("no error")
 		}
 	})

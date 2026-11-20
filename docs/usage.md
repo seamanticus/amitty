@@ -110,8 +110,22 @@ an enhanced keyboard protocol, such as kitty, ghostty or foot.
   url = { command = "firefox {}" }
   ```
 
-- **Saving**: `D` asks where to save it, and asks again before
-  replacing a file.
+- **Saving**: `D` asks where to save it, in the path prompt starting in
+  the download directory, and asks again before replacing a file. The
+  directory is `downloads.dir`, else `$XDG_DOWNLOAD_DIR` (from the
+  environment or `~/.config/user-dirs.dirs`), else `~/Downloads`; it is
+  created if missing. `mode = "dir"` saves there without asking,
+  numbering a taken name (`photo (1).png`). `picker` asks with another
+  program, run in that directory; a directory it chooses gets the file's
+  own name:
+
+  ```toml
+  [downloads]
+  mode = "ask"
+  dir = "~/Downloads/discord"
+  picker = "yazi --cwd-file={file}"  # the directory yazi quits in
+  # picker = "fzf --walker=dir,hidden"
+  ```
 
 ## Notifications
 

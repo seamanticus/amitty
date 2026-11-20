@@ -75,7 +75,7 @@ func (m Model) pickFiles() tui.Cmd {
 	channelID := selectedChannel.ID
 
 	if picker := m.cfg.FilePicker; picker != "" {
-		return ui.PickFiles(picker, func(paths []string) tui.Msg { return openPicked(channelID, paths) })
+		return ui.PickFiles(picker, "", func(paths []string) tui.Msg { return openPicked(channelID, paths) })
 	}
 	show := pathprompt.ShowMsg{
 		Title: "Attach",

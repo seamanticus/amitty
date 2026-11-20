@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 )
 
@@ -32,6 +33,52 @@ func DataDir() (string, error) {
 		return "", fmt.Errorf("data dir: %w", err)
 	}
 	return filepath.Join(home, ".local", "share", Name), nil
+}
+
+// DownloadDir returns where downloads go: configured, with a leading ~ for the home directory, else $XDG_DOWNLOAD_DIR from the environment or user-dirs.dirs, else ~/Downloads, else the working directory.
+func DownloadDir(configured string) string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		home = ""
+	}
+	if configured != "" {
+		if rest, ok := strings.CutPrefix(configured, "~"); ok && home != "" && (rest == "" || rest[0] == '/') {
+			return home + rest
+		}
+		return configured
+	}
+	if dir := os.Getenv("XDG_DOWNLOAD_DIR"); filepath.IsAbs(dir) {
+		return dir
+	}
+	if home == "" {
+		return "."
+	}
+	if config, err := os.UserConfigDir(); err == nil {
+		if content, err := os.ReadFile(filepath.Join(config, "user-dirs.dirs")); err == nil {
+			if dir, ok := userDirsDownload(string(content), home); ok {
+				return dir
+			}
+		}
+	}
+	return filepath.Join(home, "Downloads")
+}
+
+// userDirsDownload returns the XDG_DOWNLOAD_DIR that a user-dirs.dirs file sets, whose values are "$HOME/..." or absolute.
+func userDirsDownload(content, home string) (string, bool) {
+	for line := range strings.Lines(content) {
+		value, ok := strings.CutPrefix(strings.TrimSpace(line), "XDG_DOWNLOAD_DIR=")
+		if !ok {
+			continue
+		}
+		value = strings.Trim(value, `"`)
+		if rest, ok := strings.CutPrefix(value, "$HOME"); ok {
+			value = home + rest
+		}
+		if filepath.IsAbs(value) {
+			return filepath.Clean(value), true
+		}
+	}
+	return "", false
 }
 
 // CacheDir returns the cache directory, creating it on first use.

@@ -81,6 +81,14 @@ A sound played with each notification.
 | `path` | `""` | The sound file; "" plays $XDG_DATA_HOME/amitty/sounds/notification.wav, the jingle amitty writes there on first use. |
 | `command` | `""` | The program that plays it, with {} for the file, such as "mpv --no-video {}"; "" tries ffplay, pw-play, paplay and aplay, in order. |
 
+## `[downloads]`
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `mode` | `"ask"` | "ask" asks where to save, starting in dir; "dir" saves straight into dir, numbering the name if it is taken, as in "photo (1).png". |
+| `dir` | `""` | Where downloads go, created if missing; "" uses $XDG_DOWNLOAD_DIR (from the environment or user-dirs.dirs), else ~/Downloads. |
+| `picker` | `""` | The program that asks where to save in place of amitty's path prompt, such as "yazi --cwd-file={file}", run in dir while amitty is suspended. It writes the chosen path to stdout, or to the file named where `{file}` is written; a directory chosen gets the file's own name. |
+
 ## `[typing_indicator]`
 
 | Option | Default | Meaning |

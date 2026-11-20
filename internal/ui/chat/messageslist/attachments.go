@@ -5,10 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	fhttp "github.com/bogdanfinn/fhttp"
 	"github.com/seamanticus/amitty/internal/config"
@@ -131,7 +133,7 @@ func (m Model) openDownloadedAttachment(attachment discord.Attachment) tui.Cmd {
 			return ui.ErrorDialog("create attachment file", err)
 		}
 
-		if err := m.downloadAttachment(attachment, path); err != nil {
+		if err := m.downloadAttachment(attachment, func() (*os.File, error) { return os.Create(path) }); err != nil {
 			return ui.ErrorDialog("download attachment", errors.Join(err, os.Remove(path)))
 		}
 
@@ -140,32 +142,110 @@ func (m Model) openDownloadedAttachment(attachment discord.Attachment) tui.Cmd {
 }
 
 func (m Model) saveAttachment(attachment discord.Attachment) tui.Cmd {
-	show := pathprompt.ShowMsg{
-		Title: "Save as",
-		Path:  filepath.Base(attachment.Filename),
-		Submit: func(destination string) tui.Cmd {
-			info, err := os.Stat(destination)
-			if err == nil && info.IsDir() {
-				destination = filepath.Join(destination, filepath.Base(attachment.Filename))
-				_, err = os.Lstat(destination)
+	downloads := m.cfg.Downloads
+	dir, name := consts.DownloadDir(downloads.Dir), attachmentName(attachment)
+	return cmd.Task(func() tui.Msg {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			return ui.ErrorDialog("create downloads dir", err)
+		}
+		switch downloads.Mode {
+		case config.DownloadToDir:
+			return m.downloadInto(attachment, dir, name)
+		case config.DownloadAsk:
+			if downloads.Picker != "" {
+				return ui.PickFiles(downloads.Picker, dir, func(paths []string) tui.Msg {
+					path := paths[0]
+					if !filepath.IsAbs(path) {
+						path = filepath.Join(dir, path)
+					}
+					return m.saveTo(attachment, path)
+				})
 			}
-			save := m.downloadTo(attachment, destination)
-			if err == nil {
-				return ui.ShowDialog(destination+" exists. Replace it?", ui.DialogButton{Label: "No"}, ui.DialogButton{Label: "Yes", Cmd: save})
+			return pathprompt.ShowMsg{
+				Title:  "Save as",
+				Path:   filepath.Join(dir, name),
+				Submit: func(destination string) tui.Cmd { return m.saveTo(attachment, destination) },
 			}
-			return save
-		},
+		default:
+			panic("invariant: unknown download mode")
+		}
+	})
+}
+
+// attachmentName returns the attachment's file name without any directory, or a generic one if it has none.
+func attachmentName(attachment discord.Attachment) string {
+	switch name := filepath.Base(attachment.Filename); name {
+	case ".", "..", string(filepath.Separator):
+		return "attachment" + attachmentExtension(attachment)
+	default:
+		return name
 	}
-	return cmd.Task(func() tui.Msg { return show })
+}
+
+// saveTo saves the attachment at destination, or in it under its own name if it is a directory, asking before it replaces a file.
+func (m Model) saveTo(attachment discord.Attachment, destination string) tui.Cmd {
+	info, err := os.Stat(destination)
+	if err == nil && info.IsDir() {
+		destination = filepath.Join(destination, attachmentName(attachment))
+		_, err = os.Lstat(destination)
+	}
+	save := m.downloadTo(attachment, destination)
+	if err == nil {
+		return ui.ShowDialog(destination+" exists. Replace it?", ui.DialogButton{Label: "No"}, ui.DialogButton{Label: "Yes", Cmd: save})
+	}
+	return save
 }
 
 func (m Model) downloadTo(attachment discord.Attachment, destination string) tui.Cmd {
 	return cmd.Task(func() tui.Msg {
-		if err := m.downloadAttachment(attachment, destination); err != nil {
+		if err := m.downloadAttachment(attachment, func() (*os.File, error) { return os.Create(destination) }); err != nil {
 			return ui.ErrorDialog("download attachment", err)
 		}
 		return nil
 	})
+}
+
+// downloadInto saves the attachment in dir as name, or as the first free "name (n)" if it is taken, and returns the error dialog if it fails.
+func (m Model) downloadInto(attachment discord.Attachment, dir, name string) tui.Msg {
+	var path string
+	create := func() (*os.File, error) {
+		file, err := createFree(dir, name)
+		if file != nil {
+			path = file.Name()
+		}
+		return file, err
+	}
+	if err := m.downloadAttachment(attachment, create); err != nil {
+		if path != "" {
+			err = errors.Join(err, os.Remove(path))
+		}
+		return ui.ErrorDialog("download attachment", err)
+	}
+	return nil
+}
+
+// maxNumbered bounds the numbered names createFree tries.
+const maxNumbered = 1000
+
+// createFree creates name in dir, or the first of "name (1)" to "name (maxNumbered)" that does not exist, with the number before the extension.
+func createFree(dir, name string) (*os.File, error) {
+	extension := filepath.Ext(name)
+	stem := strings.TrimSuffix(name, extension)
+	if stem == "" {
+		// A dotfile such as ".bashrc" is all stem.
+		stem, extension = name, ""
+	}
+	candidate := name
+	for n := 1; ; n++ {
+		file, err := os.OpenFile(filepath.Join(dir, candidate), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o666)
+		if !errors.Is(err, fs.ErrExist) {
+			return file, err
+		}
+		if n > maxNumbered {
+			return nil, fmt.Errorf("%s and %d numbered names are taken in %s", name, maxNumbered, dir)
+		}
+		candidate = fmt.Sprintf("%s (%d)%s", stem, n, extension)
+	}
 }
 
 // openURL opens url with the url opener, or xdg-open.
@@ -201,13 +281,14 @@ func (m Model) Get(url string) (*fhttp.Response, error) {
 	return nil, fmt.Errorf("unexpected HTTP status: %s", resp.Status)
 }
 
-func (m Model) downloadAttachment(attachment discord.Attachment, destination string) error {
+// downloadAttachment writes the attachment to the file create makes once the response arrives, so a failed request leaves no file.
+func (m Model) downloadAttachment(attachment discord.Attachment, create func() (*os.File, error)) error {
 	resp, err := m.Get(attachment.URL)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close() //nolint:errcheck
-	file, err := os.Create(destination)
+	file, err := create()
 	if err != nil {
 		return err
 	}
