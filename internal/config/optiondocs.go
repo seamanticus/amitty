@@ -29,7 +29,7 @@ func optionDocs() map[string]string {
 		"notifications.when_unfocused":                    "Whether to also notify about messages in the open channel while the terminal window is unfocused. Requires a terminal that reports focus.",
 		"notifications.sound.enabled":                     "Whether to play the sound with each notification.",
 		"notifications.sound.alone":                       "Whether to play the sound even while notifications.enabled is false, in place of the notification.",
-		"notifications.sound.path":                        "The sound file; \"\" plays $XDG_DATA_HOME/amitty/sounds/notification.wav, the jingle amitty writes there on first use.",
+		"notifications.sound.path":                        "The sound file, such as \"~/sounds/ping.ogg\"; \"\" plays $XDG_DATA_HOME/amitty/sounds/notification.wav, the jingle amitty writes there on first use.",
 		"notifications.sound.command":                     "The program that plays it, with {} for the file, such as \"mpv --no-video {}\"; \"\" tries ffplay, pw-play, paplay and aplay, in order.",
 		"downloads.mode":                                  "\"ask\" asks where to save, starting in dir; \"dir\" saves straight into dir, numbering the name if it is taken, as in \"photo (1).png\".",
 		"downloads.dir":                                   "Where downloads go, created if missing; \"\" uses $XDG_DOWNLOAD_DIR (from the environment or user-dirs.dirs), else ~/Downloads.",

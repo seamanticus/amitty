@@ -26,6 +26,23 @@ func TestStateDir(t *testing.T) {
 }
 
 // evidence: witnesses
+func TestExpandHome(t *testing.T) {
+	t.Setenv("HOME", "/home/u")
+	for _, tt := range []struct{ path, want string }{
+		{"~", "/home/u"},
+		{"~/a.wav", "/home/u/a.wav"},
+		{"~v/a.wav", "~v/a.wav"},
+		{"/x/~/a", "/x/~/a"},
+		{"rel", "rel"},
+		{"", ""},
+	} {
+		if got := ExpandHome(tt.path); got != tt.want {
+			t.Errorf("ExpandHome(%q) = %q, want %q", tt.path, got, tt.want)
+		}
+	}
+}
+
+// evidence: witnesses
 func TestDownloadDir(t *testing.T) {
 	t.Setenv("HOME", "/home/u")
 	config := t.TempDir()

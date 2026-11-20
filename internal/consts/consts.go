@@ -35,17 +35,27 @@ func DataDir() (string, error) {
 	return filepath.Join(home, ".local", "share", Name), nil
 }
 
+// ExpandHome returns path with a leading "~" or "~/" replaced by the home directory, as a shell would; "~user" and other paths are kept.
+func ExpandHome(path string) string {
+	rest, ok := strings.CutPrefix(path, "~")
+	if !ok || rest != "" && rest[0] != '/' {
+		return path
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return path
+	}
+	return home + rest
+}
+
 // DownloadDir returns where downloads go: configured, with a leading ~ for the home directory, else $XDG_DOWNLOAD_DIR from the environment or user-dirs.dirs, else ~/Downloads, else the working directory.
 func DownloadDir(configured string) string {
+	if configured != "" {
+		return ExpandHome(configured)
+	}
 	home, err := os.UserHomeDir()
 	if err != nil {
 		home = ""
-	}
-	if configured != "" {
-		if rest, ok := strings.CutPrefix(configured, "~"); ok && home != "" && (rest == "" || rest[0] == '/') {
-			return home + rest
-		}
-		return configured
 	}
 	if dir := os.Getenv("XDG_DOWNLOAD_DIR"); filepath.IsAbs(dir) {
 		return dir

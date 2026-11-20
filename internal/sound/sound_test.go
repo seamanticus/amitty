@@ -3,6 +3,7 @@ package sound
 import (
 	"bytes"
 	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"slices"
@@ -47,8 +48,22 @@ func TestCommand(t *testing.T) {
 func TestPath(t *testing.T) {
 	dir := t.TempDir()
 	t.Run("set", func(t *testing.T) {
-		if got, err := Path("/x.ogg", dir); got != "/x.ogg" || err != nil {
+		mine := filepath.Join(dir, "x.ogg")
+		if err := os.WriteFile(mine, nil, 0o600); err != nil {
+			t.Fatal(err)
+		}
+		if got, err := Path(mine, dir); got != mine || err != nil {
 			t.Fatalf("Path = %q, %v", got, err)
+		}
+	})
+	t.Run("set but missing", func(t *testing.T) {
+		if _, err := Path(filepath.Join(dir, "missing.ogg"), dir); !errors.Is(err, fs.ErrNotExist) {
+			t.Fatalf("err = %v, want not exist", err)
+		}
+	})
+	t.Run("set to a directory", func(t *testing.T) {
+		if _, err := Path(dir, dir); err == nil {
+			t.Fatal("no error")
 		}
 	})
 	t.Run("default is written once", func(t *testing.T) {

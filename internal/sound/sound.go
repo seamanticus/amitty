@@ -35,9 +35,17 @@ func players() [][]string {
 	}
 }
 
-// Path returns path, or for "" the default jingle in dataDir/sounds, writing it there if it is missing.
+// Path returns path, which must name an existing file, or for "" the default jingle in dataDir/sounds, writing it there if it is missing.
+// The file is checked here as players such as ffplay exit 0 on a missing one, which would hide the mistake.
 func Path(path, dataDir string) (string, error) {
 	if path != "" {
+		info, err := os.Stat(path)
+		if err != nil {
+			return "", fmt.Errorf("notification sound: %w", err)
+		}
+		if info.IsDir() {
+			return "", fmt.Errorf("notification sound: %s is a directory", path)
+		}
 		return path, nil
 	}
 	dir := filepath.Join(dataDir, "sounds")

@@ -99,13 +99,14 @@ func playSound(cfg config.NotificationSound) tui.Cmd {
 			slog.Error("failed to find the notification sound", "err", err)
 			return nil
 		}
-		path, err := sound.Path(cfg.Path, dataDir)
+		path, err := sound.Path(consts.ExpandHome(cfg.Path), dataDir)
 		if err != nil {
 			slog.Error("failed to find the notification sound", "err", err)
 			return nil
 		}
 		args, err := sound.Command(cfg.Command, path, exec.LookPath)
 		if err == nil {
+			slog.Debug("playing the notification sound", "args", args)
 			err = sound.Play(context.Background(), args)
 		}
 		if err != nil {
