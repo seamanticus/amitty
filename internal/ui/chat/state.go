@@ -7,6 +7,7 @@ import (
 
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/state"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 	"github.com/seamanticus/amitty/internal/logger"
@@ -165,6 +166,8 @@ func (m *Model) applyEvent(event gateway.Event) tui.Cmd {
 		}
 
 	case *read.UpdateEvent:
+		return m.updatePane(paneGuildsTree, event)
+	case *state.GuildJoinEvent:
 		return m.updatePane(paneGuildsTree, event)
 	}
 	return nil

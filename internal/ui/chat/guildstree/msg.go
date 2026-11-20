@@ -28,6 +28,18 @@ type ChannelLoadedMsg struct {
 
 type NavigateMsg struct{ ChannelID discord.ChannelID }
 
+// ShowGuildMsg highlights the guild GuildID, opening the folder it is in; a guild not listed is ignored.
+type ShowGuildMsg struct{ GuildID discord.GuildID }
+
+func (m *Model) showGuild(guildID discord.GuildID) {
+	node, ok := m.guildNodes[guildID]
+	if !ok {
+		return
+	}
+	m.expandPathToNode(node)
+	m.setCurrentNode(node)
+}
+
 func (m *Model) navigate(channelID discord.ChannelID) tui.Cmd {
 	channel, err := m.state.Cabinet.Channel(channelID)
 	if err != nil {

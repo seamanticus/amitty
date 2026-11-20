@@ -9,6 +9,7 @@ import (
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/state"
 	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/internal/ningen/states/read"
 	"github.com/seamanticus/amitty/internal/tui"
@@ -230,6 +231,17 @@ func (m Model) createGuildNode(parent *tree.Node, guild discord.Guild) {
 	setNodeNameStyle(guildNode, m.guildNodeStyle(guild.ID))
 	parent.AddChild(guildNode)
 	m.guildNodes[guild.ID] = guildNode
+}
+
+// addJoinedGuild lists guild, joined since Ready, first after the DMs, as the web client does; a guild already listed is left in place.
+func (m Model) addJoinedGuild(guild discord.Guild) {
+	if _, ok := m.guildNodes[guild.ID]; ok {
+		return
+	}
+	m.createGuildNode(m.root, guild)
+	children := m.root.Children()
+	last := len(children) - 1
+	m.root.SetChildren(slices.Insert(children[:last], 1, children[last]))
 }
 
 func (m Model) createChannelNode(parent *tree.Node, channel discord.Channel) {
@@ -511,6 +523,9 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	case *gateway.ReadyEvent:
 		m.rebuild(msg)
 		return m, nil
+	case *state.GuildJoinEvent:
+		m.addJoinedGuild(msg.Guild)
+		return m, nil
 	case *gateway.MessageCreateEvent:
 		if !msg.GuildID.IsValid() {
 			m.moveDMToFront(msg.ChannelID)
@@ -524,6 +539,9 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 		return m, nil
 	case NavigateMsg:
 		return m, m.navigate(msg.ChannelID)
+	case ShowGuildMsg:
+		m.showGuild(msg.GuildID)
+		return m, nil
 	case requestsChangedMsg:
 		m.RefreshPrivateChannels()
 		return m, nil

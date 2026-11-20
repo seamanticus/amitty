@@ -169,6 +169,32 @@ func TestModelRefreshReadState(t *testing.T) {
 	})
 }
 
+func TestModelJoinedGuild(t *testing.T) {
+	// evidence: witnesses
+	cfg := config.Default()
+	m := NewModel(&cfg, ningen.FromState(discordtest.State(t)))
+	m.reset()
+	m.createGuildNode(m.root, discord.Guild{ID: 1, Name: "old"})
+
+	joined := &state.GuildJoinEvent{GuildCreateEvent: &gateway.GuildCreateEvent{Guild: discord.Guild{ID: 2, Name: "new"}}}
+	m, _ = m.Update(joined)
+	m, _ = m.Update(joined)
+	var refs []any
+	for _, node := range m.root.Children() {
+		refs = append(refs, node.Reference())
+	}
+	if want := []any{dmNode{}, discord.GuildID(2), discord.GuildID(1)}; !slices.Equal(refs, want) {
+		t.Fatalf("children = %v, want %v", refs, want)
+	}
+
+	if m, _ = m.Update(ShowGuildMsg{GuildID: 2}); m.current != m.guildNodes[2] {
+		t.Fatalf("current = %v", m.current)
+	}
+	if m, _ = m.Update(ShowGuildMsg{GuildID: 9}); m.current != m.guildNodes[2] {
+		t.Fatal("an unlisted guild moved the highlight")
+	}
+}
+
 func TestModelMessageRequests(t *testing.T) {
 	// accepted and rejected count the requests the fake Discord answered.
 	var accepted, rejected int
