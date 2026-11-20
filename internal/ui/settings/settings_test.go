@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -92,7 +93,15 @@ func TestChoice(t *testing.T) {
 	t.Run("profiles are listed by name and previewed", func(t *testing.T) {
 		m, path := panel(t, "")
 		profile := option(t, m, "theme_profile")
-		names := profile.Choices[1:]
+		names := make([]string, 0, len(profile.Choices)-1)
+		for _, choice := range profile.Choices[1:] {
+			name, err := strconv.Unquote(choice)
+			if err != nil {
+				t.Fatal(err)
+			}
+			names = append(names, name)
+		}
+		// The names are sorted, not their TOML: a closing quote sorts after a space, so "Ayu" would follow "Ayu Light".
 		if profile.Choices[0] != `""` || !slices.IsSortedFunc(names, func(a, b string) int { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) }) {
 			t.Fatalf("choices = %v, want none then sorted names", profile.Choices[:4])
 		}
