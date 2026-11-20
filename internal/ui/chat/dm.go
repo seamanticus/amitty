@@ -11,31 +11,6 @@ import (
 	"github.com/seamanticus/amitty/internal/ui"
 )
 
-// newDMLimit and newDMWindow bound how many new DMs amitty starts, as opening DMs is what Discord's spam filter watches. The count is kept in memory only.
-const (
-	newDMLimit  = 3
-	newDMWindow = time.Hour
-)
-
-// dmStarts are the times new DMs were started, oldest first.
-type dmStarts []time.Time
-
-// allow reports whether another DM may start at now, recording it if so, and keeps only the starts within the window.
-func (s *dmStarts) allow(now time.Time) bool {
-	kept := (*s)[:0]
-	for _, start := range *s {
-		if now.Sub(start) < newDMWindow {
-			kept = append(kept, start)
-		}
-	}
-	*s = kept
-	if len(kept) >= newDMLimit {
-		return false
-	}
-	*s = append(kept, now)
-	return true
-}
-
 type (
 	// startDMMsg asks to start a new DM with userID, once confirmed.
 	startDMMsg struct{ userID discord.UserID }
@@ -55,10 +30,10 @@ func (m *Model) openDM(userID discord.UserID, name string) tui.Cmd {
 	return ui.ShowDialog("Start a DM with "+name+"?", ui.DialogButton{Label: "No"}, ui.DialogButton{Label: "Yes", Cmd: start})
 }
 
-// startDM starts a DM with userID unless newDMLimit were started within newDMWindow of now.
+// startDM starts a DM with userID unless the outreach limit is reached at now.
 func (m *Model) startDM(userID discord.UserID, now time.Time) tui.Cmd {
-	if !m.dmStarts.allow(now) {
-		return ui.ShowDialog("You started 3 new DMs in the last hour. Try again later.", ui.DialogButton{Label: "OK"})
+	if !m.outreach.allow(now) {
+		return outreachRefused()
 	}
 	return createDM(m.state, userID)
 }

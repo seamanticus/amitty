@@ -4,7 +4,6 @@ import (
 	"io"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
@@ -38,25 +37,5 @@ func TestCreateDM(t *testing.T) {
 	}
 	if _, err := s.Cabinet.Channel(9); err != nil {
 		t.Fatal("the new DM is not stored")
-	}
-}
-
-// evidence: witnesses
-func TestDMStartsAllow(t *testing.T) {
-	var starts dmStarts
-	now := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
-	for i := range newDMLimit {
-		if !starts.allow(now.Add(time.Duration(i) * time.Minute)) {
-			t.Fatalf("start %d refused under the limit", i+1)
-		}
-	}
-	if starts.allow(now.Add(newDMWindow - time.Second)) {
-		t.Fatal("a start over the limit within the window was allowed")
-	}
-	if !starts.allow(now.Add(newDMWindow)) {
-		t.Fatal("the first start did not leave the window")
-	}
-	if len(starts) != newDMLimit {
-		t.Fatalf("%d starts kept, want %d", len(starts), newDMLimit)
 	}
 }

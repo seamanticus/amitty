@@ -87,8 +87,8 @@ type Model struct {
 
 	// typers maps the users typing in the selected channel to when their typing indicator expires.
 	typers map[discord.UserID]time.Time
-	// dmStarts are when this session started new DMs, for their limit.
-	dmStarts dmStarts
+	// outreach are when this session started new DMs or joined guilds, for their shared limit.
+	outreach outreach
 
 	// images are shared by the panes.
 	images   map[discord.URL]tuiimage.Widget
