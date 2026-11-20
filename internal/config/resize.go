@@ -12,7 +12,7 @@ type FoldMode uint8
 const (
 	FoldOff FoldMode = iota
 	FoldOn
-	// FoldAuto folds while the terminal is narrower than fold_below.
+	// FoldAuto folds while the layout is resized, the terminal being narrower than ui.resize.is_less_than.
 	FoldAuto
 	foldModeCount
 )
@@ -28,23 +28,23 @@ func (f FoldMode) MarshalText() ([]byte, error) { return foldModes.text(f) }
 
 func (FoldMode) choices() []string { return foldModes.names() }
 
-// FoldWidth is a terminal width, in columns, or in pixels when written with "px". The zero value is 0 columns, which no terminal is narrower than.
-type FoldWidth struct {
+// TerminalWidth is a terminal width, in columns, or in pixels when written with "px". The zero value is 0 columns, which no terminal is narrower than.
+type TerminalWidth struct {
 	size   int
 	pixels bool
 }
 
-// ParseFoldWidth reads a width such as "120" (columns) or "1200px".
-func ParseFoldWidth(text string) (FoldWidth, error) {
+// ParseTerminalWidth reads a width such as "120" (columns) or "1200px".
+func ParseTerminalWidth(text string) (TerminalWidth, error) {
 	digits, pixels := strings.CutSuffix(strings.TrimSpace(text), "px")
 	size, err := strconv.ParseUint(digits, 10, 31)
 	if err != nil {
-		return FoldWidth{}, fmt.Errorf("%q: want columns such as 120 or pixels such as \"1200px\"", text)
+		return TerminalWidth{}, fmt.Errorf("%q: want columns such as 120 or pixels such as \"1200px\"", text)
 	}
-	return FoldWidth{size: int(size), pixels: pixels}, nil
+	return TerminalWidth{size: int(size), pixels: pixels}, nil
 }
 
-func (w *FoldWidth) UnmarshalTOML(value any) error {
+func (w *TerminalWidth) UnmarshalTOML(value any) error {
 	var text string
 	switch value := value.(type) {
 	case int64:
@@ -54,7 +54,7 @@ func (w *FoldWidth) UnmarshalTOML(value any) error {
 	default:
 		return fmt.Errorf("%v: want columns such as 120 or pixels such as \"1200px\"", value)
 	}
-	width, err := ParseFoldWidth(text)
+	width, err := ParseTerminalWidth(text)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (w *FoldWidth) UnmarshalTOML(value any) error {
 }
 
 // MarshalTOML writes columns as a number and pixels as a string, as they are read.
-func (w FoldWidth) MarshalTOML() ([]byte, error) {
+func (w TerminalWidth) MarshalTOML() ([]byte, error) {
 	if w.pixels {
 		return []byte(strconv.Quote(strconv.Itoa(w.size) + "px")), nil
 	}
@@ -71,7 +71,7 @@ func (w FoldWidth) MarshalTOML() ([]byte, error) {
 }
 
 // Narrower reports whether a terminal cols wide and pixels wide, each 0 if unknown, is narrower than w. An unknown width is never narrower, as some terminals do not report theirs in pixels.
-func (w FoldWidth) Narrower(cols, pixels int) bool {
+func (w TerminalWidth) Narrower(cols, pixels int) bool {
 	if w.pixels {
 		return pixels > 0 && pixels < w.size
 	}

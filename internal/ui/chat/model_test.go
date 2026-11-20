@@ -45,13 +45,18 @@ func TestModelView(t *testing.T) {
 	})
 }
 
-func TestModelFolded(t *testing.T) {
+func TestModelResized(t *testing.T) {
 	m := newTestModel(t)
-	below120 := m.cfg.MembersTree.FoldBelow
-	pixels, err := config.ParseFoldWidth("1200px")
+	below120 := m.cfg.UI.Resize.IsLessThan
+	pixels, err := config.ParseTerminalWidth("1200px")
 	if err != nil {
 		t.Fatal(err)
 	}
+	off, err := config.ParseTerminalWidth("0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	m.cfg.Sidebar.WidthPercent, m.cfg.Sidebar.Resize.WidthPercent = 20, 35
 	// evidence: witnesses (every fold mode, at each width)
 	want := [...]func(narrow bool) bool{
 		config.FoldOff:  func(bool) bool { return false },
@@ -60,7 +65,7 @@ func TestModelFolded(t *testing.T) {
 	}
 	for _, test := range []struct {
 		name          string
-		below         config.FoldWidth
+		below         config.TerminalWidth
 		cols, pixelsW int
 		narrow        bool
 	}{
@@ -69,13 +74,18 @@ func TestModelFolded(t *testing.T) {
 		{"no size yet", below120, 0, 0, false},
 		{"narrow in pixels", pixels, 200, 900, true},
 		{"pixels unknown", pixels, 50, 0, false},
+		{"off at 0", off, 50, 400, false},
 	} {
 		for mode, folds := range want {
-			m.cfg.MembersTree.Fold, m.cfg.MembersTree.FoldBelow = config.FoldMode(mode), test.below
+			m.cfg.MembersTree.Fold, m.cfg.UI.Resize.IsLessThan = config.FoldMode(mode), test.below
 			*m, _ = m.Update(tcell.NewEventResize(test.cols, 40))
 			m.pixelWidth = test.pixelsW
 			if got := m.folded(); got != folds(test.narrow) {
 				t.Errorf("%s, mode %d: folded = %v", test.name, mode, got)
+			}
+			// The sidebar widens whenever the terminal is narrow, folded or not.
+			if got, want := m.sidebarWidth(), map[bool]int{false: 20, true: 35}[test.narrow]; got != want {
+				t.Errorf("%s, mode %d: sidebar width = %d, want %d", test.name, mode, got, want)
 			}
 		}
 	}

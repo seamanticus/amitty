@@ -141,6 +141,13 @@ type (
 		MessagesList MessagesListUIConfig `toml:"messages_list"`
 		// The list of mention and emoji suggestions above the composer. Its width and height are capped to the available space.
 		Autocomplete AutocompleteUIConfig `toml:"autocomplete"`
+		// The layout for narrow terminals.
+		Resize ResizeUIConfig `toml:"resize"`
+	}
+
+	ResizeUIConfig struct {
+		// The terminal width below which the layout is resized (sidebar.resize, members_tree.fold): columns such as 120, or pixels such as "1200px". 0 turns it off. A terminal that does not report its size in pixels is never resized by pixels.
+		IsLessThan TerminalWidth `toml:"is_less_than"`
 	}
 
 	TabsUIConfig struct {
@@ -321,6 +328,7 @@ func defaultUI() UIConfig {
 			Limit:    20,
 			MinWidth: 20,
 		},
+		Resize: ResizeUIConfig{IsLessThan: TerminalWidth{size: 120}},
 	}
 }
 

@@ -219,16 +219,20 @@ func (m Model) membersTreeShown() bool {
 	return m.membersTreeVisible && m.membersTree.Shown()
 }
 
+// resized reports whether the terminal is narrower than ui.resize.is_less_than, which lays out the panes for a narrow terminal.
+func (m Model) resized() bool {
+	return m.cfg.UI.Resize.IsLessThan.Narrower(m.width, m.pixelWidth)
+}
+
 // folded reports whether the members tree is drawn under the guilds tree rather than right of the messages.
 func (m Model) folded() bool {
-	tree := m.cfg.MembersTree
-	switch tree.Fold {
+	switch m.cfg.MembersTree.Fold {
 	case config.FoldOff:
 		return false
 	case config.FoldOn:
 		return true
 	case config.FoldAuto:
-		return tree.FoldBelow.Narrower(m.width, m.pixelWidth)
+		return m.resized()
 	}
 	panic("invariant: unknown fold mode")
 }
@@ -653,10 +657,7 @@ func (m Model) View() tui.Widget {
 		)
 	}
 	if m.guildsTreeVisible || folded {
-		width := m.cfg.Sidebar.WidthPercent
-		if folded {
-			width = m.cfg.MembersTree.FoldWidthPercent
-		}
+		width := m.sidebarWidth()
 		main = row.New(
 			m.sidebarView(folded).Width(layout.FillPortion(width)),
 			column.New(main).Width(layout.FillPortion(100-width)),
@@ -672,6 +673,14 @@ func (m Model) View() tui.Widget {
 		backdrop.New().Style(m.cfg.Theme.Dialog.BackgroundStyle.Style),
 		center.New(column.New(picker).Width(layout.Fixed(m.cfg.Picker.Width)).Height(layout.Fixed(m.cfg.Picker.Height))),
 	)
+}
+
+// sidebarWidth returns the percentage of the width the sidebar takes, wider in a narrow terminal.
+func (m Model) sidebarWidth() int {
+	if m.resized() {
+		return m.cfg.Sidebar.Resize.WidthPercent
+	}
+	return m.cfg.Sidebar.WidthPercent
 }
 
 // sidebarView returns the guilds tree, if visible, over the members tree if folded; either fills the column alone.

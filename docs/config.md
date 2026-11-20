@@ -107,6 +107,14 @@ Indentation for different item types.
 | `group_dm` | `1` |  |
 | `dm` | `2` |  |
 
+## `[sidebar.resize]`
+
+The sidebar while the layout is resized, the terminal being narrower than ui.resize.is_less_than.
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `width_percent` | `35` | Percentage (%) of the available width the sidebar takes while resized, in place of width_percent, with or without the members tree folded in. Valid values are 1-99. Invalid values fall back to 35. |
+
 ## `[members_tree]`
 
 The members tree pane, sized from the width right of the guilds tree.
@@ -115,10 +123,8 @@ The members tree pane, sized from the width right of the guilds tree.
 |--------|---------|---------|
 | `visible` | `true` | Whether the pane is visible at start-up. It can still be toggled at runtime with its toggle keybind. |
 | `width_percent` | `20` | Percentage (%) of the available width used by the pane. Valid values are 1-99. Invalid values fall back to 20. |
-| `fold` | `"auto"` | Whether the members tree is folded under the guilds tree, in the sidebar's width: "off", "on", or "auto" while the terminal is narrower than fold_below. |
-| `fold_below` | `120` | The terminal width below which "auto" folds: columns such as 120, or pixels such as "1200px". A terminal that does not report its size in pixels is never folded by pixels. |
+| `fold` | `"auto"` | Whether the members tree is folded under the guilds tree, in the sidebar: "off", "on", or "auto" while the layout is resized (see ui.resize.is_less_than). |
 | `fold_height_percent` | `50` | Percentage (%) of the folded column's height the members tree takes, below the guilds tree. Valid values are 1-99. Invalid values fall back to 50. |
-| `fold_width_percent` | `35` | Percentage (%) of the available width the folded column takes, in place of sidebar.width_percent, as a narrow terminal leaves the sidebar's few columns for two trees. Valid values are 1-99. Invalid values fall back to 35. |
 
 ## `[composer]`
 
@@ -267,6 +273,14 @@ Emojis suggested after `:`.
 |--------|---------|---------|
 | `enabled` | `true` | Whether to show these suggestions. |
 | `preview` | `true` | Whether to draw avatars and custom emoji images before the names. |
+
+## `[ui.resize]`
+
+The layout for narrow terminals.
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `is_less_than` | `120` | The terminal width below which the layout is resized (sidebar.resize, members_tree.fold): columns such as 120, or pixels such as "1200px". 0 turns it off. A terminal that does not report its size in pixels is never resized by pixels. |
 
 ## `[icons]`
 

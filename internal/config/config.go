@@ -198,18 +198,21 @@ type (
 		Markers SidebarMarkersConfig `toml:"markers"`
 		// Indentation for different item types.
 		Indents SidebarIndentsConfig `toml:"indents"`
+		// The sidebar while the layout is resized, the terminal being narrower than ui.resize.is_less_than.
+		Resize SidebarResizeConfig `toml:"resize"`
+	}
+
+	SidebarResizeConfig struct {
+		// Percentage (%) of the available width the sidebar takes while resized, in place of width_percent, with or without the members tree folded in. Valid values are 1-99. Invalid values fall back to 35.
+		WidthPercent int `toml:"width_percent"`
 	}
 
 	MembersTreeConfig struct {
 		PaneConfig
-		// Whether the members tree is folded under the guilds tree, in the sidebar's width: "off", "on", or "auto" while the terminal is narrower than fold_below.
+		// Whether the members tree is folded under the guilds tree, in the sidebar: "off", "on", or "auto" while the layout is resized (see ui.resize.is_less_than).
 		Fold FoldMode `toml:"fold"`
-		// The terminal width below which "auto" folds: columns such as 120, or pixels such as "1200px". A terminal that does not report its size in pixels is never folded by pixels.
-		FoldBelow FoldWidth `toml:"fold_below"`
 		// Percentage (%) of the folded column's height the members tree takes, below the guilds tree. Valid values are 1-99. Invalid values fall back to 50.
 		FoldHeightPercent int `toml:"fold_height_percent"`
-		// Percentage (%) of the available width the folded column takes, in place of sidebar.width_percent, as a narrow terminal leaves the sidebar's few columns for two trees. Valid values are 1-99. Invalid values fall back to 35.
-		FoldWidthPercent int `toml:"fold_width_percent"`
 	}
 
 	Config struct {
@@ -307,8 +310,9 @@ func Default() Config {
 			PaneConfig: pane,
 			Markers:    SidebarMarkersConfig{Expanded: "▾ ", Collapsed: "▸ "},
 			Indents:    SidebarIndentsConfig{Guild: 2, Category: 1, Channel: 2, Forum: 2, GroupDM: 1, DM: 2},
+			Resize:     SidebarResizeConfig{WidthPercent: 35},
 		},
-		MembersTree: MembersTreeConfig{PaneConfig: pane, Fold: FoldAuto, FoldBelow: FoldWidth{size: 120}, FoldHeightPercent: 50, FoldWidthPercent: 35},
+		MembersTree: MembersTreeConfig{PaneConfig: pane, Fold: FoldAuto, FoldHeightPercent: 50},
 		Composer:    ComposerConfig{MaxHeight: 10},
 
 		UI: defaultUI(),
@@ -429,8 +433,8 @@ func (cfg *Config) applyDefaults() {
 	if tree := &cfg.MembersTree; tree.FoldHeightPercent <= 0 || tree.FoldHeightPercent >= 100 {
 		tree.FoldHeightPercent = 50
 	}
-	if tree := &cfg.MembersTree; tree.FoldWidthPercent <= 0 || tree.FoldWidthPercent >= 100 {
-		tree.FoldWidthPercent = 35
+	if resize := &cfg.Sidebar.Resize; resize.WidthPercent <= 0 || resize.WidthPercent >= 100 {
+		resize.WidthPercent = 35
 	}
 
 	if cfg.DateSeparator.Format == "" {
