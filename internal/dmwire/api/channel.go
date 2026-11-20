@@ -1,6 +1,8 @@
 package api
 
 import (
+	"time"
+
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
@@ -356,9 +358,26 @@ func (c *Client) RemoveRecipient(channelID discord.ChannelID, userID discord.Use
 	)
 }
 
-// Ack is the read state of a channel. This is undocumented.
+// Ack is the read state of a channel, as the web client sends it: https://docs.discord.food/topics/read-state#acknowledge-message.
 type Ack struct {
 	Token *string `json:"token"`
+	// Flags are the channel's read state flags, kept as they are when nil.
+	Flags *ReadStateFlags `json:"flags,omitempty"`
+	// LastViewed is the day the channel was last viewed, counted from the Discord epoch, kept as it is when nil.
+	LastViewed *int `json:"last_viewed,omitempty"`
+}
+
+// ReadStateFlags are the read state flags of a channel: https://docs.discord.food/topics/read-state#read-state-flags.
+type ReadStateFlags uint8
+
+const (
+	ReadStateGuildChannel ReadStateFlags = 1 << iota
+	ReadStateThread
+)
+
+// AckDay returns the day of t counted from the Discord epoch, for Ack.LastViewed.
+func AckDay(t time.Time) int {
+	return int(discord.DurationSinceEpoch(t) / (24 * time.Hour))
 }
 
 // Ack marks the read state of a channel. This is undocumented. The method will

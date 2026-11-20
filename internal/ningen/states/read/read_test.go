@@ -3,6 +3,7 @@ package read
 import (
 	"context"
 	"net/http"
+	"regexp"
 	"testing"
 	"time"
 
@@ -62,6 +63,13 @@ func TestChannelUnreadUpdateSetsLastMessage(t *testing.T) {
 	}
 }
 
+func TestAckDay(t *testing.T) {
+	// The NetLog's ack on 2026-11-20 UTC; the epoch is 2015-01-01.
+	if got := api.AckDay(time.Date(2026, 11, 20, 19, 22, 0, 0, time.UTC)); got != 4341 {
+		t.Fatalf("AckDay = %d, want 4341", got)
+	}
+}
+
 func TestMarkReadAcksUncachedChannelCursor(t *testing.T) {
 	const (
 		channelID = discord.ChannelID(2)
@@ -90,6 +98,10 @@ func TestMarkReadAcksUncachedChannelCursor(t *testing.T) {
 		want := "/api/v9/channels/2/messages/3/ack"
 		if request.GetPath() != want {
 			t.Fatalf("ack path = %q, want %q", request.GetPath(), want)
+		}
+		// The web client's form, for a guild channel; only the day varies.
+		if body := regexp.MustCompile(`^\{"token":null,"flags":1,"last_viewed":\d+\}$`); !body.Match(request.Body) {
+			t.Fatalf("ack body = %s", request.Body)
 		}
 	case <-time.After(time.Second):
 		t.Fatal("MarkRead did not acknowledge an uncached channel cursor")

@@ -4,6 +4,7 @@ package read
 import (
 	"log/slog"
 	"sync"
+	"time"
 
 	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
@@ -256,7 +257,7 @@ func (r *State) markRead(chID discord.ChannelID, msgID discord.MessageID, sendac
 }
 
 func (r *State) ack(chID discord.ChannelID, msgID discord.MessageID) {
-	if err := r.state.Ack(chID, msgID, &api.Ack{}); err != nil {
+	if err := r.state.Ack(chID, msgID, r.ackData(chID, time.Now())); err != nil {
 		slog.Error(
 			"cannot send message ack to Discord",
 			"module", "ningen",
@@ -277,4 +278,18 @@ func (r *State) TotalMentionCount() int {
 		total += rs.MentionCount
 	}
 	return total
+}
+
+// ackData returns the ack the web client sends for chID viewed at now: no token, the channel's flags and the day.
+func (r *State) ackData(chID discord.ChannelID, now time.Time) *api.Ack {
+	var flags api.ReadStateFlags
+	if ch, err := r.state.Cabinet.Channel(chID); err == nil {
+		if ch.GuildID.IsValid() {
+			flags |= api.ReadStateGuildChannel
+		}
+		if ch.Type.IsThread() {
+			flags |= api.ReadStateThread
+		}
+	}
+	return &api.Ack{Flags: &flags, LastViewed: new(api.AckDay(now))}
 }
