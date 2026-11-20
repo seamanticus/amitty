@@ -82,12 +82,13 @@ func knock() []float64 {
 func sounds() map[string][]float64 {
 	return map[string][]float64{
 		// The first default: E6 then A6.
-		"chime":  render([]note{{0, 0.12, 1318.51, 9, 0, pure}, {0.12, 0.30, 1760, 9, 0, pure}}),
-		"ding":   render([]note{{0, 0.6, 880, 6, 0, bellPartials}}),
-		"dong":   render([]note{{0, 0.2, 880, 7, 0, bellPartials}, {0.2, 0.45, 659.25, 6, 0, bellPartials}}),
-		"pop":    render([]note{{0, 0.07, 900, 30, 300, pure}}),
-		"blip":   render([]note{{0, 0.06, 1046.5, 20, 0, [][2]float64{{1, 1}, {3, 0.33}, {5, 0.2}}}}),
-		"bubble": render([]note{{0, 0.09, 400, 15, 1200, pure}}),
+		"chime": render([]note{{0, 0.12, 1318.51, 9, 0, pure}, {0.12, 0.30, 1760, 9, 0, pure}}),
+		"ding":  render([]note{{0, 0.6, 880, 6, 0, bellPartials}}),
+		"dong":  render([]note{{0, 0.2, 880, 7, 0, bellPartials}, {0.2, 0.45, 659.25, 6, 0, bellPartials}}),
+		// Two falling drops, each long enough to be heard.
+		"pop":    render([]note{{0, 0.14, 1200, 18, 500, pure}, {0.12, 0.18, 1000, 14, 420, pure}}),
+		"blip":   render([]note{{0, 0.12, 1046.5, 10, 0, [][2]float64{{1, 1}, {3, 0.33}, {5, 0.2}}}, {0.13, 0.16, 1396.91, 9, 0, [][2]float64{{1, 1}, {3, 0.33}, {5, 0.2}}}}),
+		"bubble": render([]note{{0, 0.16, 500, 9, 1300, pure}, {0.14, 0.2, 650, 8, 1600, pure}}),
 		// C6, E6 and G6 in turn.
 		"triad":   render([]note{{0, 0.3, 1046.5, 8, 0, pure}, {0.08, 0.3, 1318.51, 8, 0, pure}, {0.16, 0.35, 1567.98, 8, 0, pure}}),
 		"marimba": render([]note{{0, 0.35, 698.46, 14, 0, [][2]float64{{1, 1}, {4, 0.3}, {10, 0.05}}}}),
@@ -102,7 +103,10 @@ func sounds() map[string][]float64 {
 	}
 }
 
-// wav encodes samples as 16-bit mono PCM, scaled to the same average loudness (RMS) as the others, with the peak kept below full scale.
+// leadIn is the silence before each sound, which a sound server waking its output from suspend may swallow in place of the sound.
+const leadIn = 0.08
+
+// wav encodes samples as 16-bit mono PCM after leadIn of silence, scaled to the same average loudness (RMS) as the others, with the peak kept below full scale.
 func wav(samples []float64) []byte {
 	var peak, energy float64
 	for _, s := range samples {
@@ -112,6 +116,7 @@ func wav(samples []float64) []byte {
 	rms := math.Sqrt(energy / float64(len(samples)))
 	// -18 dBFS on average, at most -1 dBFS at the peak.
 	gain := min(math.Pow(10, -18.0/20)/rms, math.Pow(10, -1.0/20)/peak)
+	samples = append(make([]float64, int(leadIn*rate)), samples...)
 	var data bytes.Buffer
 	for _, s := range samples {
 		_ = binary.Write(&data, binary.LittleEndian, int16(s*gain*math.MaxInt16))
