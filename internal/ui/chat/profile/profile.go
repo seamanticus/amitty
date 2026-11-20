@@ -79,12 +79,12 @@ func (m Model) FullHelp() [][]keybind.Keybind { return m.cfg.Keybinds.Profile.Fu
 
 // View shows the avatar beside the names and status, and the details below.
 func (m Model) View() tui.Widget {
-	header := column.New(text.Rich(m.header()...)).Height(layout.Shrink)
+	var header tui.Widget = column.New(text.Rich(m.header()...)).Height(layout.Shrink)
+	// A blank image holds the avatar's place while it loads; one that failed to load is 0 wide, and the names take the row.
 	if avatar, ok := m.images[m.avatarURL()]; ok {
-		header = column.New(row.New(
-			column.New(avatar).Width(layout.Shrink),
-			column.New(text.Rich(m.header()...)),
-		).Spacing(1)).Height(layout.Shrink)
+		if width, _ := avatar.Size(); width != layout.Fixed(0) {
+			header = row.New(avatar, header).Spacing(1).Height(layout.Shrink)
+		}
 	}
 	body := column.New(header, text.New(""), text.Rich(m.details()...).Wrapping(text.WrappingWordOrGlyph))
 	return ui.Box(body, m.cfg, true).Title(ui.Label("Profile", m.cfg.Theme.Title, true))

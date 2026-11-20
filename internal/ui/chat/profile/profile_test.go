@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"image"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -43,11 +44,27 @@ func TestModelView(t *testing.T) {
 
 	got := discordtest.Draw(t, m.View(), 60, 20)
 	// evidence: witnesses
-	for _, want := range []string{"Alice [ABC]", "alice", "Idle on mobile", "Listening to Spotify", "away", "Roles: Mods, Fans", "Badges: Early Supporter", "ID: 10"} {
+	for _, want := range []string{"Alice [ABC]", "alice", "Idle on mobile", "Listening to Spotify", "away", "Server owner", "Roles: Mods, Fans", "Badges: Early Supporter", "ID: 10"} {
 		if !strings.Contains(got, want) {
 			t.Errorf("view lacks %q:\n%s", want, got)
 		}
 	}
+
+	t.Run("avatar beside the names", func(t *testing.T) {
+		at := func(view string) int {
+			for line := range strings.Lines(view) {
+				if i := strings.Index(line, "Alice"); i >= 0 {
+					return i
+				}
+			}
+			return -1
+		}
+		without := at(got)
+		m, _ := m.Update(images.ChangedMsg{m.avatarURL(): tuiimage.New(image.NewAlpha(image.Rect(0, 0, 5, 10))).Width(5)})
+		if with := at(discordtest.Draw(t, m.View(), 60, 20)); without < 0 || with != without+6 {
+			t.Fatalf("name at %d with the avatar, %d without; want the avatar and a space before it", with, without)
+		}
+	})
 
 	t.Run("close", func(t *testing.T) {
 		_, command := m.Update(tui.KeyMsg(tcell.NewEventKey(tcell.KeyEsc, "", tcell.ModNone)))

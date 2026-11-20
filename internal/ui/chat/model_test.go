@@ -15,6 +15,7 @@ import (
 	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/seamanticus/amitty/internal/tui/cmd"
 	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
+	"github.com/seamanticus/amitty/internal/ui/chat/profile"
 	"github.com/seamanticus/amitty/internal/ui/images"
 )
 
@@ -90,6 +91,29 @@ func TestModelResized(t *testing.T) {
 			if got, want := m.sidebarWidth(), map[bool]int{false: 20, true: 35}[test.narrow]; got != want {
 				t.Errorf("%s, mode %d: sidebar width = %d, want %d", test.name, mode, got, want)
 			}
+		}
+	}
+}
+
+func TestModelProfileAvatar(t *testing.T) {
+	m := newTestModel(t)
+	m.cfg.UI.MessagesList.Avatars.Preview = true
+	*m, _ = m.Update(tcell.NewEventResize(100, 40))
+	user := discord.User{ID: 10, Username: "alice", Avatar: "ab"}
+	var command tui.Cmd
+	*m, command = m.Update(profile.ShowMsg{Member: discord.Member{User: user}})
+	task, ok := command.(cmd.Task)
+	if !ok {
+		t.Fatalf("command = %#v, want the avatar request", command)
+	}
+	request, ok := task().(images.RequestedMsg)
+	if !ok || len(request.Avatars) != 1 {
+		t.Fatalf("request = %#v", request)
+	}
+	*m, _ = m.Update(request)
+	for url := range request.Avatars {
+		if _, ok := m.images[url]; !ok {
+			t.Fatal("the avatar was not loaded")
 		}
 	}
 }
