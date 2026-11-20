@@ -100,10 +100,14 @@ type PickerKeybinds struct {
 }
 
 type PathPromptKeybinds struct {
-	// Extend the name typed by what every matching entry shares.
+	// Highlight the previous or next matching entry; up from the first goes back to the typed text.
+	SelectUp   Keybind `toml:"select_up"`
+	SelectDown Keybind `toml:"select_down"`
+	// Insert the highlighted entry, or extend the name typed by what every matching entry shares.
 	Complete Keybind `toml:"complete"`
-	Submit   Keybind `toml:"submit"`
-	Cancel   Keybind `toml:"cancel"`
+	// Open the highlighted directory, or submit the highlighted file or the path typed.
+	Submit Keybind `toml:"submit"`
+	Cancel Keybind `toml:"cancel"`
 }
 
 type ProfileKeybinds struct {
@@ -330,9 +334,11 @@ func defaultKeybinds() Keybinds {
 			Cancel:            key("cancel", "esc"),
 		},
 		PathPrompt: PathPromptKeybinds{
-			Complete: key("complete", "tab"),
-			Submit:   key("ok", "enter"),
-			Cancel:   key("cancel", "esc"),
+			SelectUp:   key("up", "up", "ctrl+p"),
+			SelectDown: key("down", "down", "ctrl+n"),
+			Complete:   key("complete", "tab"),
+			Submit:     key("ok", "enter"),
+			Cancel:     key("cancel", "esc"),
 		},
 		Profile: ProfileKeybinds{
 			YankID: key("yank id", "y"),

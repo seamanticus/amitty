@@ -348,8 +348,10 @@ Only while asked for a file path, to attach or to save to.
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `complete` | `"tab"` | Extend the name typed by what every matching entry shares. |
-| `submit` | `"enter"` |  |
+| `select_up` | `["up", "ctrl+p"]` | Highlight the previous or next matching entry; up from the first goes back to the typed text. |
+| `select_down` | `["down", "ctrl+n"]` |  |
+| `complete` | `"tab"` | Insert the highlighted entry, or extend the name typed by what every matching entry shares. |
+| `submit` | `"enter"` | Open the highlighted directory, or submit the highlighted file or the path typed. |
 | `cancel` | `"esc"` |  |
 
 ## `[keybinds.profile]`

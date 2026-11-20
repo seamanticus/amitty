@@ -451,9 +451,15 @@
 # Only while asked for a file path, to attach or to save to.
 [keybinds.path_prompt]
 
-# Extend the name typed by what every matching entry shares.
+# Highlight the previous or next matching entry; up from the first goes back to the typed text.
+# select_up = ["up", "ctrl+p"]
+
+# select_down = ["down", "ctrl+n"]
+
+# Insert the highlighted entry, or extend the name typed by what every matching entry shares.
 # complete = "tab"
 
+# Open the highlighted directory, or submit the highlighted file or the path typed.
 # submit = "enter"
 
 # cancel = "esc"

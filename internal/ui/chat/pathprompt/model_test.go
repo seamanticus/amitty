@@ -89,10 +89,10 @@ func TestList(t *testing.T) {
 	if err := os.Symlink("sub", filepath.Join(dir, "link")); err != nil {
 		t.Fatal(err)
 	}
-	if got, want := list(dir+"/"), []string{"file", "link/", "sub/"}; !slices.Equal(got, want) {
+	if got, want := readNames(dir+"/"), []string{"file", "link/", "sub/"}; !slices.Equal(got, want) {
 		t.Errorf("list = %q, want %q", got, want)
 	}
-	if got := list(filepath.Join(dir, "missing") + "/"); got != nil {
+	if got := readNames(filepath.Join(dir, "missing") + "/"); got != nil {
 		t.Errorf("list of a missing directory = %q, want nil", got)
 	}
 }
@@ -160,6 +160,63 @@ func TestModel(t *testing.T) {
 		_, command := m.Update(tui.KeyMsg(tcell.NewEventKey(tcell.KeyEsc, "", tcell.ModNone)))
 		if _, ok := run(t, command).(CancelMsg); !ok {
 			t.Error("esc did not cancel")
+		}
+	})
+}
+
+func TestModelHighlight(t *testing.T) {
+	cfg := config.Default()
+	dir := t.TempDir()
+	if err := os.Mkdir(filepath.Join(dir, "a"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "b.png"), nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	var submitted string
+	m, command := New(&cfg, ShowMsg{Path: dir + "/", Submit: func(path string) tui.Cmd {
+		submitted = path
+		return nil
+	}})
+	m, _ = m.Update(run(t, command))
+	key := func(m Model, k tcell.Key) Model {
+		m, _ = m.Update(tui.KeyMsg(tcell.NewEventKey(k, "", tcell.ModNone)))
+		return m
+	}
+
+	t.Run("down and up move the highlight within the entries", func(t *testing.T) {
+		down := key(key(key(m, tcell.KeyDown), tcell.KeyDown), tcell.KeyDown)
+		if entry, _ := down.highlighted(); entry != "b.png" {
+			t.Errorf("highlighted %q after three downs, want the last entry", entry)
+		}
+		if _, ok := key(key(down, tcell.KeyUp), tcell.KeyUp).highlighted(); ok {
+			t.Error("up past the first entry kept a highlight")
+		}
+	})
+	t.Run("typing clears the highlight", func(t *testing.T) {
+		typed, _ := key(m, tcell.KeyDown).Update(inputMsg{text: dir + "/b"})
+		if _, ok := typed.highlighted(); ok {
+			t.Error("highlight kept after typing")
+		}
+	})
+	t.Run("tab inserts the highlighted entry", func(t *testing.T) {
+		if tabbed := key(key(key(m, tcell.KeyDown), tcell.KeyDown), tcell.KeyTab); tabbed.text != dir+"/b.png" {
+			t.Errorf("text = %q, want the entry inserted", tabbed.text)
+		}
+	})
+	t.Run("enter opens a highlighted directory", func(t *testing.T) {
+		opened, command := key(m, tcell.KeyDown).Update(submitMsg{})
+		if opened.text != dir+"/a/" || submitted != "" {
+			t.Errorf("text = %q, submitted %q, want the directory opened, nothing submitted", opened.text, submitted)
+		}
+		if _, ok := run(t, command).(listedMsg); !ok {
+			t.Error("the directory opened is not listed")
+		}
+	})
+	t.Run("enter submits a highlighted file", func(t *testing.T) {
+		_, command := key(key(m, tcell.KeyDown), tcell.KeyDown).Update(submitMsg{})
+		if _, ok := run(t, command).(SubmittedMsg); !ok || submitted != dir+"/b.png" {
+			t.Errorf("submitted %q, want the highlighted file", submitted)
 		}
 	})
 }

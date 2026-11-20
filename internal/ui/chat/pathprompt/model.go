@@ -7,13 +7,17 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/tui/column"
 	"github.com/seamanticus/amitty/internal/tui/keybind"
+	"github.com/seamanticus/amitty/internal/tui/list"
+	"github.com/seamanticus/amitty/internal/tui/scrollbar"
 	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/seamanticus/amitty/internal/tui/textinput"
+	"github.com/seamanticus/amitty/internal/tui/viewport"
 	"github.com/seamanticus/amitty/internal/ui"
 )
 
@@ -38,6 +42,7 @@ type (
 		cursor int
 	}
 	submitMsg struct{}
+	scrollMsg viewport.ScrollState
 	// listedMsg holds the names in dir, as typed, with directories ending in a slash.
 	listedMsg struct {
 		dir   string
@@ -58,6 +63,10 @@ type Model struct {
 	dir       string
 	requested bool
 	names     []string
+
+	// highlight is one more than the index of the highlighted entry among the matches, or 0 for none.
+	highlight   int
+	scrollState viewport.ScrollState
 }
 
 // New returns the prompt asked for by show and the command that lists the directory typed in it.
@@ -73,14 +82,26 @@ func (Model) Init() tui.Cmd { return nil }
 func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	switch msg := msg.(type) {
 	case inputMsg:
+		if msg.text != m.text {
+			m.highlight = 0
+		}
 		m.text, m.cursor = msg.text, msg.cursor
 		return m, m.relist()
 	case listedMsg:
 		if msg.dir == m.dir {
-			m.names = msg.names
+			m.names, m.highlight = msg.names, 0
 		}
 		return m, nil
+	case scrollMsg:
+		m.scrollState = viewport.ScrollState(msg)
+		return m, nil
 	case submitMsg:
+		if entry, ok := m.highlighted(); ok {
+			m.insert(entry)
+			if strings.HasSuffix(entry, "/") {
+				return m, m.relist()
+			}
+		}
 		path, ok := expand(m.text)
 		if !ok {
 			return m, nil
@@ -90,15 +111,47 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	case tui.KeyMsg:
 		keybinds := m.cfg.Keybinds.PathPrompt
 		switch {
+		case keybind.Matches(msg, keybinds.SelectUp.Keybind):
+			m.highlight = max(m.highlight-1, 0)
+			m.scrollState.ScrollToTarget()
+		case keybind.Matches(msg, keybinds.SelectDown.Keybind):
+			m.highlight = min(m.highlight+1, len(m.found()))
+			m.scrollState.ScrollToTarget()
 		case keybind.Matches(msg, keybinds.Complete.Keybind):
-			m.text = complete(m.text, m.names)
-			m.cursor = len(m.text)
+			if entry, ok := m.highlighted(); ok {
+				m.insert(entry)
+			} else {
+				m.text = complete(m.text, m.names)
+				m.cursor = len(m.text)
+			}
 			return m, m.relist()
 		case keybind.Matches(msg, keybinds.Cancel.Keybind):
 			return m, cmd.Task(func() tui.Msg { return CancelMsg{} })
 		}
 	}
 	return m, nil
+}
+
+// found returns the entries that match the name typed.
+func (m Model) found() []string {
+	_, prefix := split(m.text)
+	return matches(m.names, prefix)
+}
+
+// highlighted returns the highlighted entry, or false if there is none.
+func (m Model) highlighted() (string, bool) {
+	found := m.found()
+	if m.highlight < 1 || m.highlight > len(found) {
+		return "", false
+	}
+	return found[m.highlight-1], true
+}
+
+// insert replaces the name typed by entry and clears the highlight.
+func (m *Model) insert(entry string) {
+	dir, _ := split(m.text)
+	m.text, m.highlight = dir+entry, 0
+	m.cursor = len(m.text)
 }
 
 // relist lists the directory typed when it is not the one listed.
@@ -108,7 +161,7 @@ func (m *Model) relist() tui.Cmd {
 		return nil
 	}
 	m.dir, m.requested, m.names = dir, true, nil
-	return cmd.Task(func() tui.Msg { return listedMsg{dir: dir, names: list(dir)} })
+	return cmd.Task(func() tui.Msg { return listedMsg{dir: dir, names: readNames(dir)} })
 }
 
 // View shows the input in a box titled as asked, over the entries that complete it.
@@ -119,8 +172,14 @@ func (m Model) View() tui.Widget {
 		Keybind(inputKeybind(cfg.Keybinds.PathPrompt.Submit.Keybind)).
 		OnInput(func(text string, cursor int) tui.Msg { return inputMsg{text, cursor} }).
 		OnSubmit(submitMsg{})
-	_, prefix := split(m.text)
-	entries := text.New(strings.Join(matches(m.names, prefix), "\n")).Wrapping(text.WrappingNone)
+	found := m.found()
+	l := list.New(m.highlight-1, len(found), func(i int) tui.Widget {
+		return text.New(found[i]).Wrapping(text.WrappingNone)
+	}).SelectedStyle(tcell.StyleDefault.Reverse(true))
+	entries := viewport.New(l, m.scrollState).
+		Target(l.Target(m.highlight-1)).
+		ScrollBar(scrollbar.New(), cfg.UI.ScrollBar.Visibility.ScrollBarVisibility).
+		OnChange(func(s *viewport.ScrollState) tui.Msg { return scrollMsg(*s) })
 	return ui.Box(column.New(input, entries), cfg, true).Title(ui.Label(m.show.Title, cfg.Theme.Title, true))
 }
 
@@ -187,8 +246,8 @@ func expand(text string) (string, bool) {
 	return filepath.Join(home, text[1:]), true
 }
 
-// list returns the sorted names in dir as typed (the working directory when empty), directories ending in a slash, or nil if it cannot be read.
-func list(dir string) []string {
+// readNames returns the sorted names in dir as typed (the working directory when empty), directories ending in a slash, or nil if it cannot be read.
+func readNames(dir string) []string {
 	path := "."
 	if dir != "" {
 		path, _ = expand(dir)
