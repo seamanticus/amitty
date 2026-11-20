@@ -105,7 +105,7 @@ func (m Model) confirmAttachment(attachment discord.Attachment, action tui.Cmd) 
 
 // attachmentExtension returns the extension of the attachment's file name, or else one of its content type.
 func attachmentExtension(attachment discord.Attachment) string {
-	if extension := filepath.Ext(attachment.Filename); extension != "" {
+	if extension := filepath.Ext(attachment.Filename); len(extension) > 1 {
 		return extension
 	}
 
