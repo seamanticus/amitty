@@ -16,6 +16,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/seamanticus/amitty/internal/consts"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/sound"
 )
 
 const fileName = "config.toml"
@@ -121,7 +122,9 @@ type (
 	NotificationSound struct {
 		// Whether to play the sound for each message that notifies, with or without the popup.
 		Enabled bool `toml:"enabled"`
-		// The sound file, such as "~/sounds/ping.ogg"; "" plays $XDG_DATA_HOME/amitty/sounds/notification.wav, the jingle amitty writes there on first use.
+		// One of the sounds amitty ships, written to $XDG_DATA_HOME/amitty/sounds on first use. The settings panel plays each as you browse them.
+		Name SoundName `toml:"name"`
+		// Your own sound file, such as "~/sounds/ping.ogg", played in place of name; "" plays name.
 		Path string `toml:"path"`
 		// The program that plays it, with {} for the file, such as "mpv --no-video {}"; "" tries ffplay, pw-play, paplay and aplay, in order.
 		Command string `toml:"command"`
@@ -327,7 +330,7 @@ func Default() Config {
 		Picker:          PickerConfig{Width: 80, Height: 25},
 		Timestamps:      Timestamps{Enabled: true, Format: "3:04PM"},
 		DateSeparator:   DateSeparator{Enabled: true, Format: "January 2, 2006", Character: "─"},
-		Notifications:   Notifications{Popup: true, WhenUnfocused: true, Sound: NotificationSound{Enabled: true}},
+		Notifications:   Notifications{Popup: true, WhenUnfocused: true, Sound: NotificationSound{Enabled: true, Name: SoundName(sound.Default)}},
 		TypingIndicator: TypingIndicator{Send: true, Receive: true},
 		Sidebar: SidebarConfig{
 			PaneConfig: pane,

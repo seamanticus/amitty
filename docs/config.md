@@ -77,7 +77,8 @@ A sound played with each notification.
 | Option | Default | Meaning |
 |--------|---------|---------|
 | `enabled` | `true` | Whether to play the sound for each message that notifies, with or without the popup. |
-| `path` | `""` | The sound file, such as "~/sounds/ping.ogg"; "" plays $XDG_DATA_HOME/amitty/sounds/notification.wav, the jingle amitty writes there on first use. |
+| `name` | `"chime"` | One of the sounds amitty ships, written to $XDG_DATA_HOME/amitty/sounds on first use. The settings panel plays each as you browse them. |
+| `path` | `""` | Your own sound file, such as "~/sounds/ping.ogg", played in place of name; "" plays name. |
 | `command` | `""` | The program that plays it, with {} for the file, such as "mpv --no-video {}"; "" tries ffplay, pw-play, paplay and aplay, in order. |
 
 ## `[downloads]`

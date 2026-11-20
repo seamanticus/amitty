@@ -130,11 +130,14 @@ an enhanced keyboard protocol, such as kitty, ghostty or foot.
 ## Notifications
 
 A message that mentions you, or any message in a DM, shows a desktop
-notification (through the terminal) and plays a short chime, unless
-your status is Do not disturb. The chime is written on first use to
-`$XDG_DATA_HOME/amitty/sounds/notification.wav` (usually
-`~/.local/share/amitty/sounds/`); replace that file, or set
-`notifications.sound.path`, to use your own.
+notification (through the terminal) and plays a short sound, unless
+your status is Do not disturb. amitty ships 14 sounds (bell, blip,
+bubble, chime, coin, ding, dong, glass, knock, marimba, pluck, pop,
+sparkle, triad), written on first use to
+`$XDG_DATA_HOME/amitty/sounds/` (usually
+`~/.local/share/amitty/sounds/`). `notifications.sound.name` picks
+one; in the settings panel each plays as you move over it. To use your
+own file, set `notifications.sound.path` (a leading `~/` is your home).
 
 It plays through the first of `ffplay` (any format), `pw-play`,
 `paplay` and `aplay` found, or `notifications.sound.command`, such as

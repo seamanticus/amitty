@@ -4,17 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"os/exec"
 
-	"github.com/seamanticus/amitty/internal/config"
-	"github.com/seamanticus/amitty/internal/consts"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 	"github.com/seamanticus/amitty/internal/logger"
 	"github.com/seamanticus/amitty/internal/ningen/states/read"
-	"github.com/seamanticus/amitty/internal/sound"
 	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/ui"
@@ -86,34 +82,9 @@ func (m Model) notification(message gateway.MessageCreateEvent) tui.Msg {
 		notify = append(notify, cmd.Notify{Title: title, Body: content})
 	}
 	if chime {
-		notify = append(notify, playSound(notifications.Sound))
+		notify = append(notify, ui.PlaySound(notifications.Sound))
 	}
 	return notify
-}
-
-// playSound returns the command that plays the notification sound, logging why it could not.
-func playSound(cfg config.NotificationSound) tui.Cmd {
-	return cmd.Task(func() tui.Msg {
-		dataDir, err := consts.DataDir()
-		if err != nil {
-			slog.Error("failed to find the notification sound", "err", err)
-			return nil
-		}
-		path, err := sound.Path(consts.ExpandHome(cfg.Path), dataDir)
-		if err != nil {
-			slog.Error("failed to find the notification sound", "err", err)
-			return nil
-		}
-		args, err := sound.Command(cfg.Command, path, exec.LookPath)
-		if err == nil {
-			slog.Debug("playing the notification sound", "args", args)
-			err = sound.Play(context.Background(), args)
-		}
-		if err != nil {
-			slog.Error("failed to play the notification sound", "path", path, "err", err)
-		}
-		return nil
-	})
 }
 
 // notificationTitle returns the author of message, followed by its channel and guild for a guild message.
