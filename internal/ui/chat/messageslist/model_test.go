@@ -20,6 +20,7 @@ import (
 	"github.com/seamanticus/amitty/internal/tui"
 	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
 	"github.com/seamanticus/amitty/internal/tui/layout"
+	"github.com/seamanticus/amitty/internal/tui/tint"
 	"github.com/seamanticus/amitty/internal/ui/emojis"
 )
 
@@ -592,6 +593,30 @@ func TestModelAlternate(t *testing.T) {
 		}
 		if got[9] == got[10] {
 			t.Fatalf("message 9 has the shade of 10: %v", got)
+		}
+	})
+	t.Run("the selected card shows the selection, not the alternate tint", func(t *testing.T) {
+		ml.cfg.Theme.MessagesList.SelectedMessageStyle = config.Style{Style: tcell.StyleDefault.Background(tcell.ColorRed)}
+		screen, err := tcell.NewTerminfoScreenFromTty(vt.NewMockTerm(vt.MockOptSize{X: 20, Y: 1}))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := screen.Init(); err != nil {
+			t.Fatal(err)
+		}
+		defer screen.Fini()
+		for i := range ml.items {
+			if item := &ml.items[i]; item.separator == nil && ml.alternate(item) {
+				ml.cursor = i
+				break
+			}
+		}
+		// As the list draws its selected item.
+		selected := &tint.Screen{Screen: screen, Style: ml.cfg.Theme.MessagesList.SelectedMessageStyle.Style}
+		selected.FillArea(0, 0, 20, 1, ' ', tcell.StyleDefault)
+		ml.buildItem(ml.cursor).Draw(selected, tui.Rectangle{Width: 20, Height: 1})
+		if _, style, _ := screen.Get(19, 0); style.GetBackground() != tcell.ColorRed {
+			t.Fatalf("background = %v, want the selection's", style.GetBackground())
 		}
 	})
 	t.Run("off at 0", func(t *testing.T) {

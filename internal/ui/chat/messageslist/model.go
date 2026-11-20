@@ -301,6 +301,10 @@ func (m Model) buildItem(index int) tui.Widget {
 	if item.view == nil {
 		item.view = m.itemView(item)
 	}
+	// The selection merges under what the card draws, so the alternate tint would cover it on the selected card.
+	if alternate := m.cfg.Theme.MessagesList.AlternateStyle.Style; index != m.cursor && m.alternate(item) && alternate != tcell.StyleDefault {
+		return tint.New(item.view, alternate)
+	}
 	return item.view
 }
 
@@ -347,10 +351,6 @@ func (m Model) itemView(item *messageItem) tui.Widget {
 			reply = tint.New(reply, tcell.StyleDefault.Background(bg))
 		}
 		view = column.New(reply, view).Height(layout.Shrink)
-	}
-
-	if alternate := m.cfg.Theme.MessagesList.AlternateStyle.Style; m.alternate(item) && alternate != tcell.StyleDefault {
-		view = tint.New(view, alternate)
 	}
 	return view
 }
