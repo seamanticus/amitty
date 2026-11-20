@@ -46,6 +46,15 @@ Discord filtered as spam are not listed.
 `K` jump to the next or previous unread channel. `-` collapses the
 parent, `_` collapses all, `i` copies the ID.
 
+`+` joins a server: paste an invite (`discord.gg/...`,
+`discord.com/invite/...` or the code alone) and press `enter`. amitty
+looks it up and asks "Join <server> (N members)?", No selected; an
+invite to a server you are already in just opens it. Discord asks for a
+captcha on every new join, which opens in your browser. A server that
+makes new members accept its rules or answer questions first says so:
+finish that in the web client or the mobile app. Joins and new DMs
+together are limited to 3 an hour.
+
 ## Messages list
 
 `j` and `k` select messages; `K` and `J` scroll without selecting.
