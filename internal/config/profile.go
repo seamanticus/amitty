@@ -124,7 +124,8 @@ func profileTheme(p palette) ThemeConfig {
 	theme.ScrollBar = ScrollBarThemeConfig{TrackStyle: Style{fg(r.border)}, ThumbStyle: Style{fg(r.muted)}}
 
 	list := &theme.MessagesList
-	list.AuthorStyle = Style{fg(r.text).Bold(true)}
+	// A role color, where there is one, takes its place; the primary color sets names apart from the text.
+	list.AuthorStyle = Style{fg(r.primary).Bold(true)}
 	list.MentionStyle = Style{fg(r.primary).Bold(true)}
 	list.EmojiStyle = Style{fg(r.secondary)}
 	list.URLStyle = Style{fg(r.link)}

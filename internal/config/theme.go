@@ -308,7 +308,7 @@ func defaultTheme() ThemeConfig {
 		MembersTree: tree,
 		ScrollBar:   ScrollBarThemeConfig{TrackStyle: dim},
 		MessagesList: MessagesListThemeConfig{
-			AuthorStyle:          Style{bold},
+			AuthorStyle:          Style{blue.Bold(true)},
 			ReplyStyle:           Style{plain.Dim(true).Italic(true)},
 			AuthorColor:          "role",
 			MentionStyle:         Style{blue.Bold(true)},

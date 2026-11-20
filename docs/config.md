@@ -501,7 +501,7 @@ The status styles are those of the dot before each member.
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `author_style` | `{ attributes = "bold" }` | The style of an author's name, such as `{ attributes = "bold" }`, `"dim"` or none for regular. |
+| `author_style` | `{ foreground = "blue", attributes = "bold" }` | The style of an author's name, such as `{ attributes = "bold" }`, `"dim"` or none for regular. |
 | `author_color` | `"role"` | The color of an author's name: "role" takes the color of their highest colored role, falling back to author_style's foreground; "style" always takes author_style's foreground. |
 | `mention_style` | `{ foreground = "blue", attributes = "bold" }` |  |
 | `emoji_style` | `{ foreground = "green" }` |  |
