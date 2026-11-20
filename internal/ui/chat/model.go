@@ -280,6 +280,9 @@ func (m Model) update(msg tui.Msg) (Model, tui.Cmd) {
 		// Messages are cached as drawn, so they are drawn again in the new styles; avatars are loaded again cut to a new shape or size.
 		m.messagesList.InvalidateRendered()
 		m.syncPanes()
+		if msg.Previous.HideDeletedUsers != m.cfg.HideDeletedUsers {
+			m.guildsTree.RefreshPrivateChannels()
+		}
 		if msg.Previous.UI.MessagesList.Avatars != m.cfg.UI.MessagesList.Avatars {
 			return m, cmd.Batch{m.clearImages(), m.messagesList.LoadImages()}
 		}

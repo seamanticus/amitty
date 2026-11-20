@@ -228,6 +228,8 @@ type (
 		// "default" (unknown), "online", "dnd", "idle", "invisible" or "offline".
 		Status           discord.Status `toml:"status"`
 		HideBlockedUsers bool           `toml:"hide_blocked_users"`
+		// Whether to leave DMs with deleted accounts out of the guilds tree's Direct Messages and the channels picker.
+		HideDeletedUsers bool `toml:"hide_deleted_users"`
 
 		// The number of messages to fetch when a text-based channel is selected, from 1 to 100.
 		MessagesLimit uint8 `toml:"messages_limit"`
@@ -278,6 +280,7 @@ func Default() Config {
 
 		Status:           "default",
 		HideBlockedUsers: true,
+		HideDeletedUsers: true,
 
 		MessagesLimit: 50,
 

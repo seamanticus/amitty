@@ -25,13 +25,12 @@ func NewModel(cfg *config.Config) Model {
 func (m *Model) RefreshChannels(state *ningen.State) {
 	var items picker.Items
 
-	privateChannels, err := state.Cabinet.PrivateChannels()
+	privateChannels, err := ui.VisiblePrivateChannels(state, m.cfg.HideDeletedUsers)
 	if err != nil {
 		slog.Error("failed to get private channels from state", "err", err)
 		return
 	}
 
-	ui.SortPrivateChannels(privateChannels)
 	for _, channel := range privateChannels {
 		items = append(items, m.channelItem(state, nil, channel))
 	}

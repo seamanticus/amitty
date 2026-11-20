@@ -291,7 +291,7 @@ func (m Model) guildText(guild discord.Guild) string {
 
 // dmNodeText returns the name of the direct messages node with their unread mentions after it.
 func (m Model) dmNodeText() string {
-	channels, _ := m.state.Cabinet.PrivateChannels()
+	channels, _ := ui.VisiblePrivateChannels(m.state, m.cfg.HideDeletedUsers)
 	return dmNodeName + mentionsLabel(m.mentions(channels...))
 }
 
@@ -401,7 +401,7 @@ func (m Model) isUnread(node *tree.Node) bool {
 	case discord.ChannelID:
 		return m.state.ChannelIsUnread(ref, opts) != ningen.ChannelRead
 	case dmNode:
-		channels, _ := m.state.PrivateChannels()
+		channels, _ := ui.VisiblePrivateChannels(m.state, m.cfg.HideDeletedUsers)
 		return slices.ContainsFunc(channels, func(channel discord.Channel) bool {
 			return m.state.ChannelIsUnread(channel.ID, opts) != ningen.ChannelRead
 		})

@@ -37,6 +37,9 @@
 
 # hide_blocked_users = true
 
+# Whether to leave DMs with deleted accounts out of the guilds tree's Direct Messages and the channels picker.
+# hide_deleted_users = true
+
 # The number of messages to fetch when a text-based channel is selected, from 1 to 100.
 # messages_limit = 50
 

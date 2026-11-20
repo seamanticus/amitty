@@ -111,13 +111,12 @@ func (m Model) expandForum(node *tree.Node, forum discord.Channel) {
 }
 
 func (m Model) expandPrivateChannels(node *tree.Node) {
-	channels, err := m.state.PrivateChannels()
+	channels, err := ui.VisiblePrivateChannels(m.state, m.cfg.HideDeletedUsers)
 	if err != nil {
 		slog.Error("failed to get private channels", "err", err)
 		return
 	}
 
-	ui.SortPrivateChannels(channels)
 	for _, channel := range channels {
 		m.createChannelNode(node, channel)
 	}
@@ -139,4 +138,26 @@ func loadChannel(state *ningen.State, limit uint, channel discord.Channel) tui.C
 
 		return ChannelLoadedMsg{Channel: channel, Messages: messages}
 	})
+}
+
+// RefreshPrivateChannels lists the DMs again under an expanded Direct Messages node, as which are shown may have changed.
+func (m *Model) RefreshPrivateChannels() {
+	node := m.dmRootNode
+	if node == nil {
+		return
+	}
+	setNodeText(node, m.dmNodeText())
+	if len(node.Children()) == 0 {
+		return
+	}
+	for _, child := range node.Children() {
+		if id, ok := child.Reference().(discord.ChannelID); ok {
+			delete(m.channelNodes, id)
+		}
+		if child == m.current {
+			m.setCurrentNode(node)
+		}
+	}
+	node.ClearChildren()
+	m.expandPrivateChannels(node)
 }

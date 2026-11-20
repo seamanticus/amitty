@@ -14,6 +14,7 @@ func optionDocs() map[string]string {
 		"token-decrypt-cmd":                "The command that decrypts the stored token: it reads the file on stdin and writes the token to stdout. It runs before the screen starts, so a terminal pinentry works.",
 		"proxy":                            "The proxy every connection to Discord goes through, such as \"socks5h://127.0.0.1:9050\" or \"http://user:pass@host:3128\"; \"\" connects directly. Schemes: http, https, socks5, socks5h (both SOCKS5 schemes resolve names at the proxy). The environment is not read, and nothing bypasses a set proxy.",
 		"status":                           "\"default\" (unknown), \"online\", \"dnd\", \"idle\", \"invisible\" or \"offline\".",
+		"hide_deleted_users":               "Whether to leave DMs with deleted accounts out of the guilds tree's Direct Messages and the channels picker.",
 		"messages_limit":                   "The number of messages to fetch when a text-based channel is selected, from 1 to 100.",
 		"markdown.enabled":                 "Whether to parse and render markdown in messages.",
 		"markdown.mask_spoilers":           "Replace spoiler contents with a placeholder.",
