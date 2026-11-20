@@ -17,20 +17,28 @@ const MaxMessageReactionFetchLimit = 100
 func (c *Client) React(
 	channelID discord.ChannelID, messageID discord.MessageID, emoji discord.APIEmoji) error {
 
-	// The type is that of the reaction: 0 for normal, 1 for burst.
+	// The type is that of the reaction: 0 for normal, 1 for burst. The location is where the web client's reaction picker sits.
 	return c.FastRequest(
 		"PUT",
 		EndpointChannels+channelID.String()+
 			"/messages/"+messageID.String()+
-			"/reactions/"+emoji.PathString()+"/@me?type=0",
+			"/reactions/"+emoji.PathString()+"/@me?location="+reactionLocation+"&type=0",
 	)
 }
 
-// Unreact removes a reaction the current user has made for the message.
+// reactionLocation is the location query the web client sends with its own reactions, escaped as it sends it.
+const reactionLocation = "Message%20Hover%20Bar"
+
+// Unreact removes a normal reaction the current user has made for the message, by the path and query the web client uses: the reaction type, 0, before @me.
 func (c *Client) Unreact(
 	channelID discord.ChannelID, messageID discord.MessageID, emoji discord.APIEmoji) error {
 
-	return c.DeleteUserReaction(channelID, messageID, 0, emoji)
+	return c.FastRequest(
+		"DELETE",
+		EndpointChannels+channelID.String()+
+			"/messages/"+messageID.String()+
+			"/reactions/"+emoji.PathString()+"/0/@me?location="+reactionLocation+"&burst=false",
+	)
 }
 
 // Reactions returns a list of users that reacted with the passed Emoji. This

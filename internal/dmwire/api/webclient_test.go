@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
 )
@@ -61,6 +62,23 @@ func TestWebClientRequests(t *testing.T) {
 		body := regexp.MustCompile(`^\{"mobile_network_type":"unknown","content":"hello","nonce":"\d+","tts":false,"flags":0\}$`)
 		if len(*got) != 1 || !body.MatchString((*got)[0].body) || (*got)[0].context != chatInputContext {
 			t.Fatalf("sent %+v", *got)
+		}
+	})
+	t.Run("react and unreact", func(t *testing.T) {
+		client, got := fakeClient(t, "")
+		emoji := discord.APIEmoji("👍")
+		if err := client.React(1, 2, emoji); err != nil {
+			t.Fatal(err)
+		}
+		if err := client.Unreact(1, 2, emoji); err != nil {
+			t.Fatal(err)
+		}
+		want := []sent{
+			{"PUT", "/api/v9/channels/1/messages/2/reactions/%F0%9F%91%8D/@me?location=Message%20Hover%20Bar&type=0", "", ""},
+			{"DELETE", "/api/v9/channels/1/messages/2/reactions/%F0%9F%91%8D/0/@me?location=Message%20Hover%20Bar&burst=false", "", ""},
+		}
+		if len(*got) != len(want) || (*got)[0] != want[0] || (*got)[1] != want[1] {
+			t.Fatalf("sent %+v, want %+v", *got, want)
 		}
 	})
 }
