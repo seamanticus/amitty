@@ -4,13 +4,17 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os/exec"
 
+	"github.com/seamanticus/amitty/internal/config"
+	"github.com/seamanticus/amitty/internal/consts"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 	"github.com/seamanticus/amitty/internal/logger"
 	"github.com/seamanticus/amitty/internal/ningen/states/read"
+	"github.com/seamanticus/amitty/internal/sound"
 	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/ui"
@@ -49,9 +53,12 @@ func (m Model) notify(message gateway.MessageCreateEvent) tui.Cmd {
 	})
 }
 
-// notification shows a desktop notification for message if it mentions the user.
+// notification shows a desktop notification for message if it mentions the user, and plays the sound with it.
 func (m Model) notification(message gateway.MessageCreateEvent) tui.Msg {
-	if !m.cfg.Notifications.Enabled || m.cfg.Status == discord.DoNotDisturbStatus {
+	notifications := m.cfg.Notifications
+	popup := notifications.Enabled
+	chime := notifications.Sound.Enabled && (popup || notifications.Sound.Alone)
+	if !popup && !chime || m.cfg.Status == discord.DoNotDisturbStatus {
 		return nil
 	}
 
@@ -74,7 +81,38 @@ func (m Model) notification(message gateway.MessageCreateEvent) tui.Msg {
 		return nil
 	}
 
-	return cmd.Notify{Title: title, Body: content}
+	var notify cmd.Batch
+	if popup {
+		notify = append(notify, cmd.Notify{Title: title, Body: content})
+	}
+	if chime {
+		notify = append(notify, playSound(notifications.Sound))
+	}
+	return notify
+}
+
+// playSound returns the command that plays the notification sound, logging why it could not.
+func playSound(cfg config.NotificationSound) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
+		dataDir, err := consts.DataDir()
+		if err != nil {
+			slog.Error("failed to find the notification sound", "err", err)
+			return nil
+		}
+		path, err := sound.Path(cfg.Path, dataDir)
+		if err != nil {
+			slog.Error("failed to find the notification sound", "err", err)
+			return nil
+		}
+		args, err := sound.Command(cfg.Command, path, exec.LookPath)
+		if err == nil {
+			err = sound.Play(context.Background(), args)
+		}
+		if err != nil {
+			slog.Error("failed to play the notification sound", "path", path, "err", err)
+		}
+		return nil
+	})
 }
 
 // notificationTitle returns the author of message, followed by its channel and guild for a guild message.

@@ -22,6 +22,18 @@ func StateDir() (string, error) {
 	return filepath.Join(home, ".local", "state", Name), nil
 }
 
+// DataDir returns $XDG_DATA_HOME/amitty, or ~/.local/share/amitty when that is unset or relative, as the XDG base directory spec says.
+func DataDir() (string, error) {
+	if dir := os.Getenv("XDG_DATA_HOME"); filepath.IsAbs(dir) {
+		return filepath.Join(dir, Name), nil
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("data dir: %w", err)
+	}
+	return filepath.Join(home, ".local", "share", Name), nil
+}
+
 // CacheDir returns the cache directory, creating it on first use.
 var CacheDir = sync.OnceValue(func() string {
 	userCacheDir, err := os.UserCacheDir()

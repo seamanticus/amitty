@@ -108,6 +108,20 @@ an enhanced keyboard protocol, such as kitty, ghostty or foot.
 - **Saving**: `D` asks where to save it, and asks again before
   replacing a file.
 
+## Notifications
+
+A message that mentions you, or any message in a DM, shows a desktop
+notification (through the terminal) and plays a short chime, unless
+your status is Do not disturb. The chime is written on first use to
+`$XDG_DATA_HOME/amitty/sounds/notification.wav` (usually
+`~/.local/share/amitty/sounds/`); replace that file, or set
+`notifications.sound.path`, to use your own.
+
+It plays through the first of `ffplay` (any format), `pw-play`,
+`paplay` and `aplay` found, or `notifications.sound.command`, such as
+`"mpv --no-video {}"`. `notifications.sound.enabled = false` silences
+it; `alone = true` plays it even with the notification turned off.
+
 ## Settings
 
 `ctrl+/` opens the settings panel; `ctrl+/` or `esc` closes it. It lists
