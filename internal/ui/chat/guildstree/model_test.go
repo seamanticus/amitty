@@ -176,7 +176,7 @@ func TestModelJoinedGuild(t *testing.T) {
 	m.reset()
 	m.createGuildNode(m.root, discord.Guild{ID: 1, Name: "old"})
 
-	joined := &state.GuildJoinEvent{GuildCreateEvent: &gateway.GuildCreateEvent{Guild: discord.Guild{ID: 2, Name: "new"}}}
+	joined := &state.GuildJoinEvent{GuildCreateEvent: &gateway.GuildCreateEvent{ID: 2, Name: "new"}}
 	m, _ = m.Update(joined)
 	m, _ = m.Update(joined)
 	var refs []any
@@ -187,11 +187,11 @@ func TestModelJoinedGuild(t *testing.T) {
 		t.Fatalf("children = %v, want %v", refs, want)
 	}
 
-	if m, _ = m.Update(ShowGuildMsg{GuildID: 2}); m.current != m.guildNodes[2] {
+	if m, _ = m.Update(ShowGuildMsg{Guild: discord.Guild{ID: 2}}); m.current != m.guildNodes[2] {
 		t.Fatalf("current = %v", m.current)
 	}
-	if m, _ = m.Update(ShowGuildMsg{GuildID: 9}); m.current != m.guildNodes[2] {
-		t.Fatal("an unlisted guild moved the highlight")
+	if m, _ = m.Update(ShowGuildMsg{Guild: discord.Guild{ID: 3, Name: "early"}}); m.current != m.guildNodes[3] || m.root.Children()[1] != m.guildNodes[3] {
+		t.Fatal("a guild the gateway has not listed yet is not shown first")
 	}
 }
 

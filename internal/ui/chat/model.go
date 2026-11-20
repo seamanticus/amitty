@@ -38,6 +38,7 @@ import (
 	"github.com/seamanticus/amitty/internal/ui/chat/channelspicker"
 	"github.com/seamanticus/amitty/internal/ui/chat/composer"
 	"github.com/seamanticus/amitty/internal/ui/chat/guildstree"
+	"github.com/seamanticus/amitty/internal/ui/chat/joinprompt"
 	"github.com/seamanticus/amitty/internal/ui/chat/memberstree"
 	"github.com/seamanticus/amitty/internal/ui/chat/messageslist"
 	"github.com/seamanticus/amitty/internal/ui/chat/pathprompt"
@@ -69,6 +70,9 @@ type Model struct {
 	reactionsPicker reactionspicker.Model
 	// pathPrompt asks for a file path to attach or to save to.
 	pathPrompt pathprompt.Model
+	// joinPrompt asks for an invite to join a server with; join is the join it leads to.
+	joinPrompt joinprompt.Model
+	join       joining
 	// profile shows a member picked in the members tree.
 	profile profile.Model
 
@@ -171,6 +175,7 @@ const (
 	overlayAttachmentsPicker
 	overlayReactionsPicker
 	overlayPathPrompt
+	overlayJoinPrompt
 	overlayProfile
 )
 
@@ -185,6 +190,8 @@ func (m Model) pickerView() tui.Widget {
 		return m.reactionsPicker.View()
 	case overlayPathPrompt:
 		return m.pathPrompt.View()
+	case overlayJoinPrompt:
+		return m.joinPrompt.View()
 	case overlayProfile:
 		return m.profile.View()
 	case overlayNone:
@@ -405,6 +412,36 @@ func (m Model) update(msg tui.Msg) (Model, tui.Cmd) {
 	case dmStartedMsg:
 		m.guildsTree.RefreshPrivateChannels()
 		return m, m.navigateToChannel(msg.channelID)
+	case guildstree.JoinMsg:
+		m.openJoin()
+		return m, nil
+	case joinprompt.SubmittedMsg:
+		// One join at a time: a second submit would send a second join.
+		if m.join.invite.Code == "" {
+			m.joinPrompt.SetStatus("Looking up the invite...")
+			return m, lookUpInvite(m.state, msg.Input)
+		}
+		return m, nil
+	case joinprompt.CancelMsg:
+		return m, m.closeJoin()
+	case inviteFoundMsg:
+		if m.overlay != overlayJoinPrompt {
+			return m, nil
+		}
+		m.joinPrompt.SetStatus("")
+		return m, m.confirmJoin(msg.invite)
+	case joinGuildMsg:
+		if m.overlay != overlayJoinPrompt {
+			return m, nil
+		}
+		return m, m.startJoin(msg.invite, time.Now())
+	case joinFailedMsg:
+		m.joinPrompt.SetStatus(msg.status)
+		return m, m.endJoin()
+	case guildJoinedMsg:
+		return m, m.showJoined(msg.guild)
+	case ui.CaptchaMsg[inviteCode], ui.CaptchaDoneMsg[inviteCode]:
+		return m, m.updateJoin(msg)
 	case messageslist.ReplyMsg:
 		m.composer.StartReply(msg.Message, msg.Name, msg.Mention)
 		m.setFocus(paneComposer)
@@ -488,6 +525,8 @@ func (m *Model) route(msg tui.Msg) tui.Cmd {
 		m.reactionsPicker, cmd = m.reactionsPicker.Update(msg)
 	case overlayPathPrompt:
 		m.pathPrompt, cmd = m.pathPrompt.Update(msg)
+	case overlayJoinPrompt:
+		m.joinPrompt, cmd = m.joinPrompt.Update(msg)
 	case overlayProfile:
 		m.profile, cmd = m.profile.Update(msg)
 	case overlayNone:

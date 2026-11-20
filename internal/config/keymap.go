@@ -28,6 +28,16 @@ func (k PathPromptKeybinds) FullHelp() [][]keybind.Keybind {
 	return [][]keybind.Keybind{k.ShortHelp()}
 }
 
+var _ help.KeyMap = JoinPromptKeybinds{}
+
+func (k JoinPromptKeybinds) ShortHelp() []keybind.Keybind {
+	return []keybind.Keybind{k.Submit.Keybind, k.Cancel.Keybind}
+}
+
+func (k JoinPromptKeybinds) FullHelp() [][]keybind.Keybind {
+	return [][]keybind.Keybind{k.ShortHelp()}
+}
+
 var _ help.KeyMap = ProfileKeybinds{}
 
 func (k ProfileKeybinds) ShortHelp() []keybind.Keybind {

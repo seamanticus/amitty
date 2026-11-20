@@ -28,14 +28,15 @@ type ChannelLoadedMsg struct {
 
 type NavigateMsg struct{ ChannelID discord.ChannelID }
 
-// ShowGuildMsg highlights the guild GuildID, opening the folder it is in; a guild not listed is ignored.
-type ShowGuildMsg struct{ GuildID discord.GuildID }
+// ShowGuildMsg highlights Guild, opening the folder it is in, and lists it first if it is not listed yet, as when the join answers before the gateway.
+type ShowGuildMsg struct{ Guild discord.Guild }
 
-func (m *Model) showGuild(guildID discord.GuildID) {
-	node, ok := m.guildNodes[guildID]
-	if !ok {
-		return
-	}
+// JoinMsg asks for an invite to join a server with.
+type JoinMsg struct{}
+
+func (m *Model) showGuild(guild discord.Guild) {
+	m.addJoinedGuild(guild)
+	node := m.guildNodes[guild.ID]
 	m.expandPathToNode(node)
 	m.setCurrentNode(node)
 }

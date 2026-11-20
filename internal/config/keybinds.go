@@ -99,6 +99,13 @@ type PickerKeybinds struct {
 	Cancel Keybind `toml:"cancel"`
 }
 
+type JoinPromptKeybinds struct {
+	// Look up the invite typed, then ask whether to join.
+	Submit Keybind `toml:"submit"`
+	// Close the box, canceling a captcha it waits for.
+	Cancel Keybind `toml:"cancel"`
+}
+
 type PathPromptKeybinds struct {
 	// Highlight the previous or next matching entry; up from the first goes back to the typed text.
 	SelectUp   Keybind `toml:"select_up"`
@@ -140,6 +147,8 @@ type GuildsTreeKeybinds struct {
 	// Accept or reject the highlighted message request, a DM from someone you are not friends with; each asks first.
 	AcceptRequest Keybind `toml:"accept_request"`
 	RejectRequest Keybind `toml:"reject_request"`
+	// Join a server by invite link or code; asks first, and counts toward the 3 new DMs or joins an hour.
+	JoinGuild Keybind `toml:"join_guild"`
 }
 
 type MembersTreeKeybinds struct {
@@ -257,6 +266,8 @@ type Keybinds struct {
 	Picker PickerKeybinds `toml:"picker"`
 	// Only while asked for a file path, to attach or to save to.
 	PathPrompt PathPromptKeybinds `toml:"path_prompt"`
+	// Only while asked for an invite, opened with join_guild in the guilds tree.
+	JoinPrompt JoinPromptKeybinds `toml:"join_prompt"`
 	// Only while a profile is shown, opened with enter on a member.
 	Profile ProfileKeybinds `toml:"profile"`
 	// Only while focusing on the guilds tree.
@@ -340,6 +351,10 @@ func defaultKeybinds() Keybinds {
 			Submit:     key("ok", "enter"),
 			Cancel:     key("cancel", "esc"),
 		},
+		JoinPrompt: JoinPromptKeybinds{
+			Submit: key("join", "enter"),
+			Cancel: key("cancel", "esc"),
+		},
 		Profile: ProfileKeybinds{
 			YankID: key("yank id", "y"),
 			Close:  key("close", "esc", "q"),
@@ -350,6 +365,7 @@ func defaultKeybinds() Keybinds {
 			SelectNextUnread:     key("next unread", "J"),
 			AcceptRequest:        key("accept", "a"),
 			RejectRequest:        key("reject", "r"),
+			JoinGuild:            key("join", "+"),
 		},
 		MembersTree: MembersTreeKeybinds{TreeKeybinds: tree, ViewProfile: key("profile", "v")},
 		MessagesList: MessagesListKeybinds{

@@ -362,6 +362,15 @@ Only while asked for a file path, to attach or to save to.
 | `submit` | `"enter"` | Open the highlighted directory, or submit the highlighted file or the path typed. |
 | `cancel` | `"esc"` |  |
 
+## `[keybinds.join_prompt]`
+
+Only while asked for an invite, opened with join_guild in the guilds tree.
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `submit` | `"enter"` | Look up the invite typed, then ask whether to join. |
+| `cancel` | `"esc"` | Close the box, canceling a captcha it waits for. |
+
 ## `[keybinds.profile]`
 
 Only while a profile is shown, opened with enter on a member.
@@ -396,6 +405,7 @@ Only while focusing on the guilds tree.
 | `select_next_unread` | `"J"` |  |
 | `accept_request` | `"a"` | Accept or reject the highlighted message request, a DM from someone you are not friends with; each asks first. |
 | `reject_request` | `"r"` |  |
+| `join_guild` | `"+"` | Join a server by invite link or code; asks first, and counts toward the 3 new DMs or joins an hour. |
 
 ## `[keybinds.members_tree]`
 

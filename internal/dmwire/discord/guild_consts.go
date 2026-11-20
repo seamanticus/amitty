@@ -80,6 +80,10 @@ const (
 	AnimatedIcon GuildFeature = "ANIMATED_ICON"
 	// Banner is set, if the guild has access to set a guild banner image.
 	Banner GuildFeature = "BANNER"
+	// MemberVerificationGateEnabled is set, if new members must accept the guild's rules before they can talk.
+	MemberVerificationGateEnabled GuildFeature = "MEMBER_VERIFICATION_GATE_ENABLED"
+	// GuildOnboarding is set, if new members are asked onboarding questions.
+	GuildOnboarding GuildFeature = "GUILD_ONBOARDING"
 )
 
 // ExplicitFilter is the explicit content filter level of a guild.

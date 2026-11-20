@@ -477,6 +477,15 @@
 
 # cancel = "esc"
 
+# Only while asked for an invite, opened with join_guild in the guilds tree.
+[keybinds.join_prompt]
+
+# Look up the invite typed, then ask whether to join.
+# submit = "enter"
+
+# Close the box, canceling a captcha it waits for.
+# cancel = "esc"
+
 # Only while a profile is shown, opened with enter on a member.
 [keybinds.profile]
 
@@ -529,6 +538,9 @@
 # accept_request = "a"
 
 # reject_request = "r"
+
+# Join a server by invite link or code; asks first, and counts toward the 3 new DMs or joins an hour.
+# join_guild = "+"
 
 # Only while focusing on the members tree.
 [keybinds.members_tree]

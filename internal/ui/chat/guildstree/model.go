@@ -13,6 +13,7 @@ import (
 	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/internal/ningen/states/read"
 	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/tui/keybind"
 	"github.com/seamanticus/amitty/internal/tui/tree"
 	"github.com/seamanticus/amitty/internal/tui/viewport"
@@ -241,7 +242,7 @@ func (m Model) addJoinedGuild(guild discord.Guild) {
 	m.createGuildNode(m.root, guild)
 	children := m.root.Children()
 	last := len(children) - 1
-	m.root.SetChildren(slices.Insert(children[:last], 1, children[last]))
+	m.root.SetChildren(slices.Insert(children[:last], min(1, last), children[last]))
 }
 
 func (m Model) createChannelNode(parent *tree.Node, channel discord.Channel) {
@@ -540,7 +541,7 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	case NavigateMsg:
 		return m, m.navigate(msg.ChannelID)
 	case ShowGuildMsg:
-		m.showGuild(msg.GuildID)
+		m.showGuild(msg.Guild)
 		return m, nil
 	case requestsChangedMsg:
 		m.RefreshPrivateChannels()
@@ -580,6 +581,8 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 				return m, m.confirmRequest(channel, keybind.Matches(msg, keybinds.AcceptRequest.Keybind))
 			}
 			return m, nil
+		case keybind.Matches(msg, keybinds.JoinGuild.Keybind):
+			return m, cmd.Task(func() tui.Msg { return JoinMsg{} })
 		}
 	}
 

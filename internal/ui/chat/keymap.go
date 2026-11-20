@@ -29,6 +29,8 @@ func (m Model) activeKeyMap() help.KeyMap {
 	switch m.overlay {
 	case overlayPathPrompt:
 		return m.cfg.Keybinds.PathPrompt
+	case overlayJoinPrompt:
+		return m.cfg.Keybinds.JoinPrompt
 	case overlayChannelsPicker, overlayAttachmentsPicker, overlayReactionsPicker:
 		return m.cfg.Keybinds.Picker
 	case overlayProfile:
