@@ -16,6 +16,9 @@ func TestNormalizeKey(t *testing.T) {
 		{"CTRL-C", "ctrl+c"},
 		{"ctrl+ctrl+a", "ctrl+a"},
 		{"shift+backtab", "shift+tab"},
+		{"+", "+"},
+		{"ctrl++", "ctrl++"},
+		{"ctrl+", ""},
 	} {
 		t.Run(tt.in, func(t *testing.T) {
 			if got := normalizeKey(tt.in); got != tt.want {
@@ -38,6 +41,11 @@ func TestMatches(t *testing.T) {
 	})
 	t.Run("space", func(t *testing.T) {
 		if !Matches(tcell.NewEventKey(tcell.KeyRune, " ", tcell.ModNone), New("space")) {
+			t.Fatal("did not match")
+		}
+	})
+	t.Run("plus", func(t *testing.T) {
+		if !Matches(tcell.NewEventKey(tcell.KeyRune, "+", tcell.ModNone), New("+")) {
 			t.Fatal("did not match")
 		}
 	})

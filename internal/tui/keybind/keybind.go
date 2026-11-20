@@ -64,6 +64,11 @@ func normalizeKeys(keys ...string) []string {
 }
 
 func normalizeKey(key string) string {
+	// A trailing "+" that does not join two names is the plus key itself, as in "+" or "ctrl++".
+	plus := key == "+" || strings.HasSuffix(key, "++")
+	if plus {
+		key = strings.TrimSuffix(key, "+")
+	}
 	parts := strings.Split(key, "+")
 	mods := make([]string, 0, len(parts))
 	primary := ""
@@ -85,6 +90,9 @@ func normalizeKey(key string) string {
 		default:
 			primary = normalizePrimaryKey(part)
 		}
+	}
+	if plus {
+		primary = "+"
 	}
 
 	if primary == "" {
