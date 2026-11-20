@@ -36,6 +36,26 @@ type User struct {
 	NSFWAllowed option.Option[bool] `json:"nsfw_allowed,omitempty"`
 	Pronouns    string              `json:"pronouns,omitempty"`
 	Bio         string              `json:"bio,omitempty"`
+
+	// PrimaryGuild is the server tag the user shows after their name, zero if none.
+	PrimaryGuild PrimaryGuild `json:"primary_guild,omitzero"`
+}
+
+// PrimaryGuild is the guild whose tag a user wears. Discord sends null, or nulls inside, for none.
+type PrimaryGuild struct {
+	GuildID GuildID `json:"identity_guild_id"`
+	// Enabled reports whether the user shows the tag.
+	Enabled bool   `json:"identity_enabled"`
+	Tag     string `json:"tag"`
+	Badge   Hash   `json:"badge"`
+}
+
+// ShownTag returns the tag the user shows, or "" if none.
+func (u User) ShownTag() string {
+	if !u.PrimaryGuild.Enabled {
+		return ""
+	}
+	return u.PrimaryGuild.Tag
 }
 
 // CreatedAt returns a time object representing when the user was created.
