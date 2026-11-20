@@ -303,8 +303,8 @@ func defaultKeybinds() Keybinds {
 		FocusMessagesList: key("messages", "ctrl+t"),
 		FocusComposer:     key("composer", "ctrl+i"),
 
-		FocusPrevious: key("focus prev", "ctrl+h", "ctrl+left"),
-		FocusNext:     key("focus next", "ctrl+l", "ctrl+right"),
+		FocusPrevious: key("focus prev", "ctrl+h", "ctrl+left", "ctrl+up"),
+		FocusNext:     key("focus next", "ctrl+l", "ctrl+right", "ctrl+down"),
 
 		Picker: PickerKeybinds{
 			// The query is one line, so the arrows are free to move the selection.

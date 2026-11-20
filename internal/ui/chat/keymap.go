@@ -51,6 +51,7 @@ func (m Model) activeKeyMap() help.KeyMap {
 func (m Model) baseShortHelp() []keybind.Keybind {
 	cfg := m.cfg.Keybinds
 	short := m.focusHelp()
+	short = append(short, cfg.FocusPrevious.Keybind, cfg.FocusNext.Keybind)
 	short = append(short, cfg.ToggleGuildsTree.Keybind, cfg.ToggleChannelsPicker.Keybind)
 	return short
 }

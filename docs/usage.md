@@ -22,7 +22,7 @@ of the pane that has focus.
 | `ctrl+t` | Messages list |
 | `ctrl+i` | Composer |
 | `ctrl+y` | Members tree |
-| `ctrl+h`, `ctrl+l`, `ctrl+left`, `ctrl+right` | The previous or next pane |
+| `ctrl+h`, `ctrl+l`, `ctrl+left`, `ctrl+right`, `ctrl+up`, `ctrl+down` | The previous or next pane |
 | `ctrl+k` | A picker to jump to any channel by name |
 
 Selecting a channel focuses the composer, unless `auto_focus = false`.
@@ -111,10 +111,12 @@ an enhanced keyboard protocol, such as kitty, ghostty or foot.
 every option of the [configuration](config.md) by its path, with the
 selected one's description below. Type to filter, such as `avatar`.
 
-- `enter` on a true/false option flips it, and on one with a few fixed
-  values (avatar shape, image protocol, status) steps to the next.
-- `theme_profile` opens the profiles by name; each is shown as the
-  cursor reaches it, `enter` keeps it and `esc` goes back to yours.
+- `enter` on a true/false option flips it, and on one with up to six
+  fixed values (avatar shape, border set, scroll bar, status) steps to
+  the next.
+- An option with more values, `theme_profile` or `markdown.theme`,
+  opens them as a list; each is shown as the cursor reaches it, `enter`
+  keeps it and `esc` goes back to yours.
 - `enter` on any other option opens its value to edit as TOML, such as
   `"ctrl+q"` or `{ attributes = "bold" }`, saved with `enter`.
 - A change is written to `config.toml` at once, on the option's own

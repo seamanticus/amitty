@@ -295,8 +295,8 @@ Global shortcuts. A keybind is a key such as "ctrl+k", or a list of keys.
 | `focus_members_tree` | `"ctrl+y"` |  |
 | `focus_messages_list` | `"ctrl+t"` |  |
 | `focus_composer` | `"ctrl+i"` |  |
-| `focus_previous` | `["ctrl+h", "ctrl+left"]` | Cycle focus between the widgets. |
-| `focus_next` | `["ctrl+l", "ctrl+right"]` |  |
+| `focus_previous` | `["ctrl+h", "ctrl+left", "ctrl+up"]` | Cycle focus between the widgets. |
+| `focus_next` | `["ctrl+l", "ctrl+right", "ctrl+down"]` |  |
 | `logout` | `"ctrl+d"` | Log out and delete the stored token. Requires re-login upon restart. |
 | `quit` | `"ctrl+c"` |  |
 | `settings` | `["ctrl+/", "ctrl+_"]` | Open or close the settings panel, which edits this file. Most terminals send ctrl+/ as ctrl+_. |
