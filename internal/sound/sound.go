@@ -23,21 +23,54 @@ import (
 //go:embed sounds/*.wav
 var shipped embed.FS
 
-// Default is the name of the sound played when none is set.
-const Default = "chime"
+// Default is the file name of the sound played when none is set.
+const Default = "chime.wav"
 
-// Names returns the names of the shipped sounds, sorted.
-func Names() []string {
+// Shipped returns the file names of the sounds amitty ships, sorted.
+func Shipped() []string {
 	entries, err := shipped.ReadDir("sounds")
 	if err != nil {
 		panic("invariant: the embedded sounds dir is missing")
 	}
 	names := make([]string, 0, len(entries))
 	for _, entry := range entries {
-		names = append(names, strings.TrimSuffix(entry.Name(), ".wav"))
+		names = append(names, entry.Name())
 	}
 	return names
 }
+
+// Names returns the file names a sound can be picked from, sorted: the shipped ones and every other file in dir, the user's own in any format. Hidden files and directories are left out.
+func Names(dir string) []string {
+	names := Shipped()
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return names
+	}
+	for _, entry := range entries {
+		if name := entry.Name(); !strings.HasPrefix(name, ".") && !isDir(dir, entry) && !slices.Contains(names, name) {
+			names = append(names, name)
+		}
+	}
+	slices.Sort(names)
+	return names
+}
+
+// isDir reports whether entry, in dir, is a directory or a link to one.
+func isDir(dir string, entry os.DirEntry) bool {
+	if entry.IsDir() {
+		return true
+	}
+	info, err := os.Stat(filepath.Join(dir, entry.Name()))
+	return err == nil && info.IsDir()
+}
+
+// IsName reports whether name is a bare file name, which a sound in the sounds dir is picked by.
+func IsName(name string) bool {
+	return name != "" && name != "." && name != ".." && filepath.Base(name) == name
+}
+
+// Dir returns the sounds dir in dataDir.
+func Dir(dataDir string) string { return filepath.Join(dataDir, "sounds") }
 
 // players are tried in order: ffplay plays any format, as mpv and vlc pull in ffmpeg; the others are the sound servers' own players, for the shipped WAV sounds.
 func players() [][]string {
@@ -49,30 +82,30 @@ func players() [][]string {
 	}
 }
 
-// Path returns path, which must name an existing file, or for "" the shipped sound name ("" for Default) in dataDir/sounds, writing the shipped sounds missing there first.
+// Path returns path, or for "" the file name ("" for Default) in the sounds dir of dataDir, writing the shipped sounds missing there first. The file must exist.
 // The file is checked here as players such as ffplay exit 0 on a missing one, which would hide the mistake.
 func Path(path, name, dataDir string) (string, error) {
-	if path != "" {
-		info, err := os.Stat(path)
-		if err != nil {
-			return "", fmt.Errorf("notification sound: %w", err)
+	if path == "" {
+		if name == "" {
+			name = Default
 		}
-		if info.IsDir() {
-			return "", fmt.Errorf("notification sound: %s is a directory", path)
+		if !IsName(name) {
+			return "", fmt.Errorf("notification sound: %q is not a file name", name)
 		}
-		return path, nil
+		dir := Dir(dataDir)
+		if err := writeShipped(dir); err != nil {
+			return "", err
+		}
+		path = filepath.Join(dir, name)
 	}
-	if name == "" {
-		name = Default
+	info, err := os.Stat(path)
+	if err != nil {
+		return "", fmt.Errorf("notification sound: %w", err)
 	}
-	if !slices.Contains(Names(), name) {
-		return "", fmt.Errorf("notification sound: no sound named %q", name)
+	if info.IsDir() {
+		return "", fmt.Errorf("notification sound: %s is a directory", path)
 	}
-	dir := filepath.Join(dataDir, "sounds")
-	if err := writeShipped(dir); err != nil {
-		return "", err
-	}
-	return filepath.Join(dir, name+".wav"), nil
+	return path, nil
 }
 
 // writeShipped writes every shipped sound missing from dir, keeping files already there, which may be the user's own.
@@ -80,8 +113,8 @@ func writeShipped(dir string) error {
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return fmt.Errorf("create sounds dir: %w", err)
 	}
-	for _, name := range Names() {
-		path := filepath.Join(dir, name+".wav")
+	for _, name := range Shipped() {
+		path := filepath.Join(dir, name)
 		_, err := os.Stat(path)
 		if err == nil {
 			continue
@@ -89,7 +122,7 @@ func writeShipped(dir string) error {
 		if !errors.Is(err, fs.ErrNotExist) {
 			return fmt.Errorf("notification sound: %w", err)
 		}
-		data, err := shipped.ReadFile("sounds/" + name + ".wav")
+		data, err := shipped.ReadFile("sounds/" + name)
 		if err != nil {
 			panic("invariant: a listed sound is not embedded")
 		}

@@ -29,7 +29,7 @@ func optionDocs() map[string]string {
 		"notifications.popup":                             "Whether to show a desktop notification, through the terminal.",
 		"notifications.when_unfocused":                    "Whether to also notify about messages in the open channel while the terminal window is unfocused. Requires a terminal that reports focus.",
 		"notifications.sound.enabled":                     "Whether to play the sound for each message that notifies, with or without the popup.",
-		"notifications.sound.name":                        "One of the sounds amitty ships, written to $XDG_DATA_HOME/amitty/sounds on first use. The settings panel plays each as you browse them.",
+		"notifications.sound.name":                        "A file in $XDG_DATA_HOME/amitty/sounds, where amitty writes the sounds it ships on first use; files of your own dropped there, in any format, can be picked too. The settings panel plays each as you browse them.",
 		"notifications.sound.path":                        "Your own sound file, such as \"~/sounds/ping.ogg\", played in place of name; \"\" plays name.",
 		"notifications.sound.command":                     "The program that plays it, with {} for the file, such as \"mpv --no-video {}\"; \"\" tries ffplay, pw-play, paplay and aplay, in order.",
 		"downloads.mode":                                  "\"ask\" asks where to save, starting in dir; \"dir\" saves straight into dir, numbering the name if it is taken, as in \"photo (1).png\".",

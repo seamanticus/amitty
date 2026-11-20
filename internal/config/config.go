@@ -122,7 +122,7 @@ type (
 	NotificationSound struct {
 		// Whether to play the sound for each message that notifies, with or without the popup.
 		Enabled bool `toml:"enabled"`
-		// One of the sounds amitty ships, written to $XDG_DATA_HOME/amitty/sounds on first use. The settings panel plays each as you browse them.
+		// A file in $XDG_DATA_HOME/amitty/sounds, where amitty writes the sounds it ships on first use; files of your own dropped there, in any format, can be picked too. The settings panel plays each as you browse them.
 		Name SoundName `toml:"name"`
 		// Your own sound file, such as "~/sounds/ping.ogg", played in place of name; "" plays name.
 		Path string `toml:"path"`

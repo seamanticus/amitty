@@ -66,19 +66,21 @@ func TestPath(t *testing.T) {
 			t.Fatal("no error")
 		}
 	})
-	t.Run("unknown name", func(t *testing.T) {
-		if _, err := Path("", "nope", dir); err == nil {
-			t.Fatal("no error")
+	t.Run("missing or unsafe name", func(t *testing.T) {
+		for _, name := range []string{"nope.wav", "../x.wav", "a/b.wav", ".."} {
+			if _, err := Path("", name, dir); err == nil {
+				t.Errorf("Path(%q): no error", name)
+			}
 		}
 	})
 	t.Run("shipped sounds are written once", func(t *testing.T) {
 		got, err := Path("", "", dir)
-		if err != nil || got != filepath.Join(dir, "sounds", Default+".wav") {
+		if err != nil || got != filepath.Join(Dir(dir), Default) {
 			t.Fatalf("Path = %q, %v", got, err)
 		}
-		for _, name := range Names() {
-			want, _ := shipped.ReadFile("sounds/" + name + ".wav")
-			if data, err := os.ReadFile(filepath.Join(dir, "sounds", name+".wav")); err != nil || !bytes.Equal(data, want) {
+		for _, name := range Shipped() {
+			want, _ := shipped.ReadFile("sounds/" + name)
+			if data, err := os.ReadFile(filepath.Join(Dir(dir), name)); err != nil || !bytes.Equal(data, want) {
 				t.Fatalf("%s not written: %v", name, err)
 			}
 		}
@@ -86,25 +88,55 @@ func TestPath(t *testing.T) {
 		if err := os.WriteFile(got, []byte("mine"), 0o600); err != nil {
 			t.Fatal(err)
 		}
-		if _, err := Path("", "pop", dir); err != nil {
+		if _, err := Path("", "pop.wav", dir); err != nil {
 			t.Fatal(err)
 		}
 		if data, _ := os.ReadFile(got); string(data) != "mine" {
 			t.Fatal("the file in place was replaced")
 		}
 	})
+	t.Run("a file of the user's own is played by name", func(t *testing.T) {
+		mine := filepath.Join(Dir(dir), "horn.mp3")
+		if err := os.WriteFile(mine, nil, 0o600); err != nil {
+			t.Fatal(err)
+		}
+		if got, err := Path("", "horn.mp3", dir); got != mine || err != nil {
+			t.Fatalf("Path = %q, %v", got, err)
+		}
+	})
 }
 
 // evidence: witnesses
 func TestShipped(t *testing.T) {
-	names := Names()
+	names := Shipped()
 	if len(names) < 12 || !slices.Contains(names, Default) {
 		t.Fatalf("names = %q, want at least 12 with %q", names, Default)
 	}
 	for _, name := range names {
-		data, err := shipped.ReadFile("sounds/" + name + ".wav")
+		data, err := shipped.ReadFile("sounds/" + name)
 		if err != nil || len(data) < 44 || string(data[:4]) != "RIFF" || string(data[8:12]) != "WAVE" {
 			t.Errorf("%s is not a WAV file: %v", name, err)
 		}
+	}
+}
+
+// evidence: witnesses
+func TestNames(t *testing.T) {
+	dir := t.TempDir()
+	for _, name := range []string{"horn.mp3", "a.ogg", ".hidden", Default} {
+		if err := os.WriteFile(filepath.Join(dir, name), nil, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.Mkdir(filepath.Join(dir, "sub"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	want := slices.Sorted(slices.Values(append(Shipped(), "a.ogg", "horn.mp3")))
+	if got := Names(dir); !slices.Equal(got, want) {
+		t.Fatalf("Names = %q, want %q", got, want)
+	}
+	// A missing dir offers the shipped sounds alone.
+	if got := Names(filepath.Join(dir, "missing")); !slices.Equal(got, Shipped()) {
+		t.Fatalf("Names = %q, want the shipped sounds", got)
 	}
 }
