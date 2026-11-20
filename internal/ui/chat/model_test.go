@@ -47,7 +47,10 @@ func TestModelView(t *testing.T) {
 
 func TestModelResized(t *testing.T) {
 	m := newTestModel(t)
-	below120 := m.cfg.UI.Resize.IsLessThan
+	below120, err := config.ParseTerminalWidth("120")
+	if err != nil {
+		t.Fatal(err)
+	}
 	pixels, err := config.ParseTerminalWidth("1200px")
 	if err != nil {
 		t.Fatal(err)

@@ -31,7 +31,7 @@ func optionDocs() map[string]string {
 		"typing_indicator.receive":         "Whether to receive typing status.",
 		"sidebar.visible":                  "Whether the pane is visible at start-up. It can still be toggled at runtime with its toggle keybind.",
 		"sidebar.width_percent":            "Percentage (%) of the available width used by the pane. Valid values are 1-99. Invalid values fall back to 20.",
-		"sidebar.resize.width_percent":     "Percentage (%) of the available width the sidebar takes while resized, in place of width_percent, with or without the members tree folded in. Valid values are 1-99. Invalid values fall back to 35.",
+		"sidebar.resize.width_percent":     "Percentage (%) of the available width the sidebar takes while resized, in place of width_percent, with or without the members tree folded in. Valid values are 1-99. Invalid values fall back to 30.",
 		"members_tree.visible":             "Whether the pane is visible at start-up. It can still be toggled at runtime with its toggle keybind.",
 		"members_tree.width_percent":       "Percentage (%) of the available width used by the pane. Valid values are 1-99. Invalid values fall back to 20.",
 		"members_tree.fold":                "Whether the members tree is folded under the guilds tree, in the sidebar: \"off\", \"on\", or \"auto\" while the layout is resized (see ui.resize.is_less_than).",

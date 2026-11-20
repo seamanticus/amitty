@@ -113,7 +113,7 @@ The sidebar while the layout is resized, the terminal being narrower than ui.res
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `width_percent` | `35` | Percentage (%) of the available width the sidebar takes while resized, in place of width_percent, with or without the members tree folded in. Valid values are 1-99. Invalid values fall back to 35. |
+| `width_percent` | `30` | Percentage (%) of the available width the sidebar takes while resized, in place of width_percent, with or without the members tree folded in. Valid values are 1-99. Invalid values fall back to 30. |
 
 ## `[members_tree]`
 
@@ -280,7 +280,7 @@ The layout for narrow terminals.
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `is_less_than` | `120` | The terminal width below which the layout is resized (sidebar.resize, members_tree.fold): columns such as 120, or pixels such as "1200px". 0 turns it off. A terminal that does not report its size in pixels is never resized by pixels. |
+| `is_less_than` | `100` | The terminal width below which the layout is resized (sidebar.resize, members_tree.fold): columns such as 120, or pixels such as "1200px". 0 turns it off. A terminal that does not report its size in pixels is never resized by pixels. |
 
 ## `[icons]`
 

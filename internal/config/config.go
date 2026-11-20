@@ -203,7 +203,7 @@ type (
 	}
 
 	SidebarResizeConfig struct {
-		// Percentage (%) of the available width the sidebar takes while resized, in place of width_percent, with or without the members tree folded in. Valid values are 1-99. Invalid values fall back to 35.
+		// Percentage (%) of the available width the sidebar takes while resized, in place of width_percent, with or without the members tree folded in. Valid values are 1-99. Invalid values fall back to 30.
 		WidthPercent int `toml:"width_percent"`
 	}
 
@@ -310,7 +310,7 @@ func Default() Config {
 			PaneConfig: pane,
 			Markers:    SidebarMarkersConfig{Expanded: "▾ ", Collapsed: "▸ "},
 			Indents:    SidebarIndentsConfig{Guild: 2, Category: 1, Channel: 2, Forum: 2, GroupDM: 1, DM: 2},
-			Resize:     SidebarResizeConfig{WidthPercent: 35},
+			Resize:     SidebarResizeConfig{WidthPercent: 30},
 		},
 		MembersTree: MembersTreeConfig{PaneConfig: pane, Fold: FoldAuto, FoldHeightPercent: 50},
 		Composer:    ComposerConfig{MaxHeight: 10},
@@ -434,7 +434,7 @@ func (cfg *Config) applyDefaults() {
 		tree.FoldHeightPercent = 50
 	}
 	if resize := &cfg.Sidebar.Resize; resize.WidthPercent <= 0 || resize.WidthPercent >= 100 {
-		resize.WidthPercent = 35
+		resize.WidthPercent = 30
 	}
 
 	if cfg.DateSeparator.Format == "" {

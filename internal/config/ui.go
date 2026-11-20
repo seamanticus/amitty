@@ -328,7 +328,7 @@ func defaultUI() UIConfig {
 			Limit:    20,
 			MinWidth: 20,
 		},
-		Resize: ResizeUIConfig{IsLessThan: TerminalWidth{size: 120}},
+		Resize: ResizeUIConfig{IsLessThan: TerminalWidth{size: 100}},
 	}
 }
 

@@ -7,12 +7,12 @@
 | Guilds tree (left) | Your DMs and group DMs, then your guilds, in Discord's order and folders, with their channels and threads. Unread ones stand out. |
 | Messages list (middle) | The selected channel's messages, newest at the bottom, with replies, embeds, reactions and image previews. |
 | Composer (bottom) | What you type, with the reply or edit in progress and any attachments. |
-| Members tree (right) | The channel's members by role, or a DM's recipients. `enter` on one shows their profile: names, server tag, status and activities, roles, member and account dates, badges, your relationship and note; `y` copies their ID and `esc` closes it. In a terminal narrower than 120 columns it folds under the guilds tree; see `members_tree.fold` in the [configuration](config.md). |
+| Members tree (right) | The channel's members by role, or a DM's recipients. `enter` on one shows their profile: names, server tag, status and activities, roles, member and account dates, badges, your relationship and note; `y` copies their ID and `esc` closes it. In a terminal narrower than 100 columns it folds under the guilds tree; see `members_tree.fold` in the [configuration](config.md). |
 
 `alt+g` and `alt+y` hide or show the guilds and members trees.
-In a terminal narrower than `ui.resize.is_less_than` (120 columns, or
+In a terminal narrower than `ui.resize.is_less_than` (100 columns, or
 pixels such as `"1200px"`; 0 turns it off) the guilds tree widens to
-`sidebar.resize.width_percent` (35%), and the members tree folds under it.
+`sidebar.resize.width_percent` (30%), and the members tree folds under it.
 `alt+.` hides or shows the keybind help at the bottom, and `ctrl+.`
 switches it between compact and full: the help always lists the keys
 of the pane that has focus.
