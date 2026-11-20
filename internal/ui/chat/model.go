@@ -654,6 +654,9 @@ func (m Model) View() tui.Widget {
 	}
 	if m.guildsTreeVisible || folded {
 		width := m.cfg.Sidebar.WidthPercent
+		if folded {
+			width = m.cfg.MembersTree.FoldWidthPercent
+		}
 		main = row.New(
 			m.sidebarView(folded).Width(layout.FillPortion(width)),
 			column.New(main).Width(layout.FillPortion(100-width)),

@@ -208,6 +208,8 @@ type (
 		FoldBelow FoldWidth `toml:"fold_below"`
 		// Percentage (%) of the folded column's height the members tree takes, below the guilds tree. Valid values are 1-99. Invalid values fall back to 50.
 		FoldHeightPercent int `toml:"fold_height_percent"`
+		// Percentage (%) of the available width the folded column takes, in place of sidebar.width_percent, as a narrow terminal leaves the sidebar's few columns for two trees. Valid values are 1-99. Invalid values fall back to 35.
+		FoldWidthPercent int `toml:"fold_width_percent"`
 	}
 
 	Config struct {
@@ -306,7 +308,7 @@ func Default() Config {
 			Markers:    SidebarMarkersConfig{Expanded: "▾ ", Collapsed: "▸ "},
 			Indents:    SidebarIndentsConfig{Guild: 2, Category: 1, Channel: 2, Forum: 2, GroupDM: 1, DM: 2},
 		},
-		MembersTree: MembersTreeConfig{PaneConfig: pane, Fold: FoldAuto, FoldBelow: FoldWidth{size: 120}, FoldHeightPercent: 50},
+		MembersTree: MembersTreeConfig{PaneConfig: pane, Fold: FoldAuto, FoldBelow: FoldWidth{size: 120}, FoldHeightPercent: 50, FoldWidthPercent: 35},
 		Composer:    ComposerConfig{MaxHeight: 10},
 
 		UI: defaultUI(),
@@ -426,6 +428,9 @@ func (cfg *Config) applyDefaults() {
 	}
 	if tree := &cfg.MembersTree; tree.FoldHeightPercent <= 0 || tree.FoldHeightPercent >= 100 {
 		tree.FoldHeightPercent = 50
+	}
+	if tree := &cfg.MembersTree; tree.FoldWidthPercent <= 0 || tree.FoldWidthPercent >= 100 {
+		tree.FoldWidthPercent = 35
 	}
 
 	if cfg.DateSeparator.Format == "" {

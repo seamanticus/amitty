@@ -168,6 +168,9 @@
 # Percentage (%) of the folded column's height the members tree takes, below the guilds tree. Valid values are 1-99. Invalid values fall back to 50.
 # fold_height_percent = 50
 
+# Percentage (%) of the available width the folded column takes, in place of sidebar.width_percent, as a narrow terminal leaves the sidebar's few columns for two trees. Valid values are 1-99. Invalid values fall back to 35.
+# fold_width_percent = 35
+
 [composer]
 
 # Maximum height (in newline-separated rows) the composer grows to before it starts scrolling internally.
