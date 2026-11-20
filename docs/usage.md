@@ -138,8 +138,9 @@ your status is Do not disturb. The chime is written on first use to
 
 It plays through the first of `ffplay` (any format), `pw-play`,
 `paplay` and `aplay` found, or `notifications.sound.command`, such as
-`"mpv --no-video {}"`. `notifications.sound.enabled = false` silences
-it; `alone = true` plays it even with the notification turned off.
+`"mpv --no-video {}"`. `notifications.popup` and
+`notifications.sound.enabled` switch the notification and the chime on
+or off independently, so `popup = false` leaves the chime alone.
 
 ## Settings
 

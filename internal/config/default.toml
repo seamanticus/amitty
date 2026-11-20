@@ -102,7 +102,8 @@
 
 [notifications]
 
-# enabled = true
+# Whether to show a desktop notification, through the terminal.
+# popup = true
 
 # Whether to also notify about messages in the open channel while the terminal window is unfocused.
 # Requires a terminal that reports focus.
@@ -111,11 +112,8 @@
 # A sound played with each notification.
 [notifications.sound]
 
-# Whether to play the sound with each notification.
+# Whether to play the sound for each message that notifies, with or without the popup.
 # enabled = true
-
-# Whether to play the sound even while notifications.enabled is false, in place of the notification.
-# alone = false
 
 # The sound file, such as "~/sounds/ping.ogg"; "" plays $XDG_DATA_HOME/amitty/sounds/notification.wav, the jingle amitty writes there on first use.
 # path = ""

@@ -56,8 +56,8 @@ func (m Model) notify(message gateway.MessageCreateEvent) tui.Cmd {
 // notification shows a desktop notification for message if it mentions the user, and plays the sound with it.
 func (m Model) notification(message gateway.MessageCreateEvent) tui.Msg {
 	notifications := m.cfg.Notifications
-	popup := notifications.Enabled
-	chime := notifications.Sound.Enabled && (popup || notifications.Sound.Alone)
+	popup := notifications.Popup
+	chime := notifications.Sound.Enabled
 	if !popup && !chime || m.cfg.Status == discord.DoNotDisturbStatus {
 		return nil
 	}

@@ -109,7 +109,8 @@ type (
 	}
 
 	Notifications struct {
-		Enabled bool `toml:"enabled"`
+		// Whether to show a desktop notification, through the terminal.
+		Popup bool `toml:"popup"`
 		// Whether to also notify about messages in the open channel while the terminal window is unfocused.
 		// Requires a terminal that reports focus.
 		WhenUnfocused bool `toml:"when_unfocused"`
@@ -118,10 +119,8 @@ type (
 	}
 
 	NotificationSound struct {
-		// Whether to play the sound with each notification.
+		// Whether to play the sound for each message that notifies, with or without the popup.
 		Enabled bool `toml:"enabled"`
-		// Whether to play the sound even while notifications.enabled is false, in place of the notification.
-		Alone bool `toml:"alone"`
 		// The sound file, such as "~/sounds/ping.ogg"; "" plays $XDG_DATA_HOME/amitty/sounds/notification.wav, the jingle amitty writes there on first use.
 		Path string `toml:"path"`
 		// The program that plays it, with {} for the file, such as "mpv --no-video {}"; "" tries ffplay, pw-play, paplay and aplay, in order.
@@ -328,7 +327,7 @@ func Default() Config {
 		Picker:          PickerConfig{Width: 80, Height: 25},
 		Timestamps:      Timestamps{Enabled: true, Format: "3:04PM"},
 		DateSeparator:   DateSeparator{Enabled: true, Format: "January 2, 2006", Character: "─"},
-		Notifications:   Notifications{Enabled: true, WhenUnfocused: true, Sound: NotificationSound{Enabled: true}},
+		Notifications:   Notifications{Popup: true, WhenUnfocused: true, Sound: NotificationSound{Enabled: true}},
 		TypingIndicator: TypingIndicator{Send: true, Receive: true},
 		Sidebar: SidebarConfig{
 			PaneConfig: pane,

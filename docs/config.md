@@ -67,7 +67,7 @@ Every option of `~/.config/amitty/config.toml`, by its TOML key, with its defaul
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `enabled` | `true` |  |
+| `popup` | `true` | Whether to show a desktop notification, through the terminal. |
 | `when_unfocused` | `true` | Whether to also notify about messages in the open channel while the terminal window is unfocused. Requires a terminal that reports focus. |
 
 ## `[notifications.sound]`
@@ -76,8 +76,7 @@ A sound played with each notification.
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `enabled` | `true` | Whether to play the sound with each notification. |
-| `alone` | `false` | Whether to play the sound even while notifications.enabled is false, in place of the notification. |
+| `enabled` | `true` | Whether to play the sound for each message that notifies, with or without the popup. |
 | `path` | `""` | The sound file, such as "~/sounds/ping.ogg"; "" plays $XDG_DATA_HOME/amitty/sounds/notification.wav, the jingle amitty writes there on first use. |
 | `command` | `""` | The program that plays it, with {} for the file, such as "mpv --no-video {}"; "" tries ffplay, pw-play, paplay and aplay, in order. |
 
