@@ -298,18 +298,27 @@ func (m Model) drawDefaultMessage(builder *markdown.Builder, message discord.Mes
 	}
 
 	m.drawLayout(builder, message, baseStyle, grouped, content)
+	m.drawAttachments(builder, message.Attachments, baseStyle)
+}
 
+func (m Model) drawAttachments(builder *markdown.Builder, attachments []discord.Attachment, baseStyle tui.Style) {
 	attachmentStyle := tui.MergeStyle(baseStyle, m.cfg.Theme.MessagesList.AttachmentStyle.Style)
-	for _, attachment := range message.Attachments {
-		builder.NewLine()
-		if !m.cfg.UI.MessagesList.Attachments.ShowLinks {
+	cfg := m.cfg.UI.MessagesList.Attachments
+	for _, attachment := range attachments {
+		// A file without a preview keeps its name, or nothing would show it.
+		name := cfg.ShowFilename || !m.showsPreview(attachment)
+		switch {
+		case name && cfg.ShowLinks:
+			builder.NewLine()
+			builder.Write(attachment.Filename+":", attachmentStyle)
+			fallthrough
+		case cfg.ShowLinks:
+			builder.NewLine()
+			builder.Write(attachment.URL, attachmentStyle.Url(attachment.URL))
+		case name:
+			builder.NewLine()
 			builder.Write(attachment.Filename, attachmentStyle)
-			continue
 		}
-
-		builder.Write(attachment.Filename+":", attachmentStyle)
-		builder.NewLine()
-		builder.Write(attachment.URL, attachmentStyle.Url(attachment.URL))
 	}
 }
 

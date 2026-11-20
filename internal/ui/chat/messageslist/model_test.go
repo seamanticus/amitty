@@ -643,3 +643,34 @@ func TestModelDrawReply(t *testing.T) {
 		t.Fatalf("deleted note = %+v, want it in reply_style", last)
 	}
 }
+
+func TestModelDrawAttachments(t *testing.T) {
+	img := discord.Attachment{Filename: "a.png", URL: "https://a", ContentType: "image/png", Width: 2, Height: 1}
+	file := discord.Attachment{Filename: "b.txt", URL: "https://b"}
+	for _, tt := range []struct {
+		name                     string
+		links, filename, preview bool
+		want                     string
+	}{
+		{"defaults", false, false, true, "\nb.txt"},
+		{"filename", false, true, true, "\na.png\nb.txt"},
+		{"links", true, false, true, "\nhttps://a\nb.txt:\nhttps://b"},
+		{"links and filename", true, true, true, "\na.png:\nhttps://a\nb.txt:\nhttps://b"},
+		{"no preview", false, false, false, "\na.png\nb.txt"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			ml := newTestModel(t, testConfig(t))
+			cfg := &ml.cfg.UI.MessagesList.Attachments
+			cfg.ShowLinks, cfg.ShowFilename, cfg.Preview = tt.links, tt.filename, tt.preview
+			var builder markdown.Builder
+			ml.drawAttachments(&builder, []discord.Attachment{img, file}, tcell.StyleDefault)
+			var got strings.Builder
+			for _, span := range builder.Finish() {
+				got.WriteString(span.Text)
+			}
+			if got.String() != tt.want {
+				t.Fatalf("attachments = %q, want %q", got.String(), tt.want)
+			}
+		})
+	}
+}

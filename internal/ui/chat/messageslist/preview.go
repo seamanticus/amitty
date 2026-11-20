@@ -23,8 +23,7 @@ type previewSource struct {
 func (m Model) previewSources(message discord.Message) []previewSource {
 	var sources []previewSource
 	for _, attachment := range message.Attachments {
-		// Videos have dimensions too, but the media proxy answers 415 to a video scaled as an image.
-		if !strings.HasPrefix(attachment.ContentType, "image/") {
+		if !isPreviewable(attachment) {
 			continue
 		}
 		sources = append(sources, previewSource{attachment.Proxy, attachment.Width, attachment.Height})
@@ -46,6 +45,17 @@ func (m Model) previewSources(message discord.Message) []previewSource {
 
 	// Non-image files have no dimensions.
 	return slices.DeleteFunc(sources, func(source previewSource) bool { return source.width == 0 || source.height == 0 })
+}
+
+// isPreviewable reports whether the attachment is an image that can be drawn below its message.
+func isPreviewable(attachment discord.Attachment) bool {
+	// Videos have dimensions too, but the media proxy answers 415 to a video scaled as an image.
+	return strings.HasPrefix(attachment.ContentType, "image/") && attachment.Width != 0 && attachment.Height != 0
+}
+
+// showsPreview reports whether the attachment is drawn as an image below its message.
+func (m Model) showsPreview(attachment discord.Attachment) bool {
+	return m.cfg.UI.MessagesList.Attachments.Preview && isPreviewable(attachment)
 }
 
 // LoadImages returns the command that loads the images of the shown messages, or nil.

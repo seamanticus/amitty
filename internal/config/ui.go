@@ -251,7 +251,10 @@ type (
 	}
 
 	AttachmentsUIConfig struct {
+		// Whether to show the link of each attachment.
 		ShowLinks bool `toml:"show_links"`
+		// Whether to show the file name above an image preview. Other files always show it.
+		ShowFilename bool `toml:"show_filename"`
 		// Attachment MIME types that can be opened or downloaded without confirmation.
 		// Exact types and wildcards such as "image/*" are supported.
 		AllowedMIMETypes MIMETypes `toml:"allowed_mime_types"`
@@ -289,7 +292,6 @@ func defaultUI() UIConfig {
 	left := TitleUIConfig{AlignmentWrapper{tui.HorizontalAlignmentLeft}}
 	round := BorderSetWrapper{tui.BorderSetRound()}
 	attachments := AttachmentsUIConfig{
-		ShowLinks:        true,
 		AllowedMIMETypes: MIMETypes{"image/*", "video/*", "audio/*"},
 		Preview:          true,
 	}

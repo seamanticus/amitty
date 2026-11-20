@@ -278,7 +278,11 @@
 
 [ui.messages_list.attachments]
 
-# show_links = true
+# Whether to show the link of each attachment.
+# show_links = false
+
+# Whether to show the file name above an image preview. Other files always show it.
+# show_filename = false
 
 # Attachment MIME types that can be opened or downloaded without confirmation.
 # Exact types and wildcards such as "image/*" are supported.

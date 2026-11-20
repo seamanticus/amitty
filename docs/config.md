@@ -216,7 +216,8 @@ The tabs of the login screen.
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `show_links` | `true` |  |
+| `show_links` | `false` | Whether to show the link of each attachment. |
+| `show_filename` | `false` | Whether to show the file name above an image preview. Other files always show it. |
 | `allowed_mime_types` | `["image/*", "video/*", "audio/*"]` | Attachment MIME types that can be opened or downloaded without confirmation. Exact types and wildcards such as "image/*" are supported. |
 | `preview` | `true` | Whether to draw image attachments and embedded images below their messages. |
 

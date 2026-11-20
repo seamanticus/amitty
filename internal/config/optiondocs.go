@@ -59,6 +59,8 @@ func optionDocs() map[string]string {
 		"ui.messages_list.spacing":                        "The number of empty rows between messages, except those of a group.",
 		"ui.messages_list.alternate_every":                "Every how many messages one takes theme.messages_list.alternate_style, counted from the oldest loaded; a group of messages counts as one. 0 turns it off.",
 		"ui.messages_list.image_protocol":                 "How avatars and attachment previews are drawn: \"auto\" (by terminal: kitty placeholders in kitty, ghostty and Rio, sixels in foot, half blocks elsewhere), \"kitty\", \"sixel\" or \"halfblocks\".",
+		"ui.messages_list.attachments.show_links":         "Whether to show the link of each attachment.",
+		"ui.messages_list.attachments.show_filename":      "Whether to show the file name above an image preview. Other files always show it.",
 		"ui.messages_list.attachments.allowed_mime_types": "Attachment MIME types that can be opened or downloaded without confirmation. Exact types and wildcards such as \"image/*\" are supported.",
 		"ui.messages_list.attachments.preview":            "Whether to draw image attachments and embedded images below their messages.",
 		"ui.messages_list.avatars.height":                 "The number of rows an avatar takes. It is recommended to use `1` with compact.",
