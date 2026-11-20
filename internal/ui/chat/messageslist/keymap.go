@@ -21,6 +21,12 @@ func (m Model) ShortHelp() []keybind.Keybind {
 		if !ui.IsMe(m.state, selectedMessage.Author.ID) {
 			help = append(help, keybinds.Reply.Keybind)
 		}
+		if m.channel != nil && m.isEditable(messageItem{message: *selectedMessage}, m.channel.ID) {
+			help = append(help, keybinds.Edit.Keybind)
+		}
+		if m.canDeleteMessage(*selectedMessage) {
+			help = append(help, keybinds.DeleteConfirm.Keybind)
+		}
 		if len(selectedMessage.Attachments) != 0 || len(m.selectedURLs()) != 0 {
 			help = append(help, keybinds.Open.Keybind)
 		}
