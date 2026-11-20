@@ -213,9 +213,19 @@ func (m Model) preview(value string) tui.Cmd {
 		if err != nil {
 			return nil
 		}
-		return PreviewMsg{Config: cfg}
+		preview := PreviewMsg{Config: cfg}
+		// A sound is previewed by hearing it, even while path plays another.
+		if value != "" && path == soundOption {
+			browsed := cfg.Notifications.Sound
+			browsed.Path = ""
+			return cmd.Batch{cmd.Task(func() tui.Msg { return preview }), ui.PlaySound(browsed)}
+		}
+		return preview
 	})
 }
+
+// soundOption is the option whose choices are played as they are browsed.
+const soundOption = "notifications.sound.name"
 
 // save writes value to option's line of the file and reports the config the file then gives.
 func (m Model) save(option config.Option, value string) tui.Cmd {
