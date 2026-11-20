@@ -268,7 +268,7 @@ type (
 
 		// Global shortcuts. A keybind is a key such as "ctrl+k", or a list of keys.
 		Keybinds Keybinds `toml:"keybinds"`
-		// A color scheme every style of [theme] starts from, such as "Catppuccin Mocha"; "" keeps the terminal's own colors. Styles set under [theme] override it.
+		// A color scheme every style of [theme] starts from, such as "Catppuccin Mocha", TokyoNight by default; "" keeps the terminal's own colors. Styles set under [theme] override it.
 		// The profiles are listed in docs/themes.md. The profile paints its background and text color everywhere.
 		ThemeProfile string `toml:"theme_profile"`
 		// Whether a theme profile leaves the background to the terminal, keeping its transparency, and paints only text.
@@ -284,7 +284,7 @@ type (
 // Default returns the default configuration.
 func Default() Config {
 	pane := PaneConfig{Visible: true, WidthPercent: 20}
-	return Config{
+	cfg := Config{
 		AutoFocus: true,
 		Mouse:     true,
 		Editor:    "default",
@@ -330,9 +330,14 @@ func Default() Config {
 			GuildStore:        "s-",
 		},
 
-		Keybinds: defaultKeybinds(),
-		Theme:    defaultTheme(),
+		Keybinds:     defaultKeybinds(),
+		ThemeProfile: "TokyoNight",
 	}
+	// The default profile is one of the generated ones, so failing to find it is a bug.
+	if err := cfg.applyProfile(cfg.ThemeProfile); err != nil {
+		panic("invariant: " + err.Error())
+	}
+	return cfg
 }
 
 var dir = sync.OnceValue(func() string {
@@ -392,9 +397,10 @@ func Parse(data []byte) (*Config, error) {
 // decode returns data decoded over the defaults, or over a profile's theme if it names one, before applyDefaults fixes values up.
 func decode(data []byte) (Config, error) {
 	cfg := Default()
-	var profile struct {
+	// A file that names no profile keeps the default one.
+	profile := struct {
 		ThemeProfile string `toml:"theme_profile"`
-	}
+	}{cfg.ThemeProfile}
 	if _, err := toml.Decode(string(data), &profile); err != nil {
 		return Config{}, fmt.Errorf("failed to decode config: %w", err)
 	}

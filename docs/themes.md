@@ -1,7 +1,8 @@
 # Themes
 
-amitty draws in your terminal's own colors by default. A **theme
-profile** recolors every style at once from a color scheme:
+amitty draws in the **TokyoNight** theme profile by default. A theme
+profile recolors every style at once from a color scheme; pick another,
+or `""` to draw in your terminal's own colors:
 
 ```toml
 theme_profile = "Catppuccin Mocha"

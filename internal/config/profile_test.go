@@ -87,13 +87,23 @@ func TestLoadProfile(t *testing.T) {
 			t.Fatalf("url color = %v, want Nord's cyan", got)
 		}
 	})
-	t.Run("no profile keeps the terminal's colors and no alternate tint", func(t *testing.T) {
+	t.Run("a file naming none takes TokyoNight", func(t *testing.T) {
 		cfg, err := load(t, "")
 		if err != nil {
 			t.Fatal(err)
 		}
-		if cfg.Theme.MessagesList.AlternateStyle.Style != tcell.StyleDefault {
-			t.Fatal("an alternate tint without a profile")
+		tokyo, _ := profilePalette("TokyoNight")
+		if cfg.ThemeProfile != "TokyoNight" || cfg.Theme.MessagesList.MentionStyle.GetForeground() != rgb(tokyo.colors[4]) {
+			t.Fatalf("profile %q, mention color %v", cfg.ThemeProfile, cfg.Theme.MessagesList.MentionStyle.GetForeground())
+		}
+	})
+	t.Run("none keeps the terminal's colors and no alternate tint", func(t *testing.T) {
+		cfg, err := load(t, `theme_profile = ""`)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if cfg.Theme.MessagesList.AlternateStyle.Style != tcell.StyleDefault || cfg.BaseStyle() != tcell.StyleDefault {
+			t.Fatal("colors without a profile")
 		}
 	})
 	t.Run("an unknown profile fails", func(t *testing.T) {

@@ -20,7 +20,7 @@ Every option of `~/.config/amitty/config.toml`, by its TOML key, with its defaul
 | `hide_blocked_users` | `true` |  |
 | `hide_deleted_users` | `true` | Whether to leave DMs with deleted accounts out of the guilds tree's Direct Messages and the channels picker. |
 | `messages_limit` | `50` | The number of messages to fetch when a text-based channel is selected, from 1 to 100. |
-| `theme_profile` | `""` | A color scheme every style of [theme] starts from, such as "Catppuccin Mocha"; "" keeps the terminal's own colors. Styles set under [theme] override it. The profiles are listed in docs/themes.md. The profile paints its background and text color everywhere. |
+| `theme_profile` | `"TokyoNight"` | A color scheme every style of [theme] starts from, such as "Catppuccin Mocha", TokyoNight by default; "" keeps the terminal's own colors. Styles set under [theme] override it. The profiles are listed in docs/themes.md. The profile paints its background and text color everywhere. |
 | `inherit_background` | `false` | Whether a theme profile leaves the background to the terminal, keeping its transparency, and paints only text. |
 
 ## `[markdown]`
@@ -476,22 +476,22 @@ Styles of the widgets, each written as
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `normal_style` | `{ attributes = "dim" }` |  |
-| `active_style` | `{ foreground = "green", attributes = "bold" }` | The style used while the widget is focused. |
+| `normal_style` | `{ foreground = "#61698B" }` |  |
+| `active_style` | `{ foreground = "#7AA2F7", attributes = "bold" }` | The style used while the widget is focused. |
 
 ## `[theme.footer]`
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `normal_style` | `{ attributes = "dim" }` |  |
-| `active_style` | `{ foreground = "green", attributes = "bold" }` | The style used while the widget is focused. |
+| `normal_style` | `{ foreground = "#61698B" }` |  |
+| `active_style` | `{ foreground = "#7AA2F7", attributes = "bold" }` | The style used while the widget is focused. |
 
 ## `[theme.border]`
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `normal_style` | `{ attributes = "dim" }` |  |
-| `active_style` | `{ foreground = "green", attributes = "bold" }` | The style used while the widget is focused. |
+| `normal_style` | `{ foreground = "#3F4254" }` |  |
+| `active_style` | `{ foreground = "#7AA2F7", attributes = "bold" }` | The style used while the widget is focused. |
 
 ## `[theme.guilds_tree]`
 
@@ -499,11 +499,11 @@ The status styles are those of direct-message recipients.
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `graphics_color` | `"default"` | The color of the lines that give the tree its shape. |
-| `online_style` | `{ foreground = "green" }` |  |
-| `idle_style` | `{ foreground = "yellow" }` |  |
-| `dnd_style` | `{ foreground = "red" }` |  |
-| `offline_style` | `{ foreground = "gray" }` |  |
+| `graphics_color` | `"#3F4254"` | The color of the lines that give the tree its shape. |
+| `online_style` | `{ foreground = "#9ECE6A" }` |  |
+| `idle_style` | `{ foreground = "#E0AF68" }` |  |
+| `dnd_style` | `{ foreground = "#F7768E" }` |  |
+| `offline_style` | `{ foreground = "#61698B" }` |  |
 
 ## `[theme.members_tree]`
 
@@ -511,54 +511,54 @@ The status styles are those of the dot before each member.
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `graphics_color` | `"default"` | The color of the lines that give the tree its shape. |
-| `online_style` | `{ foreground = "green" }` |  |
-| `idle_style` | `{ foreground = "yellow" }` |  |
-| `dnd_style` | `{ foreground = "red" }` |  |
-| `offline_style` | `{ foreground = "gray" }` |  |
+| `graphics_color` | `"#3F4254"` | The color of the lines that give the tree its shape. |
+| `online_style` | `{ foreground = "#9ECE6A" }` |  |
+| `idle_style` | `{ foreground = "#E0AF68" }` |  |
+| `dnd_style` | `{ foreground = "#F7768E" }` |  |
+| `offline_style` | `{ foreground = "#61698B" }` |  |
 
 ## `[theme.scroll_bar]`
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `track_style` | `{ attributes = "dim" }` |  |
-| `thumb_style` | `{}` |  |
+| `track_style` | `{ foreground = "#3F4254" }` |  |
+| `thumb_style` | `{ foreground = "#61698B" }` |  |
 
 ## `[theme.messages_list]`
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `author_style` | `{ foreground = "blue", attributes = "bold" }` | The style of an author's name, such as `{ attributes = "bold" }`, `"dim"` or none for regular. |
+| `author_style` | `{ foreground = "#7AA2F7", attributes = "bold" }` | The style of an author's name, such as `{ attributes = "bold" }`, `"dim"` or none for regular. |
 | `author_color` | `"role"` | The color of an author's name: "role" takes the color of their highest colored role, falling back to author_style's foreground; "style" always takes author_style's foreground. |
-| `mention_style` | `{ foreground = "blue", attributes = "bold" }` |  |
-| `emoji_style` | `{ foreground = "green" }` |  |
-| `url_style` | `{ foreground = "blue" }` |  |
-| `attachment_style` | `{ foreground = "yellow" }` |  |
-| `reaction_style` | `{ attributes = "dim" }` |  |
-| `own_reaction_style` | `{ attributes = "bold" }` |  |
-| `message_style` | `{}` |  |
-| `selected_message_style` | `{ attributes = "reverse" }` |  |
-| `alternate_style` | `{}` | The style merged under every ui.messages_list.alternate_every-th message, such as `{ background = "#24273a" }`, to tell messages apart. A theme profile tints it from its background. |
-| `reply_style` | `{ attributes = ["dim","italic"] }` | The style of the line above a reply quoting the message it answers. Its background, if set, fills the line, setting it apart from the reply and the alternate tint. A theme profile tints it slightly. |
+| `mention_style` | `{ foreground = "#7AA2F7", attributes = "bold" }` |  |
+| `emoji_style` | `{ foreground = "#9ECE6A" }` |  |
+| `url_style` | `{ foreground = "#7DCFFF" }` |  |
+| `attachment_style` | `{ foreground = "#E0AF68" }` |  |
+| `reaction_style` | `{ foreground = "#61698B" }` |  |
+| `own_reaction_style` | `{ foreground = "#BB9AF7", attributes = "bold" }` |  |
+| `message_style` | `{ foreground = "#C0CAF5" }` |  |
+| `selected_message_style` | `{ background = "#313B58" }` |  |
+| `alternate_style` | `{ background = "#242632" }` | The style merged under every ui.messages_list.alternate_every-th message, such as `{ background = "#24273a" }`, to tell messages apart. A theme profile tints it from its background. |
+| `reply_style` | `{ foreground = "#61698B", background = "#2E303F", attributes = "italic" }` | The style of the line above a reply quoting the message it answers. Its background, if set, fills the line, setting it apart from the reply and the alternate tint. A theme profile tints it slightly. |
 
 ## `[theme.messages_list.embeds]`
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `provider_style` | `{ attributes = ["dim","italic"] }` |  |
-| `author_style` | `{ attributes = "italic" }` |  |
-| `title_style` | `{ foreground = "blue", attributes = "bold" }` |  |
-| `description_style` | `{ attributes = "dim" }` |  |
-| `field_name_style` | `{ attributes = "bold", underline = "solid" }` |  |
-| `field_value_style` | `{}` |  |
-| `footer_style` | `{ attributes = ["dim","italic"] }` |  |
-| `url_style` | `{ foreground = "blue", underline = "solid" }` |  |
+| `provider_style` | `{ foreground = "#61698B", attributes = "italic" }` |  |
+| `author_style` | `{ foreground = "#C0CAF5", attributes = "italic" }` |  |
+| `title_style` | `{ foreground = "#7AA2F7", attributes = "bold" }` |  |
+| `description_style` | `{ foreground = "#61698B" }` |  |
+| `field_name_style` | `{ foreground = "#C0CAF5", attributes = "bold", underline = "solid" }` |  |
+| `field_value_style` | `{ foreground = "#C0CAF5" }` |  |
+| `footer_style` | `{ foreground = "#61698B", attributes = "italic" }` |  |
+| `url_style` | `{ foreground = "#7DCFFF", underline = "solid" }` |  |
 
 ## `[theme.autocomplete]`
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `selected_style` | `{ attributes = "reverse" }` |  |
+| `selected_style` | `{ background = "#313B58" }` |  |
 
 ## `[theme.dialog]`
 
@@ -571,16 +571,16 @@ The status styles are those of the dot before each member.
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `short_key_style` | `{ attributes = "dim" }` |  |
-| `short_desc_style` | `{}` |  |
-| `full_key_style` | `{ attributes = "dim" }` |  |
-| `full_desc_style` | `{}` |  |
+| `short_key_style` | `{ foreground = "#61698B" }` |  |
+| `short_desc_style` | `{ foreground = "#C0CAF5" }` |  |
+| `full_key_style` | `{ foreground = "#61698B" }` |  |
+| `full_desc_style` | `{ foreground = "#C0CAF5" }` |  |
 
 ## `[theme.profile]`
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `owner_style` | `{ foreground = "yellow", attributes = "bold" }` | The style of the line marking the server's owner. |
+| `owner_style` | `{ foreground = "#BB9AF7", attributes = "bold" }` | The style of the line marking the server's owner. |
 
 <!-- nav -->
 

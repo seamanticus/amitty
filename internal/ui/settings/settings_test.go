@@ -116,10 +116,10 @@ func TestChoice(t *testing.T) {
 		if data, _ := os.ReadFile(path); len(data) != 0 {
 			t.Fatalf("a preview wrote the file: %q", data)
 		}
-		// Leaving after browsing shows the file's own config again.
+		// Leaving after browsing shows the file's own config again, which for an empty file has the default profile.
 		m.previewed = `"Nord"`
 		m, command := m.Update(Msg{backMsg{}})
-		if _, msg := run(t, m, command); msg == nil || msg.(PreviewMsg).Config.ThemeProfile != "" {
+		if _, msg := run(t, m, command); msg == nil || msg.(PreviewMsg).Config.ThemeProfile != config.Default().ThemeProfile {
 			t.Fatalf("message = %#v, want the file's config back", msg)
 		}
 	})

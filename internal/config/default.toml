@@ -43,9 +43,9 @@
 # The number of messages to fetch when a text-based channel is selected, from 1 to 100.
 # messages_limit = 50
 
-# A color scheme every style of [theme] starts from, such as "Catppuccin Mocha"; "" keeps the terminal's own colors. Styles set under [theme] override it.
+# A color scheme every style of [theme] starts from, such as "Catppuccin Mocha", TokyoNight by default; "" keeps the terminal's own colors. Styles set under [theme] override it.
 # The profiles are listed in docs/themes.md. The profile paints its background and text color everywhere.
-# theme_profile = ""
+# theme_profile = "TokyoNight"
 
 # Whether a theme profile leaves the background to the terminal, keeping its transparency, and paints only text.
 # inherit_background = false
@@ -666,110 +666,110 @@
 
 [theme.title]
 
-# normal_style = { attributes = "dim" }
+# normal_style = { foreground = "#61698B" }
 
 # The style used while the widget is focused.
-# active_style = { foreground = "green", attributes = "bold" }
+# active_style = { foreground = "#7AA2F7", attributes = "bold" }
 
 [theme.footer]
 
-# normal_style = { attributes = "dim" }
+# normal_style = { foreground = "#61698B" }
 
 # The style used while the widget is focused.
-# active_style = { foreground = "green", attributes = "bold" }
+# active_style = { foreground = "#7AA2F7", attributes = "bold" }
 
 [theme.border]
 
-# normal_style = { attributes = "dim" }
+# normal_style = { foreground = "#3F4254" }
 
 # The style used while the widget is focused.
-# active_style = { foreground = "green", attributes = "bold" }
+# active_style = { foreground = "#7AA2F7", attributes = "bold" }
 
 # The status styles are those of direct-message recipients.
 [theme.guilds_tree]
 
 # The color of the lines that give the tree its shape.
-# graphics_color = "default"
+# graphics_color = "#3F4254"
 
-# online_style = { foreground = "green" }
+# online_style = { foreground = "#9ECE6A" }
 
-# idle_style = { foreground = "yellow" }
+# idle_style = { foreground = "#E0AF68" }
 
-# dnd_style = { foreground = "red" }
+# dnd_style = { foreground = "#F7768E" }
 
-# offline_style = { foreground = "gray" }
+# offline_style = { foreground = "#61698B" }
 
 # The status styles are those of the dot before each member.
 [theme.members_tree]
 
 # The color of the lines that give the tree its shape.
-# graphics_color = "default"
+# graphics_color = "#3F4254"
 
-# online_style = { foreground = "green" }
+# online_style = { foreground = "#9ECE6A" }
 
-# idle_style = { foreground = "yellow" }
+# idle_style = { foreground = "#E0AF68" }
 
-# dnd_style = { foreground = "red" }
+# dnd_style = { foreground = "#F7768E" }
 
-# offline_style = { foreground = "gray" }
+# offline_style = { foreground = "#61698B" }
 
 [theme.scroll_bar]
 
-# track_style = { attributes = "dim" }
+# track_style = { foreground = "#3F4254" }
 
-# thumb_style = {}
+# thumb_style = { foreground = "#61698B" }
 
 [theme.messages_list]
 
 # The style of an author's name, such as `{ attributes = "bold" }`, `"dim"` or none for regular.
-# author_style = { foreground = "blue", attributes = "bold" }
+# author_style = { foreground = "#7AA2F7", attributes = "bold" }
 
 # The color of an author's name: "role" takes the color of their highest colored role, falling back to author_style's foreground; "style" always takes author_style's foreground.
 # author_color = "role"
 
-# mention_style = { foreground = "blue", attributes = "bold" }
+# mention_style = { foreground = "#7AA2F7", attributes = "bold" }
 
-# emoji_style = { foreground = "green" }
+# emoji_style = { foreground = "#9ECE6A" }
 
-# url_style = { foreground = "blue" }
+# url_style = { foreground = "#7DCFFF" }
 
-# attachment_style = { foreground = "yellow" }
+# attachment_style = { foreground = "#E0AF68" }
 
-# reaction_style = { attributes = "dim" }
+# reaction_style = { foreground = "#61698B" }
 
-# own_reaction_style = { attributes = "bold" }
+# own_reaction_style = { foreground = "#BB9AF7", attributes = "bold" }
 
-# message_style = {}
+# message_style = { foreground = "#C0CAF5" }
 
-# selected_message_style = { attributes = "reverse" }
+# selected_message_style = { background = "#313B58" }
 
 # The style merged under every ui.messages_list.alternate_every-th message, such as `{ background = "#24273a" }`, to tell messages apart. A theme profile tints it from its background.
-# alternate_style = {}
+# alternate_style = { background = "#242632" }
 
 # The style of the line above a reply quoting the message it answers. Its background, if set, fills the line, setting it apart from the reply and the alternate tint. A theme profile tints it slightly.
-# reply_style = { attributes = ["dim","italic"] }
+# reply_style = { foreground = "#61698B", background = "#2E303F", attributes = "italic" }
 
 [theme.messages_list.embeds]
 
-# provider_style = { attributes = ["dim","italic"] }
+# provider_style = { foreground = "#61698B", attributes = "italic" }
 
-# author_style = { attributes = "italic" }
+# author_style = { foreground = "#C0CAF5", attributes = "italic" }
 
-# title_style = { foreground = "blue", attributes = "bold" }
+# title_style = { foreground = "#7AA2F7", attributes = "bold" }
 
-# description_style = { attributes = "dim" }
+# description_style = { foreground = "#61698B" }
 
-# field_name_style = { attributes = "bold", underline = "solid" }
+# field_name_style = { foreground = "#C0CAF5", attributes = "bold", underline = "solid" }
 
-# field_value_style = {}
+# field_value_style = { foreground = "#C0CAF5" }
 
-# footer_style = { attributes = ["dim","italic"] }
+# footer_style = { foreground = "#61698B", attributes = "italic" }
 
-# url_style = { foreground = "blue", underline = "solid" }
+# url_style = { foreground = "#7DCFFF", underline = "solid" }
 
 [theme.autocomplete]
 
-# selected_style = { attributes = "reverse" }
+# selected_style = { background = "#313B58" }
 
 [theme.dialog]
 
@@ -780,15 +780,15 @@
 
 [theme.help]
 
-# short_key_style = { attributes = "dim" }
+# short_key_style = { foreground = "#61698B" }
 
-# short_desc_style = {}
+# short_desc_style = { foreground = "#C0CAF5" }
 
-# full_key_style = { attributes = "dim" }
+# full_key_style = { foreground = "#61698B" }
 
-# full_desc_style = {}
+# full_desc_style = { foreground = "#C0CAF5" }
 
 [theme.profile]
 
 # The style of the line marking the server's owner.
-# owner_style = { foreground = "yellow", attributes = "bold" }
+# owner_style = { foreground = "#BB9AF7", attributes = "bold" }

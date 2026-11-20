@@ -166,9 +166,10 @@ func (cfg *Config) BaseStyle() tcell.Style {
 	return style
 }
 
-// applyProfile sets the theme of the profile name, or leaves the default theme for "".
+// applyProfile sets the theme of the profile name, or the terminal's own colors for "".
 func (cfg *Config) applyProfile(name string) error {
 	if name == "" {
+		cfg.Theme = defaultTheme()
 		return nil
 	}
 	p, ok := profilePalette(name)
