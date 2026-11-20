@@ -396,6 +396,8 @@ func (m Model) update(msg tui.Msg) (Model, tui.Cmd) {
 	case profile.ClosedMsg:
 		m.overlay = overlayNone
 		return m, nil
+	case memberstree.OpenDMMsg:
+		return m, m.openDM(msg.UserID)
 	case messageslist.ReplyMsg:
 		m.composer.StartReply(msg.Message, msg.Name, msg.Mention)
 		m.setFocus(paneComposer)

@@ -330,14 +330,20 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 			msg.node.SetExpanded(!msg.node.Expanded())
 		}
 		if ref, ok := msg.node.Reference().(memberRef); ok {
-			if show, ok := m.profile(ref.userID); ok {
-				return m, cmd.Batch{m.requestSelectedMembers(), cmd.Task(func() tui.Msg { return show })}
-			}
+			open := OpenDMMsg{UserID: ref.userID}
+			return m, cmd.Batch{m.requestSelectedMembers(), cmd.Task(func() tui.Msg { return open })}
 		}
 		return m, m.requestSelectedMembers()
 	case tui.KeyMsg:
 		keybinds := m.cfg.Keybinds.MembersTree
 		switch {
+		case keybind.Matches(msg, keybinds.ViewProfile.Keybind):
+			if ref, ok := m.currentMember(); ok {
+				if show, ok := m.profile(ref.userID); ok {
+					return m, cmd.Task(func() tui.Msg { return show })
+				}
+			}
+			return m, nil
 		case keybind.Matches(msg, keybinds.CollapseAll.Keybind):
 			for _, node := range m.root.Children() {
 				node.Collapse()
@@ -370,7 +376,7 @@ func (m Model) View() tui.Widget {
 		m.cfg,
 		m.cfg.Theme.MembersTree,
 		m.cfg.UI.MembersTree.Graphics,
-		m.cfg.Keybinds.MembersTree,
+		m.cfg.Keybinds.MembersTree.TreeKeybinds,
 		m.focused,
 		onChange,
 		onSelect,

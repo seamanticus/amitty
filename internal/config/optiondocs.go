@@ -92,6 +92,7 @@ func optionDocs() map[string]string {
 		"keybinds.members_tree.scroll_up":                 "Scroll without changing the selection.",
 		"keybinds.members_tree.scroll_left":               "Scroll sideways to read names that are cut off.",
 		"keybinds.members_tree.select_current":            "Select the highlighted text-based channel, or expand or collapse the highlighted node.",
+		"keybinds.members_tree.view_profile":              "Show the highlighted member's profile.",
 		"keybinds.messages_list.scroll_up":                "Scroll without changing the selection.",
 		"keybinds.messages_list.select_reply":             "Select the message that the selected message replies to.",
 		"keybinds.messages_list.reply":                    "Reply to the selected message.",

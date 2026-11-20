@@ -15,6 +15,7 @@ import (
 	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/seamanticus/amitty/internal/tui/cmd"
 	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
+	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/amitty/internal/ui/chat/profile"
 	"github.com/seamanticus/amitty/internal/ui/images"
 )
@@ -115,6 +116,40 @@ func TestModelProfileAvatar(t *testing.T) {
 		if _, ok := m.images[url]; !ok {
 			t.Fatal("the avatar was not loaded")
 		}
+	}
+}
+
+func TestModelOpenDM(t *testing.T) {
+	m := newTestModel(t)
+	if err := m.state.Cabinet.MyselfSet(discord.User{ID: 1}, false); err != nil {
+		t.Fatal(err)
+	}
+	for _, channel := range []discord.Channel{
+		{ID: 50, Type: discord.DirectMessage, DMRecipients: []discord.User{{ID: 2}}},
+		{ID: 51, Type: discord.DirectMessage, DMRecipients: []discord.User{{ID: 3}}, IsSpam: true},
+	} {
+		if err := m.state.Cabinet.ChannelSet(&channel, false); err != nil {
+			t.Fatal(err)
+		}
+	}
+	// dialog reports whether opening the DM with userID only explained that there is none.
+	dialog := func(userID discord.UserID) bool {
+		task, ok := m.openDM(userID).(cmd.Task)
+		if !ok {
+			return false
+		}
+		_, ok = task().(ui.DialogMsg)
+		return ok
+	}
+	// evidence: witnesses
+	if m.openDM(1) != nil {
+		t.Error("opened a DM with yourself")
+	}
+	if dialog(2) {
+		t.Error("the existing DM was not opened")
+	}
+	if !dialog(3) || !dialog(4) {
+		t.Error("a spam DM or none was opened, or a new DM started")
 	}
 }
 

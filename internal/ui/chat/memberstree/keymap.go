@@ -13,7 +13,7 @@ var _ help.KeyMap = Model{}
 
 func (m Model) ShortHelp() []keybind.Keybind {
 	keybinds := m.cfg.Keybinds.MembersTree
-	short := uitree.SelectHelp(m.root, m.current, keybinds)
+	short := uitree.SelectHelp(m.root, m.current, keybinds.TreeKeybinds)
 	if isGroup(m.current) {
 		desc := "expand"
 		if m.current.Expanded() {
@@ -21,6 +21,8 @@ func (m Model) ShortHelp() []keybind.Keybind {
 		}
 
 		short = append(short, keybinds.SelectCurrent.WithHelp(keybinds.SelectCurrent.Help().Key, desc))
+	} else if _, ok := m.currentMember(); ok {
+		short = append(short, keybinds.SelectCurrent.WithHelp(keybinds.SelectCurrent.Help().Key, "message"), keybinds.ViewProfile.Keybind)
 	}
 
 	if m.parent(m.current) != nil {
@@ -36,10 +38,8 @@ func (m Model) treeKeybinds() []keybind.Keybind {
 	var group []keybind.Keybind
 	if isGroup(m.current) {
 		group = append(group, keybinds.SelectCurrent.Keybind)
-	} else if m.current != nil {
-		if _, ok := m.current.Reference().(memberRef); ok {
-			group = append(group, keybinds.SelectCurrent.WithHelp(keybinds.SelectCurrent.Help().Key, "profile"))
-		}
+	} else if _, ok := m.currentMember(); ok {
+		group = append(group, keybinds.SelectCurrent.WithHelp(keybinds.SelectCurrent.Help().Key, "message"), keybinds.ViewProfile.Keybind)
 	}
 	if m.parent(m.current) != nil {
 		group = append(group, keybinds.MoveToParentNode.Keybind, keybinds.CollapseParentNode.Keybind)

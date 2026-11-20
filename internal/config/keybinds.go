@@ -135,6 +135,13 @@ type GuildsTreeKeybinds struct {
 	SelectNextUnread     Keybind `toml:"select_next_unread"`
 }
 
+type MembersTreeKeybinds struct {
+	// select_current on a member opens your DM with them.
+	TreeKeybinds
+	// Show the highlighted member's profile.
+	ViewProfile Keybind `toml:"view_profile"`
+}
+
 type MessagesListKeybinds struct {
 	SelectionKeybinds
 	ScrollKeybinds
@@ -248,7 +255,7 @@ type Keybinds struct {
 	// Only while focusing on the guilds tree.
 	GuildsTree GuildsTreeKeybinds `toml:"guilds_tree"`
 	// Only while focusing on the members tree.
-	MembersTree TreeKeybinds `toml:"members_tree"`
+	MembersTree MembersTreeKeybinds `toml:"members_tree"`
 	// Only while focusing on sent messages.
 	MessagesList MessagesListKeybinds `toml:"messages_list"`
 	// Only while typing a message.
@@ -333,7 +340,7 @@ func defaultKeybinds() Keybinds {
 			SelectPreviousUnread: key("prev unread", "K"),
 			SelectNextUnread:     key("next unread", "J"),
 		},
-		MembersTree: tree,
+		MembersTree: MembersTreeKeybinds{TreeKeybinds: tree, ViewProfile: key("profile", "v")},
 		MessagesList: MessagesListKeybinds{
 			SelectionKeybinds: vi,
 			ScrollKeybinds:    scrollKeybinds("K", "J", "home", "end"),

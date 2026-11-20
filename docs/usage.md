@@ -7,7 +7,7 @@
 | Guilds tree (left) | Your DMs and group DMs, then your guilds, in Discord's order and folders, with their channels and threads. Unread ones stand out. |
 | Messages list (middle) | The selected channel's messages, newest at the bottom, with replies, embeds, reactions and image previews. |
 | Composer (bottom) | What you type, with the reply or edit in progress and any attachments. |
-| Members tree (right) | The channel's members by role, or a DM's recipients. `enter` on one shows their profile: names, server tag, status and activities, roles, member and account dates, badges, your relationship and note; `y` copies their ID and `esc` closes it. In a terminal narrower than 100 columns it folds under the guilds tree; see `members_tree.fold` in the [configuration](config.md). |
+| Members tree (right) | The channel's members by role, or a DM's recipients. `enter` on one opens your DM with them (only an existing one, for now) and `v` shows their profile: names, server tag, status and activities, roles, member and account dates, badges, your relationship and note; `y` copies their ID and `esc` closes it. In a terminal narrower than 100 columns it folds under the guilds tree; see `members_tree.fold` in the [configuration](config.md). |
 
 `alt+g` and `alt+y` hide or show the guilds and members trees.
 In a terminal narrower than `ui.on_resize.is_less_than` (100 columns, or

@@ -2,6 +2,7 @@ package memberstree
 
 import (
 	"encoding/json"
+	"github.com/gdamore/tcell/v3"
 	"path/filepath"
 	"slices"
 	"testing"
@@ -28,18 +29,20 @@ func newTestModel(t *testing.T) Model {
 	return NewModel(cfg, ningen.FromState(discordtest.State(t)))
 }
 
-// shown returns the profile command shows, running only its last task, which follows the member list request.
-func shown(command tui.Cmd) (profile.ShowMsg, bool) {
+// last returns what the last task of command returns, which follows the member list request.
+func last(command tui.Cmd) tui.Msg {
+	if task, ok := command.(cmd.Task); ok {
+		return task()
+	}
 	batch, ok := command.(cmd.Batch)
 	if !ok || len(batch) == 0 {
-		return profile.ShowMsg{}, false
+		return nil
 	}
 	task, ok := batch[len(batch)-1].(cmd.Task)
 	if !ok {
-		return profile.ShowMsg{}, false
+		return nil
 	}
-	show, ok := task().(profile.ShowMsg)
-	return show, ok
+	return task()
 }
 
 // setGuildMembers stores a guild channel whose member list holds items, given as JSON.
@@ -181,18 +184,31 @@ func TestModelProfile(t *testing.T) {
 	]`)
 	m.rebuild()
 	group := m.root.Children()[0]
+	member := group.Children()[0]
 	// evidence: witnesses
-	t.Run("a member shows their profile", func(t *testing.T) {
-		_, command := m.Update(selectedMsg{node: group.Children()[0]})
-		show, ok := shown(command)
+	t.Run("enter on a member opens the DM", func(t *testing.T) {
+		_, command := m.Update(selectedMsg{node: member})
+		if open, ok := last(command).(OpenDMMsg); !ok || open.UserID != 10 {
+			t.Fatalf("message = %#v, want the DM opened", last(command))
+		}
+	})
+	t.Run("v on a member shows their profile", func(t *testing.T) {
+		m.current = member
+		_, command := m.Update(tui.KeyMsg(tcell.NewEventKey(tcell.KeyRune, "v", tcell.ModNone)))
+		show, ok := last(command).(profile.ShowMsg)
 		if !ok || show.GuildID != guildID || show.Member.Nick != "Alice" || show.Member.User.ID != 10 {
 			t.Fatalf("shown = %+v, %v", show, ok)
 		}
 	})
-	t.Run("a group shows none", func(t *testing.T) {
+	t.Run("a group opens nothing", func(t *testing.T) {
+		m.current = group
+		_, command := m.Update(tui.KeyMsg(tcell.NewEventKey(tcell.KeyRune, "v", tcell.ModNone)))
+		if command != nil {
+			t.Fatal("v on a group did something")
+		}
 		if _, command := m.Update(selectedMsg{node: group}); command != nil {
-			if _, ok := shown(command); ok {
-				t.Fatal("a group showed a profile")
+			if _, ok := last(command).(OpenDMMsg); ok {
+				t.Fatal("a group opened a DM")
 			}
 		}
 	})

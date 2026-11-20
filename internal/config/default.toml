@@ -538,6 +538,9 @@
 
 # move_to_parent_node = "p"
 
+# Show the highlighted member's profile.
+# view_profile = "v"
+
 # Only while focusing on sent messages.
 [keybinds.messages_list]
 

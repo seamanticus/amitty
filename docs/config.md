@@ -405,6 +405,7 @@ Only while focusing on the members tree.
 | `collapse_all` | `"_"` |  |
 | `collapse_parent_node` | `"-"` |  |
 | `move_to_parent_node` | `"p"` |  |
+| `view_profile` | `"v"` | Show the highlighted member's profile. |
 
 ## `[keybinds.messages_list]`
 

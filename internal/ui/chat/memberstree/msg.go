@@ -16,6 +16,18 @@ type currentMsg struct {
 	current *tree.Node
 }
 
+// OpenDMMsg asks to open your DM with UserID, picked in the tree.
+type OpenDMMsg struct{ UserID discord.UserID }
+
+// currentMember returns the member highlighted, if a member is.
+func (m Model) currentMember() (memberRef, bool) {
+	if m.current == nil {
+		return memberRef{}, false
+	}
+	ref, ok := m.current.Reference().(memberRef)
+	return ref, ok
+}
+
 // profile returns the message that shows the profile of the member userID, if they are still known.
 func (m Model) profile(userID discord.UserID) (profile.ShowMsg, bool) {
 	channel := m.channel
