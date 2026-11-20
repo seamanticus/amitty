@@ -124,5 +124,6 @@ func optionDocs() map[string]string {
 		"theme.messages_list.alternate_style":             "The style merged under every ui.messages_list.alternate_every-th message, such as `{ background = \"#24273a\" }`, to tell messages apart. A theme profile tints it from its background.",
 		"theme.messages_list.reply_style":                 "The style of the line above a reply quoting the message it answers. Its background, if set, fills the line, setting it apart from the reply and the alternate tint. A theme profile tints it slightly.",
 		"theme.dialog.background_style":                   "The style of everything behind the dialog.",
+		"theme.profile.owner_style":                       "The style of the line marking the server's owner.",
 	}
 }

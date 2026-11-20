@@ -13,6 +13,8 @@ import (
 	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/seamanticus/amitty/internal/tui/cmd"
+	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
+	"github.com/seamanticus/amitty/internal/ui/images"
 )
 
 func TestModelView(t *testing.T) {
@@ -22,6 +24,9 @@ func TestModelView(t *testing.T) {
 	}
 	state := ningen.FromState(discordtest.State(t))
 	const guildID = 1
+	if err := state.Cabinet.GuildSet(&discord.Guild{ID: guildID, OwnerID: 10}, false); err != nil {
+		t.Fatal(err)
+	}
 	if err := state.Cabinet.RoleSet(guildID, &discord.Role{ID: 3, Name: "Mods", Color: 0x00ff00, Position: 2}, false); err != nil {
 		t.Fatal(err)
 	}

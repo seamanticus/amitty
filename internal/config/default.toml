@@ -787,3 +787,8 @@
 # full_key_style = { attributes = "dim" }
 
 # full_desc_style = {}
+
+[theme.profile]
+
+# The style of the line marking the server's owner.
+# owner_style = { foreground = "yellow", attributes = "bold" }

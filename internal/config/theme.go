@@ -232,6 +232,11 @@ type (
 		BackgroundStyle Style `toml:"background_style"`
 	}
 
+	ProfileThemeConfig struct {
+		// The style of the line marking the server's owner.
+		OwnerStyle Style `toml:"owner_style"`
+	}
+
 	ScrollBarThemeConfig struct {
 		TrackStyle Style `toml:"track_style"`
 		ThumbStyle Style `toml:"thumb_style"`
@@ -250,6 +255,7 @@ type (
 		Autocomplete AutocompleteThemeConfig `toml:"autocomplete"`
 		Dialog       DialogThemeConfig       `toml:"dialog"`
 		Help         HelpThemeConfig         `toml:"help"`
+		Profile      ProfileThemeConfig      `toml:"profile"`
 	}
 )
 
@@ -331,5 +337,6 @@ func defaultTheme() ThemeConfig {
 		Autocomplete: AutocompleteThemeConfig{SelectedStyle: Style{plain.Reverse(true)}},
 		Dialog:       DialogThemeConfig{BackgroundStyle: dim},
 		Help:         HelpThemeConfig{ShortKeyStyle: dim, FullKeyStyle: dim},
+		Profile:      ProfileThemeConfig{OwnerStyle: Style{plain.Foreground(color.Yellow).Bold(true)}},
 	}
 }

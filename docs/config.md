@@ -576,6 +576,12 @@ The status styles are those of the dot before each member.
 | `full_key_style` | `{ attributes = "dim" }` |  |
 | `full_desc_style` | `{}` |  |
 
+## `[theme.profile]`
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `owner_style` | `{ foreground = "yellow", attributes = "bold" }` | The style of the line marking the server's owner. |
+
 <!-- nav -->
 
 ---

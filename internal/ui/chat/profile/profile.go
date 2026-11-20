@@ -147,6 +147,9 @@ func (m Model) details() []text.Span {
 	}
 	plain := func(value string) text.Span { return text.Span{Text: value, Style: fields.FieldValueStyle.Style} }
 
+	if guild, err := m.state.Cabinet.Guild(m.guildID); err == nil && m.guildID.IsValid() && guild.OwnerID == user.ID {
+		spans = append(spans, text.Span{Text: "Server owner", Style: m.cfg.Theme.Profile.OwnerStyle.Style})
+	}
 	if roles := m.roles(); len(roles) != 0 {
 		field("Roles", roles...)
 	}

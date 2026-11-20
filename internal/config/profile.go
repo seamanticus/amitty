@@ -149,6 +149,7 @@ func profileTheme(p palette) ThemeConfig {
 
 	theme.Autocomplete.SelectedStyle = Style{plain.Background(rgb(r.selection))}
 	theme.Help = HelpThemeConfig{ShortKeyStyle: Style{fg(r.muted)}, ShortDescStyle: Style{fg(r.text)}, FullKeyStyle: Style{fg(r.muted)}, FullDescStyle: Style{fg(r.text)}}
+	theme.Profile = ProfileThemeConfig{OwnerStyle: Style{fg(r.accent).Bold(true)}}
 	return theme
 }
 
