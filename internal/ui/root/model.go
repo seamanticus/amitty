@@ -200,11 +200,9 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 		m.settings = nil
 		return m, nil
 	case settings.SavedMsg:
-		// Every model reads the shared config as it draws and updates, so replacing it applies the change; options used once at startup keep their values.
-		previous := *m.cfg
-		*m.cfg = config.Live(previous, *msg.Config)
-		m.helpVisible = m.helpVisible && m.cfg.Help.Enabled
-		return m, cmd.Batch{cmd.SetBase{Style: m.cfg.BaseStyle()}, m.updateScreen(chat.ConfigChangedMsg{Previous: previous})}
+		return m, m.applyConfig(msg.Config)
+	case settings.PreviewMsg:
+		return m, m.applyConfig(msg.Config)
 
 	case tui.KeyMsg:
 		// The dialog takes all input while it is open, so nothing behind it reacts.
@@ -251,6 +249,14 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	}
 
 	return m, m.updateScreen(msg)
+}
+
+// applyConfig replaces the shared config with next. Every model reads it as it draws and updates, so that applies it; options used once at startup keep their values.
+func (m *Model) applyConfig(next *config.Config) tui.Cmd {
+	previous := *m.cfg
+	*m.cfg = config.Live(previous, *next)
+	m.helpVisible = m.helpVisible && m.cfg.Help.Enabled
+	return cmd.Batch{cmd.SetBase{Style: m.cfg.BaseStyle()}, m.updateScreen(chat.ConfigChangedMsg{Previous: previous})}
 }
 
 // View shows the inner model above help, with the dialog on top of both when one is open.

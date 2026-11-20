@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/tui"
@@ -24,6 +25,9 @@ type Msg struct{ msg tui.Msg }
 
 // ClosedMsg reports that the panel was closed.
 type ClosedMsg struct{}
+
+// PreviewMsg asks to show Config, which the file would give with a choice being browsed, without writing it; or, once the choice is dropped, what the file gives.
+type PreviewMsg struct{ Config *config.Config }
 
 // SavedMsg reports that an option was written to the file, which now gives Config. Restart reports whether the option applies only after a restart.
 type SavedMsg struct {
@@ -64,8 +68,10 @@ type Model struct {
 	list    uipicker.Model
 	choices uipicker.Model
 	editing config.Option
-	text    string
-	cursor  int
+	// previewed is the choice last previewed while browsing a profile.
+	previewed string
+	text      string
+	cursor    int
 	// status is the result of the last save, shown under the list.
 	status string
 }
@@ -112,8 +118,12 @@ func (m Model) Update(msg Msg) (Model, tui.Cmd) {
 		if m.step == stepList {
 			return m, cmd.Task(func() tui.Msg { return ClosedMsg{} })
 		}
+		var revert tui.Cmd
+		if m.step == stepChoice && m.previewed != m.editing.Value {
+			revert = m.preview("")
+		}
 		m.step = stepList
-		return m, nil
+		return m, revert
 	case savedMsg:
 		m.step = stepList
 		m.status = "Saved " + msg.option.Path + "."
@@ -133,6 +143,13 @@ func (m Model) Update(msg Msg) (Model, tui.Cmd) {
 		m.list, command = m.list.Update(msg.msg)
 	case stepChoice:
 		m.choices, command = m.choices.Update(msg.msg)
+		// A profile is shown as the cursor reaches it, so it can be judged before it is chosen.
+		if item, ok := m.choices.Selected(); ok && m.editing.Path == previewPath {
+			if value, ok := item.Reference.(string); ok && value != m.previewed {
+				m.previewed = value
+				command = cmd.Batch{command, m.preview(value)}
+			}
+		}
 	case stepText:
 	}
 	return m, command
@@ -149,10 +166,19 @@ func (m Model) edit(option config.Option) (Model, tui.Cmd) {
 		}
 		return m, m.save(option, value)
 	case config.OptionChoice:
-		m.step = stepChoice
+		// A short set of values is stepped through like a bool; a long one is picked from a list.
+		if option.Path != previewPath {
+			next := (slices.Index(option.Choices, option.Value) + 1) % len(option.Choices)
+			return m, m.save(option, option.Choices[next])
+		}
+		m.step, m.previewed = stepChoice, option.Value
 		choices := make(picker.Items, len(option.Choices))
 		for i, choice := range option.Choices {
-			choices[i] = picker.Item{Content: text.New(choice), FilterText: choice, Reference: choice}
+			label := choice
+			if choice == `""` {
+				label = `"" (none: the terminal's colors)`
+			}
+			choices[i] = picker.Item{Content: text.New(label), FilterText: choice, Reference: choice}
 		}
 		m.choices = uipicker.NewModel(m.cfg, option.Path)
 		m.choices.SetItems(choices)
@@ -165,6 +191,30 @@ func (m Model) edit(option config.Option) (Model, tui.Cmd) {
 		return m, nil
 	}
 	panic("invariant: unknown option kind")
+}
+
+// previewPath is the one option whose choices are previewed as the cursor moves over them, as a profile is judged by looking at it.
+const previewPath = "theme_profile"
+
+// preview returns the command that shows the config the file gives with the option being edited set to value, without writing it, or as it is for "".
+func (m Model) preview(value string) tui.Cmd {
+	file, path := m.file, m.editing.Path
+	return cmd.Task(func() tui.Msg {
+		data, err := os.ReadFile(file)
+		if err != nil && !os.IsNotExist(err) {
+			return nil
+		}
+		if value != "" {
+			if data, err = config.SetOption(data, path, value); err != nil {
+				return nil
+			}
+		}
+		cfg, err := config.Parse(data)
+		if err != nil {
+			return nil
+		}
+		return PreviewMsg{Config: cfg}
+	})
 }
 
 // save writes value to option's line of the file and reports the config the file then gives.

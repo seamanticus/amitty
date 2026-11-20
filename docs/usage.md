@@ -111,9 +111,11 @@ an enhanced keyboard protocol, such as kitty, ghostty or foot.
 every option of the [configuration](config.md) by its path, with the
 selected one's description below. Type to filter, such as `avatar`.
 
-- `enter` on a true/false option flips it; on one with a fixed set of
-  values (profiles, avatar shapes, image protocols) it opens the list
-  of them; on any other it opens its value to edit as TOML, such as
+- `enter` on a true/false option flips it, and on one with a few fixed
+  values (avatar shape, image protocol, status) steps to the next.
+- `theme_profile` opens the profiles by name; each is shown as the
+  cursor reaches it, `enter` keeps it and `esc` goes back to yours.
+- `enter` on any other option opens its value to edit as TOML, such as
   `"ctrl+q"` or `{ attributes = "bold" }`, saved with `enter`.
 - A change is written to `config.toml` at once, on the option's own
   line: your comments and the rest of the file stay as they are. A value

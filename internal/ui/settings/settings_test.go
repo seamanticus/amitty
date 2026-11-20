@@ -3,6 +3,7 @@ package settings
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -74,18 +75,45 @@ func TestToggle(t *testing.T) {
 }
 
 func TestChoice(t *testing.T) {
-	m, path := panel(t, "")
-	m, _ = m.Update(Msg{pickedMsg{option(t, m, "ui.messages_list.avatars.shape")}})
-	if m.step != stepChoice {
-		t.Fatalf("step = %d, want the choices", m.step)
-	}
-	m, command := m.Update(Msg{chosenMsg{`"rounded"`}})
-	if _, msg := run(t, m, command); msg == nil {
-		t.Fatal("not saved")
-	}
-	if data, _ := os.ReadFile(path); !strings.Contains(string(data), `shape = "rounded"`) {
-		t.Fatalf("file = %q", data)
-	}
+	t.Run("enter steps to the next value", func(t *testing.T) {
+		m, path := panel(t, "")
+		// circle is the last of square, rounded, circle, so the next wraps around.
+		m, command := m.Update(Msg{pickedMsg{option(t, m, "ui.messages_list.avatars.shape")}})
+		if m.step != stepList {
+			t.Fatalf("step = %d, want the list", m.step)
+		}
+		if _, msg := run(t, m, command); msg == nil {
+			t.Fatal("not saved")
+		}
+		if data, _ := os.ReadFile(path); !strings.Contains(string(data), `shape = "square"`) {
+			t.Fatalf("file = %q", data)
+		}
+	})
+	t.Run("profiles are listed by name and previewed", func(t *testing.T) {
+		m, path := panel(t, "")
+		profile := option(t, m, "theme_profile")
+		names := profile.Choices[1:]
+		if profile.Choices[0] != `""` || !slices.IsSortedFunc(names, func(a, b string) int { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) }) {
+			t.Fatalf("choices = %v, want none then sorted names", profile.Choices[:4])
+		}
+		m, _ = m.Update(Msg{pickedMsg{profile}})
+		if m.step != stepChoice {
+			t.Fatalf("step = %d, want the list of profiles", m.step)
+		}
+		task, ok := m.preview(`"Nord"`).(cmd.Task)
+		if preview, isPreview := task().(PreviewMsg); !ok || !isPreview || preview.Config.ThemeProfile != "Nord" {
+			t.Fatal("no preview of Nord")
+		}
+		if data, _ := os.ReadFile(path); len(data) != 0 {
+			t.Fatalf("a preview wrote the file: %q", data)
+		}
+		// Leaving after browsing shows the file's own config again.
+		m.previewed = `"Nord"`
+		m, command := m.Update(Msg{backMsg{}})
+		if _, msg := run(t, m, command); msg == nil || msg.(PreviewMsg).Config.ThemeProfile != "" {
+			t.Fatalf("message = %#v, want the file's config back", msg)
+		}
+	})
 }
 
 func TestText(t *testing.T) {

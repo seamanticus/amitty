@@ -19,7 +19,7 @@ const (
 	OptionText OptionKind = iota
 	// OptionBool is toggled.
 	OptionBool
-	// OptionChoice is picked from Option.Choices.
+	// OptionChoice takes one of Option.Choices.
 	OptionChoice
 	// OptionFileOnly is a table of entries of the user's own, such as openers, edited in the file.
 	OptionFileOnly
@@ -29,7 +29,7 @@ const (
 type Option struct {
 	Path, Doc, Value string
 	Kind             OptionKind
-	// Choices are the values an OptionChoice takes, each as TOML.
+	// Choices are the values an OptionChoice takes, each as TOML. A profile's are sorted by name, after "" for none.
 	Choices []string
 	// Restart reports whether a change applies only after amitty restarts, as it is used once at startup.
 	Restart bool
@@ -59,7 +59,10 @@ func optionChoices(path string) []string {
 	}
 	switch path {
 	case "theme_profile":
-		return quote(append([]string{""}, ProfileNames()...)...)
+		names := slices.SortedFunc(slices.Values(ProfileNames()), func(a, b string) int {
+			return strings.Compare(strings.ToLower(a), strings.ToLower(b))
+		})
+		return quote(append([]string{""}, names...)...)
 	case "status":
 		return quote("default", "online", "dnd", "idle", "invisible", "offline")
 	case "ui.messages_list.image_protocol":
