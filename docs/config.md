@@ -305,8 +305,8 @@ Global shortcuts. A keybind is a key such as "ctrl+k", or a list of keys.
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `select_up` | `"ctrl+p"` |  |
-| `select_down` | `"ctrl+n"` |  |
+| `select_up` | `["ctrl+p", "up"]` |  |
+| `select_down` | `["ctrl+n", "down"]` |  |
 | `select_top` | `"home"` |  |
 | `select_bottom` | `"end"` |  |
 | `select` | `"enter"` |  |

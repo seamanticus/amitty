@@ -399,9 +399,9 @@
 
 [keybinds.picker]
 
-# select_up = "ctrl+p"
+# select_up = ["ctrl+p", "up"]
 
-# select_down = "ctrl+n"
+# select_down = ["ctrl+n", "down"]
 
 # select_top = "home"
 

@@ -307,7 +307,8 @@ func defaultKeybinds() Keybinds {
 		FocusNext:     key("focus next", "ctrl+l", "ctrl+right"),
 
 		Picker: PickerKeybinds{
-			SelectionKeybinds: emacs,
+			// The query is one line, so the arrows are free to move the selection.
+			SelectionKeybinds: selectionKeybinds([]string{"ctrl+p", "up"}, []string{"ctrl+n", "down"}, "home", "end"),
 			Select:            key("sel", "enter"),
 			Cancel:            key("cancel", "esc"),
 		},
