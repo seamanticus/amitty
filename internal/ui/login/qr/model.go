@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v3/color"
-	"github.com/seamanticus/amitty/internal/captcha"
 	"github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/seamanticus/amitty/internal/tui/box"
@@ -20,6 +19,7 @@ import (
 	"github.com/seamanticus/amitty/internal/tui/keybind"
 	"github.com/seamanticus/amitty/internal/tui/layout"
 	"github.com/seamanticus/amitty/internal/tui/text"
+	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/amitty/internal/ui/login/keys"
 )
 
@@ -47,13 +47,8 @@ type Model struct {
 	// ended is set once the login stopped without a token; Renew then starts a new one.
 	ended bool
 
-	// captchaTries counts the challenges answered for the ticket exchange.
-	captchaTries int
-	// captcha is the page waiting for an answer, or nil; captchaOpenErr is why no browser opened it.
-	captcha        *captcha.Page
-	captchaOpenErr string
-	// solution is the last answer, sent with the exchange until Discord takes or challenges it again.
-	solution captcha.Solution
+	// captcha answers the challenges of the ticket exchange.
+	captcha ui.Captcha[string]
 
 	// qrCode is the code at one pixel per module, made once as it arrives.
 	qrCode stdimage.Image
@@ -92,7 +87,8 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	case startMsg:
 		next := NewModel(m.build, m.network)
 		next.status = "Connecting to Remote Auth Gateway..."
-		return next, cmd.Batch{closeConn(m.conn), closeCaptcha(m.captcha), connect(m.network)}
+		_, closing := m.captcha.Stop()
+		return next, cmd.Batch{closeConn(m.conn), closing, connect(m.network)}
 	case tui.KeyMsg:
 		switch {
 		case m.ended && keybind.Matches(msg, keys.Renew()):
@@ -153,18 +149,20 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	case pendingLoginMsg:
 		m.status = "Authenticating..."
 		m.expiresIn = 0
-		return m, cmd.Batch{closeConn(m.conn), exchangeTicket(m.build, m.network, m.fingerprint, m.solution, m.privateKey, msg.ticket, false)}
+		var closing tui.Cmd
+		m.captcha, closing = m.captcha.Start(msg.ticket)
+		return m, cmd.Batch{closeConn(m.conn), closing, exchangeTicket(m.build, m.network, m.fingerprint, m.captcha.Solution(), m.privateKey, msg.ticket, false)}
 	case retryMsg:
 		if m.ended {
 			return m, nil
 		}
 		if msg.left <= 0 {
 			m.status = "Authenticating..."
-			return m, exchangeTicket(m.build, m.network, m.fingerprint, m.solution, m.privateKey, msg.ticket, true)
+			return m, exchangeTicket(m.build, m.network, m.fingerprint, m.captcha.Solution(), m.privateKey, msg.ticket, true)
 		}
 		m.status = fmt.Sprintf("Connection failed, retrying once in %d s: %v", msg.left, msg.err)
 		return m, tickRetry(msg)
-	case captchaMsg, captchaPageMsg, captchaOpenFailedMsg, captchaSolvedMsg:
+	case captchaMsg, captchaStepMsg, captchaDoneMsg:
 		return m.updateCaptcha(msg)
 	case ignoredMsg:
 		return m, listen(m.conn)
@@ -200,13 +198,13 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 
 // end stops the login with status, hiding the code and closing the connection and any captcha page.
 func (m Model) end(status string) (Model, tui.Cmd) {
-	page := m.captcha
 	m.status = status
 	m.ended = true
 	m.qrCode = nil
 	m.expiresIn = 0
-	m.captcha, m.captchaOpenErr = nil, ""
-	return m, cmd.Batch{closeConn(m.conn), closeCaptcha(page)}
+	var closing tui.Cmd
+	m.captcha, closing = m.captcha.Stop()
+	return m, cmd.Batch{closeConn(m.conn), closing}
 }
 
 // View centers the code above the status.
@@ -229,7 +227,11 @@ func (m Model) View() tui.Widget {
 		note = text.New(fmt.Sprintf("Code expires in %d:%02d", m.expiresIn/60, m.expiresIn%60))
 	}
 
-	return center.New(column.New(qrCode, text.New(m.status), note).
+	status := m.status
+	if m.captcha.Waiting() {
+		status = m.captcha.Prompt()
+	}
+	return center.New(column.New(qrCode, text.New(status), note).
 		Spacing(statusSpacing).
 		AlignX(tui.HorizontalAlignmentCenter).
 		Width(layout.Shrink).

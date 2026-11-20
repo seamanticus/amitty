@@ -6,10 +6,10 @@ import (
 
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
-	"github.com/seamanticus/amitty/internal/captcha"
 	dhttp "github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/seamanticus/amitty/internal/tui/button"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/tui/column"
 	"github.com/seamanticus/amitty/internal/tui/help"
 	"github.com/seamanticus/amitty/internal/tui/keybind"
@@ -17,6 +17,7 @@ import (
 	"github.com/seamanticus/amitty/internal/tui/row"
 	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/seamanticus/amitty/internal/tui/textinput"
+	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/amitty/internal/ui/login/keys"
 )
 
@@ -55,13 +56,9 @@ type Model struct {
 	// fingerprint ties the logins of this form to their second step; fetched before the first login and kept, as Discord grants only 3 per IP per 2 minutes.
 	fingerprint string
 
-	// captchaTries counts the challenges answered for the login in flight.
-	captchaTries int
-	// captcha is the page waiting for an answer, or nil; captchaOpenErr is why no browser opened it.
-	captcha        *captcha.Page
-	captchaOpenErr string
-	// solution is the last answer, sent with the login until Discord takes or challenges it again.
-	solution captcha.Solution
+	// attempt numbers the submits, naming the login the captcha answers for.
+	attempt attempt
+	captcha ui.Captcha[attempt]
 }
 
 // NewModel returns an empty form whose login requests identify as build and connect through network.
@@ -81,7 +78,7 @@ func (m Model) ShortHelp() []keybind.Keybind {
 	if m.coding() {
 		return m.code.keybinds()
 	}
-	if m.captcha != nil {
+	if m.captcha.Waiting() {
 		return []keybind.Keybind{keys.Back("cancel captcha")}
 	}
 	return []keybind.Keybind{keys.FocusNext(), keys.FocusPrevious()}
@@ -105,7 +102,7 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 			return m, nil
 		}
 		m.fingerprint = msg.fingerprint
-		return m, submitLogin(m.build, m.network, m.fingerprint, m.solution, m.login, m.password, msg.final)
+		return m, submitLogin(m.build, m.network, m.fingerprint, m.captcha.Solution(), m.login, m.password, msg.final)
 	case SMSSentMsg:
 		m.submitting = false
 		m.code.phone = msg.phone
@@ -123,19 +120,31 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 			return m, submitCode(m.build, m.network, m.code.ticket, m.code.method, m.code.text, true)
 		}
 		return m, m.submit(true)
-	case CaptchaMsg, CaptchaPageMsg, CaptchaOpenFailedMsg, CaptchaSolvedMsg:
-		return m.updateCaptcha(msg)
+	case ChallengedMsg:
+		if !m.submitting {
+			return m, nil
+		}
+		var command tui.Cmd
+		m.captcha, command = m.captcha.Update(ui.Challenged(m.attempt, msg.challenge))
+		return m, command
+	case CaptchaMsg:
+		var command tui.Cmd
+		m.captcha, command = m.captcha.Update(msg)
+		return m, command
+	case CaptchaDoneMsg:
+		return m.captchaDone(msg)
 	case FailedMsg:
 		m.submitting = false
 		m.retryIn, m.retryReason = 0, ""
-		m.captchaTries, m.captcha, m.captchaOpenErr, m.solution = 0, nil, "", captcha.Solution{}
+		var closing tui.Cmd
+		m.captcha, closing = m.captcha.Stop()
 		if _, expired := errors.AsType[expiredError](msg.Err); expired {
 			m.code = codeForm{}
 			m.focus = focusPassword
 		} else if m.coding() {
 			m.code.text, m.code.cursor = "", 0
 		}
-		return m, nil
+		return m, closing
 	}
 	if m.coding() {
 		return m.updateCode(msg)
@@ -156,17 +165,19 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 			m.focus = (m.focus + 1) % focusCount
 		case keybind.Matches(msg, keys.FocusPrevious()):
 			m.focus = (m.focus + focusCount - 1) % focusCount
-		case m.captcha != nil && keybind.Matches(msg, keys.Back("")):
+		case m.captcha.Waiting() && keybind.Matches(msg, keys.Back("")):
 			// The wait then fails, which ends the login.
-			return m, closeCaptcha(m.captcha)
+			return m, m.captcha.Cancel()
 		}
 	case submitMsg:
 		if m.submitting || m.login == "" || m.password == "" {
 			return m, nil
 		}
 		m.submitting = true
-		m.captchaTries, m.solution = 0, captcha.Solution{}
-		return m, m.submit(false)
+		m.attempt++
+		var closing tui.Cmd
+		m.captcha, closing = m.captcha.Start(m.attempt)
+		return m, cmd.Batch{closing, m.submit(false)}
 	}
 	return m, nil
 }
@@ -176,7 +187,7 @@ func (m Model) submit(final bool) tui.Cmd {
 	if m.fingerprint == "" {
 		return fetchFingerprint(m.build, m.network, final)
 	}
-	return submitLogin(m.build, m.network, m.fingerprint, m.solution, m.login, m.password, final)
+	return submitLogin(m.build, m.network, m.fingerprint, m.captcha.Solution(), m.login, m.password, final)
 }
 
 // coding reports whether the code form is shown.
@@ -198,7 +209,7 @@ func (m Model) View() tui.Widget {
 		OnSubmit(focusMsg(focusButton))
 	label := "Login"
 	switch {
-	case m.captcha != nil:
+	case m.captcha.Waiting():
 		label = "Captcha..."
 	case m.retryIn > 0:
 		label = "Waiting..."
@@ -214,8 +225,8 @@ func (m Model) View() tui.Widget {
 		OnClick(submitMsg{})
 	var warning tui.Widget
 	switch {
-	case m.captcha != nil:
-		warning = text.New(m.captcha.Prompt(m.captchaTries, m.captchaOpenErr)).Style(tcell.StyleDefault.Foreground(color.Yellow))
+	case m.captcha.Waiting():
+		warning = text.New(m.captcha.Prompt()).Style(tcell.StyleDefault.Foreground(color.Yellow))
 	case m.retryIn > 0:
 		warning = retryWarning(m.retryIn, m.retryReason)
 	}

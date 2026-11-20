@@ -11,7 +11,6 @@ import (
 	"github.com/seamanticus/amitty/internal/captcha"
 	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
-	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/seamanticus/amitty/internal/tui/cmd"
 )
 
@@ -69,7 +68,7 @@ func solve(t *testing.T, page *captcha.Page, key string) captcha.Solution {
 func TestRequestLoginCaptcha(t *testing.T) {
 	t.Run("a challenge asks for a captcha", func(t *testing.T) {
 		client := discordtest.Client(t, reply(http.StatusBadRequest, challengeBody))
-		if msg := requestLogin(t.Context(), client, "a", "b"); msg != (CaptchaMsg{testChallenge(t)}) {
+		if msg := requestLogin(t.Context(), client, "a", "b"); msg != (ChallengedMsg{testChallenge(t)}) {
 			t.Fatalf("got %#v", msg)
 		}
 	})
@@ -101,101 +100,94 @@ func TestRequestLoginCaptcha(t *testing.T) {
 	})
 }
 
-func TestModelCaptcha(t *testing.T) {
-	submitting := func() Model {
-		return Model{login: "u", password: "p", submitting: true, fingerprint: "f"}
+// challenged submits m and serves the challenge its login got, closed when the test ends.
+func challenged(t *testing.T, m Model) Model {
+	t.Helper()
+	m, _ = m.Update(submitMsg{})
+	m, command := m.Update(ChallengedMsg{testChallenge(t)})
+	served, ok := command.(cmd.Task)().(CaptchaMsg)
+	if !ok {
+		t.Fatalf("serve = %#v", served)
 	}
-
-	t.Run("a challenge serves a page, up to the last try", func(t *testing.T) {
-		m := submitting()
-		for try := 1; try <= captcha.MaxTries; try++ {
-			var command tui.Cmd
-			m, command = m.Update(CaptchaMsg{testChallenge(t)})
-			if m.captchaTries != try || command == nil {
-				t.Fatalf("try %d: tries = %d, command = %v", try, m.captchaTries, command)
-			}
+	m, _ = m.Update(served)
+	t.Cleanup(func() {
+		if closing, ok := m.captcha.Cancel().(cmd.Task); ok {
+			closing()
 		}
-		_, command := m.Update(CaptchaMsg{testChallenge(t)})
-		if failed, ok := command.(cmd.Task)().(FailedMsg); !ok || !strings.Contains(failed.Err.Error(), "did not accept") {
-			t.Fatalf("after %d tries: %#v", captcha.MaxTries, command)
+	})
+	return m
+}
+
+func TestModelCaptcha(t *testing.T) {
+	// evidence: witnesses
+	form := Model{login: "u", password: "p", fingerprint: "f"}
+
+	t.Run("a challenge shows the page and Esc cancels it", func(t *testing.T) {
+		m := challenged(t, form)
+		if help := m.ShortHelp(); len(help) != 1 || help[0].Help().Desc != "cancel captcha" {
+			t.Fatalf("help = %v", help)
+		}
+		if drawn := discordtest.Draw(t, m.View(), 200, 12); !strings.Contains(drawn, "try 1 of") {
+			t.Fatalf("drawn:\n%s", drawn)
+		}
+		if _, command := m.Update(key(tcell.KeyEsc, "")); command == nil {
+			t.Fatal("Esc did nothing")
 		}
 	})
 
 	t.Run("a challenge while idle is dropped", func(t *testing.T) {
-		if m, command := (Model{}).Update(CaptchaMsg{testChallenge(t)}); command != nil || m.captchaTries != 0 {
-			t.Fatalf("tries = %d, command = %v", m.captchaTries, command)
+		if m, command := form.Update(ChallengedMsg{testChallenge(t)}); command != nil || m.captcha.Waiting() {
+			t.Fatalf("waiting = %v, command = %v", m.captcha.Waiting(), command)
 		}
 	})
 
-	t.Run("a page opens in the browser and is waited on", func(t *testing.T) {
-		page := testPage(t)
-		m, command := submitting().Update(CaptchaPageMsg{page})
-		if batch, ok := command.(cmd.Batch); !ok || len(batch) != 2 || m.captcha != page {
-			t.Fatalf("captcha = %v, command = %#v", m.captcha, command)
-		}
-		if help := m.ShortHelp(); len(help) != 1 || help[0].Help().Desc != "cancel captcha" {
-			t.Fatalf("help = %v", help)
+	t.Run("an answer logs in again", func(t *testing.T) {
+		m, _ := form.Update(submitMsg{})
+		if _, command := m.Update(CaptchaDoneMsg{Key: m.attempt}); command == nil {
+			t.Fatal("no login")
 		}
 	})
 
-	t.Run("a page for an ended login is closed", func(t *testing.T) {
-		page := testPage(t)
-		m, command := (Model{}).Update(CaptchaPageMsg{page})
-		if m.captcha != nil || command == nil {
-			t.Fatalf("captcha = %v, command = %v", m.captcha, command)
-		}
-		command.(cmd.Task)()
-		if _, err := page.Wait(t.Context()); err == nil {
-			t.Fatal("page still open")
+	t.Run("the end of an earlier login's captcha is dropped", func(t *testing.T) {
+		m, _ := form.Update(submitMsg{})
+		if _, command := m.Update(CaptchaDoneMsg{Key: m.attempt - 1}); command != nil {
+			t.Fatalf("command = %v", command)
 		}
 	})
 
-	t.Run("Esc closes the page, failing the login", func(t *testing.T) {
-		m := submitting()
-		m.captcha = testPage(t)
-		_, command := m.Update(key(tcell.KeyEsc, ""))
-		if command == nil {
-			t.Fatal("Esc did nothing")
+	t.Run("a refused captcha fails the login and points to QR login", func(t *testing.T) {
+		m := challenged(t, form)
+		for range captcha.MaxTries - 1 {
+			m, _ = m.Update(ChallengedMsg{testChallenge(t)})
 		}
-		command.(cmd.Task)()
-		if msg, ok := waitCaptcha(m.captcha).(cmd.Task)().(FailedMsg); !ok || !strings.Contains(msg.Err.Error(), "canceled") {
-			t.Fatalf("wait = %#v", msg)
+		_, command := m.Update(ChallengedMsg{testChallenge(t)})
+		var done CaptchaDoneMsg
+		for _, step := range command.(cmd.Batch) {
+			if task, ok := step.(cmd.Task); ok {
+				if msg, ok := task().(CaptchaDoneMsg); ok {
+					done = msg
+				}
+			}
 		}
-	})
-
-	t.Run("no browser shows the URL to open by hand", func(t *testing.T) {
-		m := submitting()
-		m.captcha, m.captchaTries = testPage(t), 1
-		m, _ = m.Update(CaptchaOpenFailedMsg{errors.New("no handler")})
-		drawn := discordtest.Draw(t, m.View(), 200, 12)
-		if !strings.Contains(drawn, "no handler") || !strings.Contains(drawn, m.captcha.URL()) || !strings.Contains(drawn, "try 1 of") {
-			t.Fatalf("drawn:\n%s", drawn)
+		_, command = m.Update(done)
+		if failed, ok := command.(cmd.Task)().(FailedMsg); !ok || !strings.Contains(failed.Err.Error(), "did not accept") || !strings.Contains(failed.Err.Error(), "QR login") {
+			t.Fatalf("failed = %#v", failed)
 		}
 	})
 
-	t.Run("an answer logs in again with it", func(t *testing.T) {
-		m := submitting()
-		m.captcha = testPage(t)
-		solution := solve(t, m.captcha, "key")
-		m, command := m.Update(CaptchaSolvedMsg{solution})
-		if m.captcha != nil || m.solution != solution || command == nil {
-			t.Fatalf("captcha = %v, solution = %+v, command = %v", m.captcha, m.solution, command)
+	t.Run("a failure closes the page", func(t *testing.T) {
+		m := challenged(t, form)
+		m, command := m.Update(FailedMsg{errors.New("x")})
+		if m.captcha.Waiting() || command == nil {
+			t.Fatalf("waiting = %v, command = %v", m.captcha.Waiting(), command)
 		}
 	})
 
-	t.Run("a failure forgets the captcha", func(t *testing.T) {
-		m := submitting()
-		m.captcha, m.captchaTries, m.captchaOpenErr = testPage(t), 2, "x"
-		m, _ = m.Update(FailedMsg{errors.New("x")})
-		if m.captcha != nil || m.captchaTries != 0 || m.captchaOpenErr != "" || m.solution != (captcha.Solution{}) {
-			t.Fatalf("model = %+v", m)
-		}
-	})
-
-	t.Run("a new submit starts with no answer", func(t *testing.T) {
-		m := Model{login: "u", password: "p", captchaTries: 3}
-		if m, _ = m.Update(submitMsg{}); m.captchaTries != 0 {
-			t.Fatalf("tries = %d", m.captchaTries)
+	t.Run("a new submit names a new login", func(t *testing.T) {
+		m, _ := form.Update(submitMsg{})
+		m.submitting = false
+		if next, _ := m.Update(submitMsg{}); next.attempt != m.attempt+1 {
+			t.Fatalf("attempt = %d, want %d", next.attempt, m.attempt+1)
 		}
 	})
 }

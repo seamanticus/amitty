@@ -1,9 +1,7 @@
 package qr
 
 import (
-	"errors"
 	"net/http"
-	"net/url"
 	"strings"
 	"testing"
 
@@ -28,39 +26,6 @@ func testChallenge(t *testing.T) captcha.Challenge {
 	return challenge
 }
 
-// testPage serves testChallenge, closed when the test ends.
-func testPage(t *testing.T) *captcha.Page {
-	t.Helper()
-	page, err := captcha.Serve(t.Context(), testChallenge(t))
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(page.Close)
-	return page
-}
-
-// answer posts key to page as the browser does.
-func answer(t *testing.T, page *captcha.Page, key string) {
-	t.Helper()
-	u, err := url.Parse(page.URL())
-	if err != nil {
-		t.Fatal(err)
-	}
-	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, page.URL()+"/answer", strings.NewReader(`{"key":"`+key+`"}`))
-	if err != nil {
-		t.Fatal(err)
-	}
-	req.Header.Set("Origin", u.Scheme+"://"+u.Host)
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_ = resp.Body.Close()
-	if resp.StatusCode != http.StatusNoContent {
-		t.Fatalf("answer status %d", resp.StatusCode)
-	}
-}
-
 func TestRedeemTicketCaptcha(t *testing.T) {
 	client := ticketClient(discordtest.Client(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -72,81 +37,82 @@ func TestRedeemTicketCaptcha(t *testing.T) {
 	}
 }
 
-func TestModelCaptcha(t *testing.T) {
-	exchanging := func() Model {
-		m := NewModel(dhttp.Build{}, dhttp.Network{})
-		m.status = "Authenticating..."
-		return m
-	}
+// exchanging is a login redeeming ticket tk.
+func exchanging() Model {
+	m := NewModel(dhttp.Build{}, dhttp.Network{})
+	m, _ = m.Update(pendingLoginMsg{ticket: "tk"})
+	return m
+}
 
-	t.Run("a challenge serves a page, up to the last try", func(t *testing.T) {
+// challenged is exchanging with the page of a challenge waiting, closed when the test ends.
+func challenged(t *testing.T) Model {
+	t.Helper()
+	m, command := exchanging().Update(captchaMsg{ticket: "tk", challenge: testChallenge(t)})
+	served, ok := command.(cmd.Task)().(captchaStepMsg)
+	if !ok {
+		t.Fatalf("serve = %#v", served)
+	}
+	m, _ = m.Update(served)
+	t.Cleanup(func() {
+		if closing, ok := m.captcha.Cancel().(cmd.Task); ok {
+			closing()
+		}
+	})
+	return m
+}
+
+func TestModelCaptcha(t *testing.T) {
+	// evidence: witnesses
+	t.Run("a challenge shows the page in the status", func(t *testing.T) {
+		m := challenged(t)
+		if m.ended {
+			t.Fatal("ended")
+		}
+		if drawn := discordtest.Draw(t, m.View(), 200, 12); !strings.Contains(drawn, "try 1 of") {
+			t.Fatalf("drawn:\n%s", drawn)
+		}
+	})
+
+	t.Run("an answer redeems the ticket again", func(t *testing.T) {
+		m, command := exchanging().Update(captchaDoneMsg{Key: "tk"})
+		if m.ended || m.status != "Authenticating..." || command == nil {
+			t.Fatalf("ended = %v, status = %q, command = %v", m.ended, m.status, command)
+		}
+	})
+
+	t.Run("a refused captcha ends the login", func(t *testing.T) {
 		m := exchanging()
-		for try := 1; try <= captcha.MaxTries; try++ {
-			var command tui.Cmd
-			m, command = m.Update(captchaMsg{ticket: "tk", challenge: testChallenge(t)})
-			if m.captchaTries != try || command == nil || m.ended {
-				t.Fatalf("try %d: tries = %d, ended = %v, command = %v", try, m.captchaTries, m.ended, command)
+		// Each challenge is a try; the pages are never served.
+		for range captcha.MaxTries {
+			m, _ = m.Update(captchaMsg{ticket: "tk", challenge: testChallenge(t)})
+		}
+		m, command := m.Update(captchaMsg{ticket: "tk", challenge: testChallenge(t)})
+		for _, step := range command.(cmd.Batch) {
+			if task, ok := step.(cmd.Task); ok {
+				if done, ok := task().(captchaDoneMsg); ok {
+					m, _ = m.Update(done)
+				}
 			}
 		}
-		if m, _ = m.Update(captchaMsg{ticket: "tk", challenge: testChallenge(t)}); !m.ended || !strings.Contains(m.status, "did not accept") {
+		if !m.ended || !strings.Contains(m.status, "did not accept") || !strings.Contains(m.status, "scan a new code") {
 			t.Fatalf("ended = %v, status = %q", m.ended, m.status)
 		}
 	})
 
-	t.Run("the page is waited on and the answer redeems the ticket again", func(t *testing.T) {
-		page := testPage(t)
-		m, command := exchanging().Update(captchaPageMsg{ticket: "tk", page: page})
-		batch, ok := command.(cmd.Batch)
-		if !ok || len(batch) != 2 || m.captcha != page || !strings.Contains(m.status, "browser") {
-			t.Fatalf("captcha = %v, status = %q, command = %#v", m.captcha, m.status, command)
-		}
-		answer(t, page, "key")
-		solved, ok := batch[1].(cmd.Task)().(captchaSolvedMsg)
-		if !ok || solved.ticket != "tk" {
-			t.Fatalf("wait = %#v", solved)
-		}
-		m, command = m.Update(solved)
-		if m.captcha != nil || m.solution != solved.solution || command == nil {
-			t.Fatalf("captcha = %v, solution = %+v, command = %v", m.captcha, m.solution, command)
-		}
-	})
-
-	t.Run("no browser shows the URL to open by hand", func(t *testing.T) {
-		m := exchanging()
-		m.captcha, m.captchaTries = testPage(t), 1
-		m, _ = m.Update(captchaOpenFailedMsg{page: m.captcha, err: errors.New("no handler")})
-		if !strings.Contains(m.status, "no handler") || !strings.Contains(m.status, m.captcha.URL()) {
-			t.Fatalf("status = %q", m.status)
-		}
-	})
-
 	t.Run("Esc ends the login and closes the page", func(t *testing.T) {
-		m := exchanging()
-		page := testPage(t)
-		m.captcha = page
+		m := challenged(t)
 		m, command := m.Update(tui.KeyMsg(tcell.NewEventKey(tcell.KeyEsc, "", tcell.ModNone)))
-		if !m.ended || m.captcha != nil {
-			t.Fatalf("ended = %v, captcha = %v", m.ended, m.captcha)
-		}
-		for _, c := range command.(cmd.Batch) {
-			if task, ok := c.(cmd.Task); ok {
-				task()
-			}
-		}
-		if _, err := page.Wait(t.Context()); err == nil {
-			t.Fatal("page still open")
+		if !m.ended || m.captcha.Waiting() || command == nil {
+			t.Fatalf("ended = %v, waiting = %v, command = %v", m.ended, m.captcha.Waiting(), command)
 		}
 	})
 
-	t.Run("an ended login drops captcha messages and closes a late page", func(t *testing.T) {
+	t.Run("an ended login drops captcha messages", func(t *testing.T) {
 		m, _ := exchanging().end("Canceled")
-		for _, msg := range []tui.Msg{captchaMsg{ticket: "tk", challenge: testChallenge(t)}, captchaSolvedMsg{ticket: "tk"}} {
+		for _, msg := range []tui.Msg{captchaMsg{ticket: "tk", challenge: testChallenge(t)}, captchaDoneMsg{Key: "tk"}} {
 			if got, command := m.Update(msg); command != nil || got.status != "Canceled" {
 				t.Fatalf("%T: status = %q, command = %v", msg, got.status, command)
 			}
-		}
-		if got, command := m.Update(captchaPageMsg{ticket: "tk", page: testPage(t)}); got.captcha != nil || command == nil {
-			t.Fatalf("captcha = %v, command = %v", got.captcha, command)
 		}
 	})
 }

@@ -82,11 +82,11 @@ func authClient(client *api.Client, build dhttp.Build, fingerprint string) *api.
 	return client
 }
 
-// requestLogin posts the credentials with client and returns a TokenMsg, an MFAMsg, a CaptchaMsg or a FailedMsg.
+// requestLogin posts the credentials with client and returns a TokenMsg, an MFAMsg, a ChallengedMsg or a FailedMsg.
 func requestLogin(ctx context.Context, client *api.Client, login, password string) tui.Msg {
 	loginResp, err := client.WithContext(ctx).Login(login, password)
 	if challenge, ok := captcha.FromError(err); ok {
-		return CaptchaMsg{challenge}
+		return ChallengedMsg{challenge}
 	}
 	if err != nil {
 		return FailedMsg{err}

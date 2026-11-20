@@ -82,7 +82,7 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 		m.password, command = m.password.Update(msg)
 		return m, cmd.Batch{showErrorDialog(msg.Err), command}
 	case password.CountdownMsg, password.FingerprintMsg, password.MFAMsg, password.SMSSentMsg,
-		password.CaptchaMsg, password.CaptchaPageMsg, password.CaptchaOpenFailedMsg, password.CaptchaSolvedMsg:
+		password.ChallengedMsg, password.CaptchaMsg, password.CaptchaDoneMsg:
 		// Like a failure, these reach the password tab even when another tab is shown.
 		var command tui.Cmd
 		m.password, command = m.password.Update(msg)
