@@ -179,7 +179,7 @@ func TestModelMessageRequests(t *testing.T) {
 		}
 		switch r.Method {
 		case http.MethodPut:
-			if body, _ := io.ReadAll(r.Body); string(body) != `{"consent_status":2}` {
+			if body, _ := io.ReadAll(r.Body); strings.TrimSpace(string(body)) != `{"consent_status":2}` {
 				http.Error(w, string(body), http.StatusBadRequest)
 				return
 			}
