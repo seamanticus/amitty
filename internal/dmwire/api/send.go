@@ -4,8 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"mime/multipart"
+	"net/http"
+	"time"
 
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/sendpart"
 )
@@ -118,13 +121,15 @@ var ErrEmptyMessage = errors.New("message is empty")
 
 // SendMessageData is the full structure to send a new message to Discord with.
 type SendMessageData struct {
+	// MobileNetworkType is what the web client reports for its network: "unknown". SendMessageComplex sets it when empty.
+	MobileNetworkType string `json:"mobile_network_type,omitempty"`
 	// Content are the message contents (up to 2000 characters).
 	Content string `json:"content,omitempty"`
-	// Nonce is a nonce that can be used for optimistic message sending.
+	// Nonce is a nonce that can be used for optimistic message sending. SendMessageComplex sets a snowflake of the current time when empty, as the web client does.
 	Nonce string `json:"nonce,omitempty"`
 
-	// TTS is true if this is a TTS message.
-	TTS bool `json:"tts,omitempty"`
+	// TTS is true if this is a TTS message. It is always sent, as the web client sends it.
+	TTS bool `json:"tts"`
 	// Embed is embedded rich content.
 	Embeds []discord.Embed `json:"embeds,omitempty"`
 
@@ -187,10 +192,21 @@ func (c *Client) SendMessageComplex(
 		return nil, err
 	}
 
+	if data.MobileNetworkType == "" {
+		data.MobileNetworkType = "unknown"
+	}
+	if data.Nonce == "" {
+		data.Nonce = discord.NewSnowflake(time.Now()).String()
+	}
+
 	var URL = EndpointChannels + channelID.String() + "/messages"
 	var msg *discord.Message
-	return msg, sendpart.POST(c.Client, data, &msg, URL)
+	// The web client names the composer as where a message comes from.
+	return msg, sendpart.POST(c.Client, data, &msg, URL, httputil.WithHeaders(http.Header{"X-Context-Properties": {chatInputContext}}))
 }
+
+// chatInputContext is base64 of {"location":"chat_input"}, the context properties of a message sent from the composer.
+const chatInputContext = "eyJsb2NhdGlvbiI6ImNoYXRfaW5wdXQifQ=="
 
 // Constants for Discord's various upload size limits.
 // You may use [api.Client.DetermineUploadSize] or [state.State.DetermineUploadSize]
