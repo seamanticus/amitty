@@ -68,6 +68,30 @@ func (c *Client) PrivateChannels() ([]discord.Channel, error) {
 	return c.RequestJSON[[]discord.Channel]("GET", EndpointMe+"/channels")
 }
 
+// CreatePrivateChannel returns the DM with recipient, creating it if there is none. Fires a Channel Create Gateway event.
+func (c *Client) CreatePrivateChannel(recipient discord.UserID) (*discord.Channel, error) {
+	body := struct {
+		Recipients []discord.UserID `json:"recipients"`
+	}{[]discord.UserID{recipient}}
+	return c.RequestJSON[*discord.Channel]("POST", EndpointMe+"/channels", httputil.WithJSONBody(body))
+}
+
+// messageRequestAccepted is the consent status that accepts a message request.
+const messageRequestAccepted = 2
+
+// AcceptMessageRequest moves the DM out of your message requests. Fires a Channel Update Gateway event.
+func (c *Client) AcceptMessageRequest(channelID discord.ChannelID) (*discord.Channel, error) {
+	body := struct {
+		ConsentStatus int `json:"consent_status"`
+	}{messageRequestAccepted}
+	return c.RequestJSON[*discord.Channel]("PUT", EndpointChannels+channelID.String()+"/recipients/@me", httputil.WithJSONBody(body))
+}
+
+// RejectMessageRequest rejects and deletes the message request. Fires Channel Update and Channel Delete Gateway events.
+func (c *Client) RejectMessageRequest(channelID discord.ChannelID) error {
+	return c.FastRequest("DELETE", EndpointChannels+channelID.String()+"/recipients/@me")
+}
+
 // UserConnections returns a list of connection objects. Requires the
 // connections OAuth2 scope.
 func (c *Client) UserConnections() ([]discord.Connection, error) {

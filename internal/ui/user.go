@@ -21,17 +21,31 @@ func IsDeleted(user discord.User) bool {
 		strings.HasPrefix(user.Username, "deleted_user_")
 }
 
-// VisiblePrivateChannels returns the DMs and group DMs to show, most recent first: all of them, but for DMs with a deleted account when hideDeleted.
+// VisiblePrivateChannels returns the DMs and group DMs to show, most recent first: all of them but those Discord filtered as spam, and DMs with a deleted account when hideDeleted.
 func VisiblePrivateChannels(state *ningen.State, hideDeleted bool) ([]discord.Channel, error) {
 	channels, err := state.Cabinet.PrivateChannels()
 	if err != nil {
 		return nil, err
 	}
-	if hideDeleted {
-		channels = slices.DeleteFunc(slices.Clone(channels), func(channel discord.Channel) bool {
-			return channel.Type == discord.DirectMessage && len(channel.DMRecipients) == 1 && IsDeleted(channel.DMRecipients[0])
-		})
-	}
+	channels = slices.DeleteFunc(slices.Clone(channels), func(channel discord.Channel) bool {
+		deleted := channel.Type == discord.DirectMessage && len(channel.DMRecipients) == 1 && IsDeleted(channel.DMRecipients[0])
+		return channel.IsSpam || hideDeleted && deleted
+	})
 	SortPrivateChannels(channels)
 	return channels, nil
+}
+
+// DirectMessage returns your DM with userID, if you have one.
+func DirectMessage(state *ningen.State, userID discord.UserID) (discord.Channel, bool) {
+	channels, err := state.Cabinet.PrivateChannels()
+	if err != nil {
+		return discord.Channel{}, false
+	}
+	index := slices.IndexFunc(channels, func(channel discord.Channel) bool {
+		return channel.Type == discord.DirectMessage && len(channel.DMRecipients) == 1 && channel.DMRecipients[0].ID == userID
+	})
+	if index < 0 {
+		return discord.Channel{}, false
+	}
+	return channels[index], true
 }

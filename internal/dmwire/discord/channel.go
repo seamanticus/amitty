@@ -132,6 +132,11 @@ type Channel struct {
 	DefaultSoftOrder *SortOrderType `json:"default_sort_order,omitempty"`
 	// DefaultForumLayout is the default forum layout view used to display posts in GUILD_FORUM channels. Defaults to 0, which indicates a layout view has not been set by a channel admin.
 	DefaultForumLayout ForumLayoutType `json:"default_forum_layout,omitempty"`
+
+	// IsMessageRequest reports whether the DM waits in your message requests, from someone you are not friends with.
+	IsMessageRequest bool `json:"is_message_request,omitempty"`
+	// IsSpam reports whether Discord filtered the DM as spam.
+	IsSpam bool `json:"is_spam,omitempty"`
 }
 
 func (ch *Channel) UnmarshalJSON(data []byte) error {

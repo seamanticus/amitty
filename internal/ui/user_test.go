@@ -36,6 +36,7 @@ func TestVisiblePrivateChannels(t *testing.T) {
 		{ID: 11, Type: discord.DirectMessage, DMRecipients: []discord.User{deleted}, LastMessageID: 31},
 		// A group with a deleted member is still a group of the others.
 		{ID: 12, Type: discord.GroupDM, DMRecipients: []discord.User{{ID: 1}, deleted}, LastMessageID: 32},
+		{ID: 13, Type: discord.DirectMessage, DMRecipients: []discord.User{{ID: 3, Username: "spam"}}, LastMessageID: 33, IsSpam: true},
 	} {
 		if err := state.Cabinet.ChannelSet(&channel, false); err != nil {
 			t.Fatal(err)
@@ -57,5 +58,13 @@ func TestVisiblePrivateChannels(t *testing.T) {
 	}
 	if got, want := ids(false), []discord.ChannelID{12, 11, 10}; !slices.Equal(got, want) {
 		t.Errorf("shown = %v, want %v", got, want)
+	}
+
+	// evidence: witnesses
+	if channel, ok := DirectMessage(state, 1); !ok || channel.ID != 10 {
+		t.Errorf("DirectMessage(1) = %d, %v; want the DM, not the group", channel.ID, ok)
+	}
+	if _, ok := DirectMessage(state, 4); ok {
+		t.Error("a DM with a stranger")
 	}
 }
