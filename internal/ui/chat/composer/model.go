@@ -67,7 +67,9 @@ type Model struct {
 
 	editing *discord.Message
 	// replyName is the name of the author of the message being replied to.
-	replyName         string
+	replyName string
+	// replyMention reports whether the reply mentions the author of the message replied to.
+	replyMention      bool
 	sendMessageData   *api.SendMessageData
 	memberSearchCache map[string]uint
 	autocomplete      autocomplete.Model
@@ -97,7 +99,7 @@ func NewModel(cfg *config.Config, state *ningen.State) Model {
 func (m *Model) SetChannel(channel *discord.Channel) {
 	// A reply or an edit is of a message in the channel left; typed text and attachments stay.
 	if m.channel != nil && m.channel.ID != channel.ID {
-		m.sendMessageData.Reference, m.sendMessageData.AllowedMentions = nil, nil
+		m.sendMessageData.Reference = nil
 		if m.editing != nil {
 			m.editing = nil
 			m.setText("", 0)
@@ -155,7 +157,7 @@ func (m Model) title() string {
 	case m.editing != nil:
 		return "Editing"
 	case data.Reference != nil:
-		if mention := data.AllowedMentions.RepliedUser; mention != nil && *mention {
+		if m.replyMention {
 			return "[@] Replying to " + m.replyName
 		}
 		return "Replying to " + m.replyName
@@ -253,19 +255,25 @@ func (m *Model) StartEdit(message discord.Message) {
 
 // StartReply makes the next message a reply to message by name, mentioning its author if mention is set.
 func (m *Model) StartReply(message discord.Message, name string, mention bool) {
-	data := m.sendMessageData
-	data.Reference = &discord.MessageReference{MessageID: message.ID}
-	data.AllowedMentions = &api.AllowedMentions{RepliedUser: option.Some(mention)}
-	m.replyName = name
+	m.sendMessageData.Reference = &discord.MessageReference{ChannelID: message.ChannelID, MessageID: message.ID}
+	m.replyName, m.replyMention = name, mention
 }
 
 func (m *Model) toggleReplyMention() {
-	data := m.sendMessageData
-	if data.Reference == nil || data.AllowedMentions == nil || data.AllowedMentions.RepliedUser == nil {
-		return
+	if m.sendMessageData.Reference != nil {
+		m.replyMention = !m.replyMention
 	}
+}
 
-	data.AllowedMentions.RepliedUser = option.Some(!*data.AllowedMentions.RepliedUser)
+// replyAllowedMentions returns the allowed mentions a message sends: none for a reply that mentions its author, as the web client leaves them out, and every kind but the author for one that does not.
+func (m Model) replyAllowedMentions() *api.AllowedMentions {
+	if m.sendMessageData.Reference == nil || m.replyMention {
+		return nil
+	}
+	return &api.AllowedMentions{
+		Parse:       []api.AllowedMentionType{api.AllowUserMention, api.AllowRoleMention, api.AllowEveryoneMention},
+		RepliedUser: option.Some(false),
+	}
 }
 
 func (m Model) processText(channel *discord.Channel, source []byte) string {

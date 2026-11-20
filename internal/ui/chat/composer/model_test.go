@@ -11,6 +11,7 @@ import (
 	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/json"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/sendpart"
 	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/internal/tui"
@@ -30,6 +31,28 @@ func newTestModel(t *testing.T) (*Model, *config.Config) {
 	c := NewModel(cfg, ningen.FromState(discordtest.State(t)))
 	c.disabled = false
 	return &c, cfg
+}
+
+// The reply with a mention is the body a NetLog of the web client showed; the one without is Discord's documented form.
+func TestModelReplyBody(t *testing.T) {
+	c, _ := newTestModel(t)
+	c.StartReply(discord.Message{ID: 5, ChannelID: 2}, "ann", true)
+	body := func() string {
+		data := *c.sendMessageData
+		data.AllowedMentions = c.replyAllowedMentions()
+		encoded, err := json.Marshal(data)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return string(encoded)
+	}
+	if got, want := body(), `{"tts":false,"message_reference":{"channel_id":"2","message_id":"5"},"flags":0}`; got != want {
+		t.Errorf("with mention: %s, want %s", got, want)
+	}
+	c.toggleReplyMention()
+	if got, want := body(), `{"tts":false,"allowed_mentions":{"parse":["users","roles","everyone"],"replied_user":false},"message_reference":{"channel_id":"2","message_id":"5"},"flags":0}`; got != want {
+		t.Errorf("without mention: %s, want %s", got, want)
+	}
 }
 
 func TestModelSetChannel(t *testing.T) {

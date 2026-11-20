@@ -160,6 +160,7 @@ func (m *Model) send() tui.Cmd {
 
 	text = m.processText(selectedChannel, []byte(text))
 	data := *m.sendMessageData
+	data.AllowedMentions = m.replyAllowedMentions()
 	data.Files = slices.Clone(data.Files)
 
 	editing := m.editing

@@ -532,15 +532,15 @@ const (
 // When sending, only MessageID is required.
 // https://discord.com/developers/docs/resources/channel#message-object-message-reference-structure
 type MessageReference struct {
-	// Type describes whether MessageSnapshots or ReferencedMessage will be
-	// populated in [Message].
-	Type MessageReferenceType `json:"type"`
-	// MessageID is the id of the originating message.
-	MessageID MessageID `json:"message_id,omitempty"`
-	// ChannelID is the id of the originating message's channel.
-	ChannelID ChannelID `json:"channel_id,omitempty"`
 	// GuildID is the id of the originating message's guild.
 	GuildID GuildID `json:"guild_id,omitempty"`
+	// ChannelID is the id of the originating message's channel.
+	ChannelID ChannelID `json:"channel_id,omitempty"`
+	// MessageID is the id of the originating message.
+	MessageID MessageID `json:"message_id,omitempty"`
+	// Type describes whether MessageSnapshots or ReferencedMessage will be
+	// populated in [Message]. A reply leaves the default out, as the web client does.
+	Type MessageReferenceType `json:"type,omitempty"`
 }
 
 //
