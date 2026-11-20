@@ -3,6 +3,7 @@
 package httpdriver
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"net/http"
@@ -52,4 +53,20 @@ func OptHeader(from Response) http.Header {
 		return nil
 	}
 	return from.GetHeader()
+}
+
+// Bytes returns a request body of b, whose length a Request sends as its Content-Length.
+func Bytes(b []byte) io.ReadCloser { return sized{bytes.NewReader(b)} }
+
+// sized is a body that reports how much of it is left to read.
+type sized struct{ *bytes.Reader }
+
+func (sized) Close() error { return nil }
+
+// Length returns the length of body if it is known, as for a body from Bytes.
+func Length(body io.Reader) (int64, bool) {
+	if s, ok := body.(sized); ok {
+		return int64(s.Len()), true
+	}
+	return 0, false
 }

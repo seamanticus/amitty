@@ -1,6 +1,7 @@
 package httputil
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -75,20 +76,22 @@ func WithBody(body io.ReadCloser) RequestOption {
 	}
 }
 
-// WithJSONBody inserts a JSON body into the request. This ignores JSON errors.
+// WithJSONBody inserts v as a JSON body, encoded whole so the request carries its Content-Length and, as a browser's does, no trailing newline.
 func WithJSONBody(v any) RequestOption {
 	if v == nil {
 		return func(httpdriver.Request) error { return nil }
 	}
 
 	return func(r httpdriver.Request) error {
-		rp, wp := io.Pipe()
-		go func() { wp.CloseWithError(json.EncodeStream(wp, v)) }()
+		body, err := json.Marshal(v)
+		if err != nil {
+			return fmt.Errorf("encode JSON body: %w", err)
+		}
 
 		r.AddHeader(http.Header{
 			"Content-Type": {"application/json"},
 		})
-		r.WithBody(rp)
+		r.WithBody(httpdriver.Bytes(body))
 		return nil
 	}
 }

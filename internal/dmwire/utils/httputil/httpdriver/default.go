@@ -68,6 +68,9 @@ func (r *DefaultRequest) AddHeader(header http.Header) {
 
 func (r *DefaultRequest) WithBody(body io.ReadCloser) {
 	r.Body = body
+	if n, ok := Length(body); ok {
+		r.ContentLength = n
+	}
 }
 
 // DefaultResponse wraps around the stdlib Response and satisfies the Response

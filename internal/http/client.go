@@ -102,6 +102,9 @@ func (r *request) AddQuery(values url.Values) {
 
 func (r *request) WithBody(body io.ReadCloser) {
 	r.Body = body
+	if n, ok := httpdriver.Length(body); ok {
+		r.ContentLength = n
+	}
 }
 
 type response fhttp.Response

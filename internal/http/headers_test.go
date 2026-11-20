@@ -12,6 +12,7 @@ import (
 	"github.com/bogdanfinn/fhttp/http2"
 	"github.com/bogdanfinn/fhttp/http2/hpack"
 	tls_client "github.com/bogdanfinn/tls-client"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 )
 
 // rawHeaderNames serves one HTTP/2 request over TLS, as discord.com gets them, and returns its header names in the order its HEADERS frame carried them. HTTP/1.1 would not do: fhttp appends the Accept-Encoding it adds there after the ordered headers.
@@ -118,6 +119,25 @@ func TestHeaderOrder(t *testing.T) {
 		// The ordering key itself must never reach the wire.
 		if slices.ContainsFunc(got, func(name string) bool { return strings.Contains(name, "order") }) {
 			t.Fatalf("an ordering key was sent: %v", got)
+		}
+	})
+
+	t.Run("a JSON body is sent with its length", func(t *testing.T) {
+		got := rawHeaderNames(t, func(client tls_client.HttpClient, url string) {
+			driver := OmitEmptyHeaders(wrapClient(client))
+			req, err := driver.NewRequest(t.Context(), "POST", url)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := httputil.WithJSONBody(map[string][]string{"recipients": {"1"}})(req); err != nil {
+				t.Fatal(err)
+			}
+			if resp, err := driver.Do(req); err == nil {
+				_ = resp.GetBody().Close()
+			}
+		})
+		if len(got) == 0 || got[0] != "content-length" {
+			t.Fatalf("headers arrived as %v, want content-length first", got)
 		}
 	})
 
