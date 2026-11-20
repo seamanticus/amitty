@@ -12,10 +12,10 @@ amitty leaves out what it does not need, on purpose:
   the guilds tree, but cannot be joined.
 - **No bots.** amitty logs in as a user, and cannot run a bot or
   register slash commands.
-- **No new conversations.** amitty opens the DMs and group DMs you
-  already have; it cannot start a DM with someone new. Starting one is
-  among what Discord watches most closely for spam (see
-  [Network and privacy](network.md)).
+- **Few new conversations.** amitty opens the DMs and group DMs you
+  already have. A new DM with a member starts only after you confirm
+  it, and at most 3 an hour, as starting one is among what Discord
+  watches most closely for spam (see [Network and privacy](network.md)).
 - **Linux only.** It builds and runs on Linux; other systems are not
   supported.
 

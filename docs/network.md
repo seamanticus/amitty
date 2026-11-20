@@ -34,8 +34,9 @@ a browser, so it is treated as one:
 - **Fingerprint**: logins carry the `X-Fingerprint` Discord gives
   browsers.
 
-What amitty does not do helps as much: it creates no DMs, joins no
-guilds and sends nothing on its own.
+What amitty does not do helps as much: it joins no guilds, sends
+nothing on its own, and starts a new DM only when you confirm it, at
+most 3 an hour, counted until amitty quits.
 
 ## The risk
 

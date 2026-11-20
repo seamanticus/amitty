@@ -117,17 +117,6 @@ func (m *Model) navigateToChannel(channelID discord.ChannelID) tui.Cmd {
 	return cmd
 }
 
-// openDM opens your DM with userID. Starting a new DM is not offered until its request is checked against the official client's, as opening DMs is what Discord's spam filter watches.
-func (m *Model) openDM(userID discord.UserID) tui.Cmd {
-	if ui.IsMe(m.state, userID) {
-		return nil
-	}
-	if channel, ok := ui.DirectMessage(m.state, userID); ok && !channel.IsSpam {
-		return m.navigateToChannel(channel.ID)
-	}
-	return ui.ShowDialog("You have no DM with them yet. Starting one from amitty is not available yet.", ui.DialogButton{Label: "OK"})
-}
-
 // paneMsg is what a pane's widget made of a mouse message within it. A left mouse button press also focuses the pane.
 type paneMsg struct {
 	pane  pane

@@ -16,8 +16,11 @@ type currentMsg struct {
 	current *tree.Node
 }
 
-// OpenDMMsg asks to open your DM with UserID, picked in the tree.
-type OpenDMMsg struct{ UserID discord.UserID }
+// OpenDMMsg asks to open your DM with UserID, picked in the tree, whose name is Name.
+type OpenDMMsg struct {
+	UserID discord.UserID
+	Name   string
+}
 
 // currentMember returns the member highlighted, if a member is.
 func (m Model) currentMember() (memberRef, bool) {

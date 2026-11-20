@@ -132,24 +132,31 @@ func TestModelOpenDM(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	// dialog reports whether opening the DM with userID only explained that there is none.
-	dialog := func(userID discord.UserID) bool {
-		task, ok := m.openDM(userID).(cmd.Task)
+	// buttons returns the dialog opening the DM with userID asks, or nil if it opened one.
+	buttons := func(userID discord.UserID) []ui.DialogButton {
+		task, ok := m.openDM(userID, "b").(cmd.Task)
 		if !ok {
-			return false
+			return nil
 		}
-		_, ok = task().(ui.DialogMsg)
-		return ok
+		dialog, _ := task().(ui.DialogMsg)
+		return dialog.Buttons
 	}
 	// evidence: witnesses
-	if m.openDM(1) != nil {
+	if m.openDM(1, "me") != nil {
 		t.Error("opened a DM with yourself")
 	}
-	if dialog(2) {
+	if buttons(2) != nil {
 		t.Error("the existing DM was not opened")
 	}
-	if !dialog(3) || !dialog(4) {
-		t.Error("a spam DM or none was opened, or a new DM started")
+	for _, userID := range []discord.UserID{3, 4} {
+		asked := buttons(userID)
+		if len(asked) != 2 || asked[0].Label != "No" || asked[0].Cmd != nil {
+			t.Fatalf("user %d: buttons = %+v, want No first, doing nothing", userID, asked)
+		}
+		start, ok := asked[1].Cmd.(cmd.Task)
+		if !ok || start() != (startDMMsg{userID}) {
+			t.Errorf("user %d: Yes does not start the DM", userID)
+		}
 	}
 }
 

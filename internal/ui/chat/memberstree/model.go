@@ -29,9 +29,10 @@ func (r groupRef) String() string {
 	return string(r)
 }
 
-// memberRef is a member and its index in the guild member list, which decides the chunk of the list to request.
+// memberRef is a member, the name shown for them, and their index in the guild member list, which decides the chunk of the list to request.
 type memberRef struct {
 	userID discord.UserID
+	name   string
 	index  int
 }
 
@@ -240,7 +241,7 @@ func (m Model) addMember(group *tree.Node, guildID discord.GuildID, member disco
 	}
 	spans := []text.Span{{Text: statusMarker}, {Text: " "}, {Text: name, Style: nameStyle}}
 	m.setStatus(spans, m.status(guildID, member.User.ID))
-	group.AddChild(m.reuse(member.User.ID.String()).SetSpans(spans...).SetReference(memberRef{userID: member.User.ID, index: index}))
+	group.AddChild(m.reuse(member.User.ID.String()).SetSpans(spans...).SetReference(memberRef{userID: member.User.ID, name: name, index: index}))
 }
 
 const (
@@ -330,7 +331,7 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 			msg.node.SetExpanded(!msg.node.Expanded())
 		}
 		if ref, ok := msg.node.Reference().(memberRef); ok {
-			open := OpenDMMsg{UserID: ref.userID}
+			open := OpenDMMsg{UserID: ref.userID, Name: ref.name}
 			return m, cmd.Batch{m.requestSelectedMembers(), cmd.Task(func() tui.Msg { return open })}
 		}
 		return m, m.requestSelectedMembers()

@@ -1,6 +1,8 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
@@ -69,11 +71,14 @@ func (c *Client) PrivateChannels() ([]discord.Channel, error) {
 }
 
 // CreatePrivateChannel returns the DM with recipient, creating it if there is none. Fires a Channel Create Gateway event.
+// The web client sends it with empty context properties, base64 of "{}".
 func (c *Client) CreatePrivateChannel(recipient discord.UserID) (*discord.Channel, error) {
 	body := struct {
 		Recipients []discord.UserID `json:"recipients"`
 	}{[]discord.UserID{recipient}}
-	return c.RequestJSON[*discord.Channel]("POST", EndpointMe+"/channels", httputil.WithJSONBody(body))
+	return c.RequestJSON[*discord.Channel]("POST", EndpointMe+"/channels",
+		httputil.WithHeaders(http.Header{"X-Context-Properties": {"e30="}}),
+		httputil.WithJSONBody(body))
 }
 
 // messageRequestAccepted is the consent status that accepts a message request.

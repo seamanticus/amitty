@@ -87,6 +87,8 @@ type Model struct {
 
 	// typers maps the users typing in the selected channel to when their typing indicator expires.
 	typers map[discord.UserID]time.Time
+	// dmStarts are when this session started new DMs, for their limit.
+	dmStarts dmStarts
 
 	// images are shared by the panes.
 	images   map[discord.URL]tuiimage.Widget
@@ -397,7 +399,12 @@ func (m Model) update(msg tui.Msg) (Model, tui.Cmd) {
 		m.overlay = overlayNone
 		return m, nil
 	case memberstree.OpenDMMsg:
-		return m, m.openDM(msg.UserID)
+		return m, m.openDM(msg.UserID, msg.Name)
+	case startDMMsg:
+		return m, m.startDM(msg.userID, time.Now())
+	case dmStartedMsg:
+		m.guildsTree.RefreshPrivateChannels()
+		return m, m.navigateToChannel(msg.channelID)
 	case messageslist.ReplyMsg:
 		m.composer.StartReply(msg.Message, msg.Name, msg.Mention)
 		m.setFocus(paneComposer)
