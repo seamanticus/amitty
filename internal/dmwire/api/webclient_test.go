@@ -74,8 +74,8 @@ func TestWebClientRequests(t *testing.T) {
 			t.Fatal(err)
 		}
 		want := []sent{
-			{"PUT", "/api/v9/channels/1/messages/2/reactions/%F0%9F%91%8D/@me?location=Message%20Hover%20Bar&type=0", "", ""},
-			{"DELETE", "/api/v9/channels/1/messages/2/reactions/%F0%9F%91%8D/0/@me?location=Message%20Hover%20Bar&burst=false", "", ""},
+			{"PUT", "/api/v9/channels/1/messages/2/reactions/%F0%9F%91%8D/%40me?location=Message%20Hover%20Bar&type=0", "", ""},
+			{"DELETE", "/api/v9/channels/1/messages/2/reactions/%F0%9F%91%8D/0/%40me?location=Message%20Hover%20Bar&burst=false", "", ""},
 		}
 		if len(*got) != len(want) || (*got)[0] != want[0] || (*got)[1] != want[1] {
 			t.Fatalf("sent %+v, want %+v", *got, want)

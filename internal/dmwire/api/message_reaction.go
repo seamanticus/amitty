@@ -22,14 +22,14 @@ func (c *Client) React(
 		"PUT",
 		EndpointChannels+channelID.String()+
 			"/messages/"+messageID.String()+
-			"/reactions/"+emoji.PathString()+"/@me?location="+reactionLocation+"&type=0",
+			"/reactions/"+emoji.PathString()+"/%40me?location="+reactionLocation+"&type=0",
 	)
 }
 
 // reactionLocation is the location query the web client sends with its own reactions, escaped as it sends it.
 const reactionLocation = "Message%20Hover%20Bar"
 
-// Unreact removes a normal reaction the current user has made for the message, by the path and query the web client uses: the reaction type, 0, before @me.
+// Unreact removes a normal reaction the current user has made for the message, by the path and query the web client uses: the reaction type, 0, before @me, which it escapes as %40me.
 func (c *Client) Unreact(
 	channelID discord.ChannelID, messageID discord.MessageID, emoji discord.APIEmoji) error {
 
@@ -37,7 +37,7 @@ func (c *Client) Unreact(
 		"DELETE",
 		EndpointChannels+channelID.String()+
 			"/messages/"+messageID.String()+
-			"/reactions/"+emoji.PathString()+"/0/@me?location="+reactionLocation+"&burst=false",
+			"/reactions/"+emoji.PathString()+"/0/%40me?location="+reactionLocation+"&burst=false",
 	)
 }
 
