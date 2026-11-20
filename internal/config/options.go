@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	"github.com/alecthomas/chroma/v2/styles"
 )
 
 // OptionKind is how an option is edited.
@@ -48,8 +49,8 @@ func Live(current, next Config) Config {
 	return next
 }
 
-// optionChoices returns the values an option is picked from, as TOML, or nil if it is typed.
-func optionChoices(path string) []string {
+// optionChoices returns the values the option at path, holding value, is picked from, as TOML, or nil if it is typed.
+func optionChoices(path string, value reflect.Value) []string {
 	quote := func(values ...string) []string {
 		quoted := make([]string, len(values))
 		for i, v := range values {
@@ -57,12 +58,17 @@ func optionChoices(path string) []string {
 		}
 		return quoted
 	}
+	if enum, ok := reflect.TypeAssert[interface{ choices() []string }](value); ok {
+		return quote(enum.choices()...)
+	}
 	switch path {
 	case "theme_profile":
 		names := slices.SortedFunc(slices.Values(ProfileNames()), func(a, b string) int {
 			return strings.Compare(strings.ToLower(a), strings.ToLower(b))
 		})
 		return quote(append([]string{""}, names...)...)
+	case "markdown.theme":
+		return quote(styles.Names()...)
 	case "status":
 		return quote("default", "online", "dnd", "idle", "invisible", "offline")
 	case "ui.messages_list.image_protocol":
@@ -96,8 +102,8 @@ func Options(cfg *Config) []Option {
 				option.Kind = OptionBool
 			case f.value.Kind() == reflect.Map:
 				option.Kind = OptionFileOnly
-			case optionChoices(name) != nil:
-				option.Kind, option.Choices = OptionChoice, optionChoices(name)
+			case optionChoices(name, f.value) != nil:
+				option.Kind, option.Choices = OptionChoice, optionChoices(name, f.value)
 			}
 			options = append(options, option)
 		}

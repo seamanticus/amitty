@@ -36,6 +36,17 @@ func (e enum[T]) text(value T) ([]byte, error) {
 	return nil, fmt.Errorf("unknown value: %v", value)
 }
 
+// names returns the name each value is written back as, in order, leaving out the other names it is also read from.
+func (e enum[T]) names() []string {
+	var names []string
+	for _, pair := range e {
+		if name, _ := e.text(pair.value); string(name) == pair.name {
+			names = append(names, pair.name)
+		}
+	}
+	return names
+}
+
 var (
 	boxDrawing = scrollbar.SymbolSet{Track: "│", Thumb: "█", Begin: "▲", End: "▼"}
 
@@ -80,6 +91,8 @@ func (aw AlignmentWrapper) MarshalText() ([]byte, error) {
 	return alignments.text(aw.HorizontalAlignment)
 }
 
+func (AlignmentWrapper) choices() []string { return alignments.names() }
+
 type BorderSetWrapper struct{ tui.BorderSet }
 
 func (bw *BorderSetWrapper) UnmarshalText(text []byte) (err error) {
@@ -89,6 +102,8 @@ func (bw *BorderSetWrapper) UnmarshalText(text []byte) (err error) {
 
 func (bw BorderSetWrapper) MarshalText() ([]byte, error) { return borderSets.text(bw.BorderSet) }
 
+func (BorderSetWrapper) choices() []string { return borderSets.names() }
+
 type SymbolSetWrapper struct{ scrollbar.SymbolSet }
 
 func (sw *SymbolSetWrapper) UnmarshalText(text []byte) (err error) {
@@ -97,6 +112,8 @@ func (sw *SymbolSetWrapper) UnmarshalText(text []byte) (err error) {
 }
 
 func (sw SymbolSetWrapper) MarshalText() ([]byte, error) { return symbolSets.text(sw.SymbolSet) }
+
+func (SymbolSetWrapper) choices() []string { return symbolSets.names() }
 
 type ScrollBarVisibilityWrapper struct{ viewport.ScrollBarVisibility }
 
@@ -108,6 +125,8 @@ func (vw *ScrollBarVisibilityWrapper) UnmarshalText(text []byte) (err error) {
 func (vw ScrollBarVisibilityWrapper) MarshalText() ([]byte, error) {
 	return scrollBarVisibilities.text(vw.ScrollBarVisibility)
 }
+
+func (ScrollBarVisibilityWrapper) choices() []string { return scrollBarVisibilities.names() }
 
 type (
 	UIConfig struct {

@@ -143,8 +143,8 @@ func (m Model) Update(msg Msg) (Model, tui.Cmd) {
 		m.list, command = m.list.Update(msg.msg)
 	case stepChoice:
 		m.choices, command = m.choices.Update(msg.msg)
-		// A profile is shown as the cursor reaches it, so it can be judged before it is chosen.
-		if item, ok := m.choices.Selected(); ok && m.editing.Path == previewPath {
+		// A value is shown as the cursor reaches it, so it can be judged before it is chosen.
+		if item, ok := m.choices.Selected(); ok {
 			if value, ok := item.Reference.(string); ok && value != m.previewed {
 				m.previewed = value
 				command = cmd.Batch{command, m.preview(value)}
@@ -167,7 +167,7 @@ func (m Model) edit(option config.Option) (Model, tui.Cmd) {
 		return m, m.save(option, value)
 	case config.OptionChoice:
 		// A short set of values is stepped through like a bool; a long one is picked from a list.
-		if option.Path != previewPath {
+		if len(option.Choices) <= stepLimit {
 			next := (slices.Index(option.Choices, option.Value) + 1) % len(option.Choices)
 			return m, m.save(option, option.Choices[next])
 		}
@@ -193,8 +193,8 @@ func (m Model) edit(option config.Option) (Model, tui.Cmd) {
 	panic("invariant: unknown option kind")
 }
 
-// previewPath is the one option whose choices are previewed as the cursor moves over them, as a profile is judged by looking at it.
-const previewPath = "theme_profile"
+// stepLimit is the most choices Enter steps through; more open a list, previewed as the cursor moves over it.
+const stepLimit = 6
 
 // preview returns the command that shows the config the file gives with the option being edited set to value, without writing it, or as it is for "".
 func (m Model) preview(value string) tui.Cmd {

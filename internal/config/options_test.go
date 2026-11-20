@@ -1,6 +1,7 @@
 package config
 
 import (
+	"slices"
 	"strings"
 	"testing"
 )
@@ -45,10 +46,21 @@ func TestOptions(t *testing.T) {
 		{"openers", OptionFileOnly, false},
 		{"keybinds.quit", OptionText, false},
 		{"theme.messages_list.reply_style", OptionText, false},
+		{"markdown.theme", OptionChoice, false},
+		{"ui.border.active_set", OptionChoice, false},
+		{"ui.scroll_bar.symbol_set", OptionChoice, false},
+		{"ui.scroll_bar.visibility", OptionChoice, false},
+		{"ui.tabs.alignment", OptionChoice, false},
 	} {
 		option, ok := byPath[test.path]
 		if !ok || option.Kind != test.kind || option.Restart != test.restart {
 			t.Errorf("%s = %+v, want kind %d, restart %v", test.path, option, test.kind, test.restart)
+		}
+	}
+	// evidence: witnesses (every option of the default config)
+	for _, option := range options {
+		if option.Kind == OptionChoice && !slices.Contains(option.Choices, option.Value) {
+			t.Errorf("%s = %s is not one of its choices %v", option.Path, option.Value, option.Choices)
 		}
 	}
 	if doc := byPath["mouse"].Doc; doc != "Whether to enable the mouse." {
