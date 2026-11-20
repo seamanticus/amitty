@@ -106,6 +106,11 @@ type PathPromptKeybinds struct {
 	Cancel   Keybind `toml:"cancel"`
 }
 
+type ProfileKeybinds struct {
+	YankID Keybind `toml:"yank_id"`
+	Close  Keybind `toml:"close"`
+}
+
 type TreeKeybinds struct {
 	ScrollKeybinds
 	// Scroll sideways to read names that are cut off.
@@ -238,6 +243,8 @@ type Keybinds struct {
 	Picker PickerKeybinds `toml:"picker"`
 	// Only while asked for a file path, to attach or to save to.
 	PathPrompt PathPromptKeybinds `toml:"path_prompt"`
+	// Only while a profile is shown, opened with enter on a member.
+	Profile ProfileKeybinds `toml:"profile"`
 	// Only while focusing on the guilds tree.
 	GuildsTree GuildsTreeKeybinds `toml:"guilds_tree"`
 	// Only while focusing on the members tree.
@@ -316,6 +323,10 @@ func defaultKeybinds() Keybinds {
 			Complete: key("complete", "tab"),
 			Submit:   key("ok", "enter"),
 			Cancel:   key("cancel", "esc"),
+		},
+		Profile: ProfileKeybinds{
+			YankID: key("yank id", "y"),
+			Close:  key("close", "esc", "q"),
 		},
 		GuildsTree: GuildsTreeKeybinds{
 			TreeKeybinds:         tree,

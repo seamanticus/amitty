@@ -109,6 +109,7 @@ func (m *Model) sendImages() tui.Cmd {
 	images := images.ChangedMsg(maps.Clone(m.images))
 	var command tui.Cmd
 	m.reactionsPicker, command = m.reactionsPicker.Update(images)
+	m.profile, _ = m.profile.Update(images)
 	return cmd.Batch{command, m.updatePane(paneMessagesList, images), m.updatePane(paneComposer, images)}
 }
 

@@ -41,6 +41,7 @@ import (
 	"github.com/seamanticus/amitty/internal/ui/chat/memberstree"
 	"github.com/seamanticus/amitty/internal/ui/chat/messageslist"
 	"github.com/seamanticus/amitty/internal/ui/chat/pathprompt"
+	"github.com/seamanticus/amitty/internal/ui/chat/profile"
 	"github.com/seamanticus/amitty/internal/ui/chat/reactionspicker"
 	"github.com/seamanticus/amitty/internal/ui/images"
 )
@@ -68,6 +69,8 @@ type Model struct {
 	reactionsPicker reactionspicker.Model
 	// pathPrompt asks for a file path to attach or to save to.
 	pathPrompt pathprompt.Model
+	// profile shows a member picked in the members tree.
+	profile profile.Model
 
 	selectedChannel *discord.Channel
 	// windowUnfocused reports whether the terminal window lost focus.
@@ -166,6 +169,7 @@ const (
 	overlayAttachmentsPicker
 	overlayReactionsPicker
 	overlayPathPrompt
+	overlayProfile
 )
 
 // pickerView returns the view of the picker or prompt shown on top, or nil if none is open.
@@ -179,6 +183,8 @@ func (m Model) pickerView() tui.Widget {
 		return m.reactionsPicker.View()
 	case overlayPathPrompt:
 		return m.pathPrompt.View()
+	case overlayProfile:
+		return m.profile.View()
 	case overlayNone:
 		return nil
 	}
@@ -382,6 +388,14 @@ func (m Model) update(msg tui.Msg) (Model, tui.Cmd) {
 	case pathprompt.CancelMsg:
 		m.overlay = overlayNone
 		return m, nil
+	case profile.ShowMsg:
+		var command tui.Cmd
+		m.profile, command = profile.New(m.cfg, m.state, msg)
+		m.overlay = overlayProfile
+		return m, command
+	case profile.ClosedMsg:
+		m.overlay = overlayNone
+		return m, nil
 	case messageslist.ReplyMsg:
 		m.composer.StartReply(msg.Message, msg.Name, msg.Mention)
 		m.setFocus(paneComposer)
@@ -465,6 +479,8 @@ func (m *Model) route(msg tui.Msg) tui.Cmd {
 		m.reactionsPicker, cmd = m.reactionsPicker.Update(msg)
 	case overlayPathPrompt:
 		m.pathPrompt, cmd = m.pathPrompt.Update(msg)
+	case overlayProfile:
+		m.profile, cmd = m.profile.Update(msg)
 	case overlayNone:
 		cmd = m.updatePane(m.focused, msg)
 	default:

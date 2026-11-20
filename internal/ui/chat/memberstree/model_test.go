@@ -11,7 +11,10 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/ningen"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/tui/tree"
+	"github.com/seamanticus/amitty/internal/ui/chat/profile"
 )
 
 const guildID, channelID = 1, 2
@@ -23,6 +26,20 @@ func newTestModel(t *testing.T) Model {
 		t.Fatal(err)
 	}
 	return NewModel(cfg, ningen.FromState(discordtest.State(t)))
+}
+
+// shown returns the profile command shows, running only its last task, which follows the member list request.
+func shown(command tui.Cmd) (profile.ShowMsg, bool) {
+	batch, ok := command.(cmd.Batch)
+	if !ok || len(batch) == 0 {
+		return profile.ShowMsg{}, false
+	}
+	task, ok := batch[len(batch)-1].(cmd.Task)
+	if !ok {
+		return profile.ShowMsg{}, false
+	}
+	show, ok := task().(profile.ShowMsg)
+	return show, ok
 }
 
 // setGuildMembers stores a guild channel whose member list holds items, given as JSON.
@@ -152,6 +169,40 @@ func TestModelRebuild(t *testing.T) {
 		}
 		if m.root.Children()[1].Expanded() {
 			t.Fatal("the collapsed group was expanded")
+		}
+	})
+}
+
+func TestModelProfile(t *testing.T) {
+	m := newTestModel(t)
+	m.channel = setGuildMembers(t, m, `[
+		{"group": {"id": "3", "count": 1}},
+		{"member": {"user": {"id": "10", "username": "a"}, "nick": "Alice", "roles": ["3"]}}
+	]`)
+	m.rebuild()
+	group := m.root.Children()[0]
+	// evidence: witnesses
+	t.Run("a member shows their profile", func(t *testing.T) {
+		_, command := m.Update(selectedMsg{node: group.Children()[0]})
+		show, ok := shown(command)
+		if !ok || show.GuildID != guildID || show.Member.Nick != "Alice" || show.Member.User.ID != 10 {
+			t.Fatalf("shown = %+v, %v", show, ok)
+		}
+	})
+	t.Run("a group shows none", func(t *testing.T) {
+		if _, command := m.Update(selectedMsg{node: group}); command != nil {
+			if _, ok := shown(command); ok {
+				t.Fatal("a group showed a profile")
+			}
+		}
+	})
+	t.Run("a DM recipient", func(t *testing.T) {
+		m.channel = &discord.Channel{Type: discord.DirectMessage, DMRecipients: []discord.User{{ID: 20, Username: "z"}}}
+		if show, ok := m.profile(20); !ok || show.GuildID.IsValid() || show.Member.User.Username != "z" {
+			t.Fatalf("profile = %+v, %v", show, ok)
+		}
+		if _, ok := m.profile(21); ok {
+			t.Fatal("a stranger has a profile")
 		}
 	})
 }

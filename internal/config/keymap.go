@@ -27,3 +27,13 @@ func (k PathPromptKeybinds) ShortHelp() []keybind.Keybind {
 func (k PathPromptKeybinds) FullHelp() [][]keybind.Keybind {
 	return [][]keybind.Keybind{k.ShortHelp()}
 }
+
+var _ help.KeyMap = ProfileKeybinds{}
+
+func (k ProfileKeybinds) ShortHelp() []keybind.Keybind {
+	return []keybind.Keybind{k.YankID.Keybind, k.Close.Keybind}
+}
+
+func (k ProfileKeybinds) FullHelp() [][]keybind.Keybind {
+	return [][]keybind.Keybind{k.ShortHelp()}
+}

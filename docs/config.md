@@ -340,6 +340,15 @@ Only while asked for a file path, to attach or to save to.
 | `submit` | `"enter"` |  |
 | `cancel` | `"esc"` |  |
 
+## `[keybinds.profile]`
+
+Only while a profile is shown, opened with enter on a member.
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `yank_id` | `"y"` |  |
+| `close` | `["esc", "q"]` |  |
+
 ## `[keybinds.guilds_tree]`
 
 Only while focusing on the guilds tree.

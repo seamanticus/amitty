@@ -439,6 +439,13 @@
 
 # cancel = "esc"
 
+# Only while a profile is shown, opened with enter on a member.
+[keybinds.profile]
+
+# yank_id = "y"
+
+# close = ["esc", "q"]
+
 # Only while focusing on the guilds tree.
 [keybinds.guilds_tree]
 

@@ -31,6 +31,8 @@ func (m Model) activeKeyMap() help.KeyMap {
 		return m.cfg.Keybinds.PathPrompt
 	case overlayChannelsPicker, overlayAttachmentsPicker, overlayReactionsPicker:
 		return m.cfg.Keybinds.Picker
+	case overlayProfile:
+		return m.profile
 	case overlayNone:
 	}
 

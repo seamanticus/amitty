@@ -1,15 +1,43 @@
 package memberstree
 
 import (
+	"slices"
+
+	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/ningen/states/member"
 	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/tui/tree"
+	"github.com/seamanticus/amitty/internal/ui/chat/profile"
 )
 
 // currentMsg makes a node of the tree the current one.
 type currentMsg struct {
 	current *tree.Node
+}
+
+// profile returns the message that shows the profile of the member userID, if they are still known.
+func (m Model) profile(userID discord.UserID) (profile.ShowMsg, bool) {
+	channel := m.channel
+	if channel == nil {
+		return profile.ShowMsg{}, false
+	}
+	if channel.GuildID.IsValid() {
+		member, err := m.state.Cabinet.Member(channel.GuildID, userID)
+		if err != nil {
+			return profile.ShowMsg{}, false
+		}
+		return profile.ShowMsg{GuildID: channel.GuildID, Member: *member}, true
+	}
+	recipients := channel.DMRecipients
+	if me, err := m.state.Cabinet.Me(); err == nil {
+		recipients = append(slices.Clone(recipients), *me)
+	}
+	index := slices.IndexFunc(recipients, func(user discord.User) bool { return user.ID == userID })
+	if index < 0 {
+		return profile.ShowMsg{}, false
+	}
+	return profile.ShowMsg{GuildID: discord.NoGuild(), Member: discord.Member{User: recipients[index]}}, true
 }
 
 // selectedMsg is sent when the user selects a node.

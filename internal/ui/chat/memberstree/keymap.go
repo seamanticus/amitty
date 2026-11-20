@@ -36,6 +36,10 @@ func (m Model) treeKeybinds() []keybind.Keybind {
 	var group []keybind.Keybind
 	if isGroup(m.current) {
 		group = append(group, keybinds.SelectCurrent.Keybind)
+	} else if m.current != nil {
+		if _, ok := m.current.Reference().(memberRef); ok {
+			group = append(group, keybinds.SelectCurrent.WithHelp(keybinds.SelectCurrent.Help().Key, "profile"))
+		}
 	}
 	if m.parent(m.current) != nil {
 		group = append(group, keybinds.MoveToParentNode.Keybind, keybinds.CollapseParentNode.Keybind)

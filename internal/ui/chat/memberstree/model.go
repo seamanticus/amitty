@@ -13,6 +13,7 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/state"
 	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/tui/keybind"
 	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/seamanticus/amitty/internal/tui/tree"
@@ -327,6 +328,11 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 		m.setCurrentNode(msg.node)
 		if isGroup(msg.node) {
 			msg.node.SetExpanded(!msg.node.Expanded())
+		}
+		if ref, ok := msg.node.Reference().(memberRef); ok {
+			if show, ok := m.profile(ref.userID); ok {
+				return m, cmd.Batch{m.requestSelectedMembers(), cmd.Task(func() tui.Msg { return show })}
+			}
 		}
 		return m, m.requestSelectedMembers()
 	case tui.KeyMsg:
