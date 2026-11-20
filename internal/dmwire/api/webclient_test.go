@@ -81,4 +81,22 @@ func TestWebClientRequests(t *testing.T) {
 			t.Fatalf("sent %+v, want %+v", *got, want)
 		}
 	})
+	t.Run("join a server", func(t *testing.T) {
+		client, got := fakeClient(t, `{"code":"YbN4TsWA8","guild":{"id":"3"},"channel":{"id":"4","type":0}}`)
+		invite, err := client.InviteToJoin("YbN4TsWA8", "https://discord.gg/YbN4TsWA8")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := client.JoinInvite(*invite, "0123456789abcdef0123456789abcdef"); err != nil {
+			t.Fatal(err)
+		}
+		want := []sent{
+			{"GET", "/api/v9/invites/YbN4TsWA8?inputValue=https%3A%2F%2Fdiscord.gg%2FYbN4TsWA8&with_counts=true&with_expiration=true&with_permissions=true", "", ""},
+			// {"location":"Join Guild","location_guild_id":"3","location_channel_id":"4","location_channel_type":0}
+			{"POST", "/api/v9/invites/YbN4TsWA8", `{"session_id":"0123456789abcdef0123456789abcdef"}`, "eyJsb2NhdGlvbiI6IkpvaW4gR3VpbGQiLCJsb2NhdGlvbl9ndWlsZF9pZCI6IjMiLCJsb2NhdGlvbl9jaGFubmVsX2lkIjoiNCIsImxvY2F0aW9uX2NoYW5uZWxfdHlwZSI6MH0="},
+		}
+		if len(*got) != len(want) || (*got)[0] != want[0] || (*got)[1] != want[1] {
+			t.Fatalf("sent %+v, want %+v", *got, want)
+		}
+	})
 }
