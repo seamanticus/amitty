@@ -383,6 +383,8 @@ Only while focusing on the guilds tree.
 | `move_to_parent_node` | `"p"` |  |
 | `select_previous_unread` | `"K"` | Highlight the previous or next unread guild or channel, wrapping around. |
 | `select_next_unread` | `"J"` |  |
+| `accept_request` | `"a"` | Accept or reject the highlighted message request, a DM from someone you are not friends with; each asks first. |
+| `reject_request` | `"r"` |  |
 
 ## `[keybinds.members_tree]`
 

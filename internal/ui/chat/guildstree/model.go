@@ -280,7 +280,11 @@ func setNodeText(node *tree.Node, name string) {
 
 // channelText returns the name of channel with its unread mentions after it.
 func (m Model) channelText(channel discord.Channel) string {
-	return ui.ChannelToString(channel, m.cfg.Icons, m.state) + mentionsLabel(m.mentions(channel))
+	text := ui.ChannelToString(channel, m.cfg.Icons, m.state)
+	if channel.IsMessageRequest {
+		text += requestLabel
+	}
+	return text + mentionsLabel(m.mentions(channel))
 }
 
 // guildText returns the name of guild with the unread mentions in its channels after it.
@@ -520,6 +524,9 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 		return m, nil
 	case NavigateMsg:
 		return m, m.navigate(msg.ChannelID)
+	case requestsChangedMsg:
+		m.RefreshPrivateChannels()
+		return m, nil
 	case currentMsg:
 		m.current = msg.current
 		m.scrollState.ScrollToTarget()
@@ -550,6 +557,11 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 			return m, nil
 		case keybind.Matches(msg, keybinds.YankID.Keybind):
 			return m, uitree.YankID(m.current)
+		case keybind.Matches(msg, keybinds.AcceptRequest.Keybind, keybinds.RejectRequest.Keybind):
+			if channel, ok := m.currentRequest(); ok {
+				return m, m.confirmRequest(channel, keybind.Matches(msg, keybinds.AcceptRequest.Keybind))
+			}
+			return m, nil
 		}
 	}
 

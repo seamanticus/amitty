@@ -133,6 +133,9 @@ type GuildsTreeKeybinds struct {
 	// Highlight the previous or next unread guild or channel, wrapping around.
 	SelectPreviousUnread Keybind `toml:"select_previous_unread"`
 	SelectNextUnread     Keybind `toml:"select_next_unread"`
+	// Accept or reject the highlighted message request, a DM from someone you are not friends with; each asks first.
+	AcceptRequest Keybind `toml:"accept_request"`
+	RejectRequest Keybind `toml:"reject_request"`
 }
 
 type MembersTreeKeybinds struct {
@@ -339,6 +342,8 @@ func defaultKeybinds() Keybinds {
 			TreeKeybinds:         tree,
 			SelectPreviousUnread: key("prev unread", "K"),
 			SelectNextUnread:     key("next unread", "J"),
+			AcceptRequest:        key("accept", "a"),
+			RejectRequest:        key("reject", "r"),
 		},
 		MembersTree: MembersTreeKeybinds{TreeKeybinds: tree, ViewProfile: key("profile", "v")},
 		MessagesList: MessagesListKeybinds{

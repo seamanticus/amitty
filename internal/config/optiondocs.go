@@ -89,6 +89,7 @@ func optionDocs() map[string]string {
 		"keybinds.guilds_tree.scroll_left":                "Scroll sideways to read names that are cut off.",
 		"keybinds.guilds_tree.select_current":             "Select the highlighted text-based channel, or expand or collapse the highlighted node.",
 		"keybinds.guilds_tree.select_previous_unread":     "Highlight the previous or next unread guild or channel, wrapping around.",
+		"keybinds.guilds_tree.accept_request":             "Accept or reject the highlighted message request, a DM from someone you are not friends with; each asks first.",
 		"keybinds.members_tree.scroll_up":                 "Scroll without changing the selection.",
 		"keybinds.members_tree.scroll_left":               "Scroll sideways to read names that are cut off.",
 		"keybinds.members_tree.select_current":            "Select the highlighted text-based channel, or expand or collapse the highlighted node.",

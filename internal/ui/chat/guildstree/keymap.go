@@ -46,7 +46,16 @@ func (m Model) ShortHelp() []keybind.Keybind {
 	if m.canCollapseParent(m.current) {
 		shortHelp = append(shortHelp, cfg.CollapseParentNode.Keybind)
 	}
-	return shortHelp
+	return append(shortHelp, m.requestKeybinds()...)
+}
+
+// requestKeybinds returns accept and reject while a message request is highlighted.
+func (m Model) requestKeybinds() []keybind.Keybind {
+	if _, ok := m.currentRequest(); !ok {
+		return nil
+	}
+	cfg := m.cfg.Keybinds.GuildsTree
+	return []keybind.Keybind{cfg.AcceptRequest.Keybind, cfg.RejectRequest.Keybind}
 }
 
 func (m Model) FullHelp() [][]keybind.Keybind {
@@ -57,13 +66,16 @@ func (m Model) FullHelp() [][]keybind.Keybind {
 	}
 	selectGroup = append(selectGroup, m.collapseKeybinds()...)
 
-	return [][]keybind.Keybind{
+	full := [][]keybind.Keybind{
 		{cfg.SelectUp.Keybind, cfg.SelectDown.Keybind, cfg.SelectTop.Keybind, cfg.SelectBottom.Keybind},
 		{cfg.ScrollUp.Keybind, cfg.ScrollDown.Keybind, cfg.ScrollTop.Keybind, cfg.ScrollBottom.Keybind, cfg.ScrollLeft.Keybind, cfg.ScrollRight.Keybind},
 		selectGroup,
 		{cfg.SelectPreviousUnread.Keybind, cfg.SelectNextUnread.Keybind},
-		{cfg.YankID.Keybind},
 	}
+	if requests := m.requestKeybinds(); requests != nil {
+		full = append(full, requests)
+	}
+	return append(full, []keybind.Keybind{cfg.YankID.Keybind})
 }
 
 func (m Model) collapseKeybinds() []keybind.Keybind {

@@ -502,6 +502,11 @@
 
 # select_next_unread = "J"
 
+# Accept or reject the highlighted message request, a DM from someone you are not friends with; each asks first.
+# accept_request = "a"
+
+# reject_request = "r"
+
 # Only while focusing on the members tree.
 [keybinds.members_tree]
 

@@ -2,16 +2,27 @@ package guildstree
 
 import (
 	"errors"
+	"io"
+	"net/http"
 	"slices"
+	"strings"
 	"testing"
 
+	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
+	"github.com/seamanticus/amitty/internal/dmwire/session"
+	"github.com/seamanticus/amitty/internal/dmwire/state"
+	"github.com/seamanticus/amitty/internal/dmwire/state/store/defaultstore"
+	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
 	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/internal/ningen/states/read"
+	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/tui/tree"
+	"github.com/seamanticus/amitty/internal/ui"
 )
 
 func TestModelMoveDMToFront(t *testing.T) {
@@ -156,4 +167,75 @@ func TestModelRefreshReadState(t *testing.T) {
 			t.Errorf("channel node text = %q, want %q", got, want)
 		}
 	})
+}
+
+func TestModelMessageRequests(t *testing.T) {
+	// accepted and rejected count the requests the fake Discord answered.
+	var accepted, rejected int
+	client := discordtest.Client(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v9/channels/7/recipients/@me" {
+			http.NotFound(w, r)
+			return
+		}
+		switch r.Method {
+		case http.MethodPut:
+			if body, _ := io.ReadAll(r.Body); string(body) != `{"consent_status":2}` {
+				http.Error(w, string(body), http.StatusBadRequest)
+				return
+			}
+			accepted++
+			_, _ = io.WriteString(w, `{"id":"7","type":1,"recipients":[{"id":"3","username":"c"}]}`)
+		case http.MethodDelete:
+			rejected++
+			w.WriteHeader(http.StatusNoContent)
+		}
+	}))
+	s := ningen.FromState(state.NewFromSession(session.NewCustom(gateway.DefaultIdentifier(""), client, handler.New()), defaultstore.New()))
+	request := discord.Channel{ID: 7, Type: discord.DirectMessage, DMRecipients: []discord.User{{ID: 3, Username: "c"}}, IsMessageRequest: true}
+	friend := discord.Channel{ID: 8, Type: discord.DirectMessage, DMRecipients: []discord.User{{ID: 4, Username: "d"}}}
+	for _, channel := range []discord.Channel{request, friend} {
+		if err := s.ChannelSet(&channel, false); err != nil {
+			t.Fatal(err)
+		}
+	}
+	cfg := config.Default()
+	m := NewModel(&cfg, s)
+	key := func(r string) tui.KeyMsg { return tcell.NewEventKey(tcell.KeyRune, r, tcell.ModNone) }
+	// confirm presses a key on the node of id and runs the dialog's Yes, returning the dialog and the message Yes returns.
+	confirm := func(id discord.ChannelID, r string) (*ui.DialogMsg, tui.Msg) {
+		m.current = tree.NewNode("").SetReference(id)
+		_, command := m.Update(key(r))
+		task, ok := command.(cmd.Task)
+		if !ok {
+			return nil, nil
+		}
+		dialog, ok := task().(ui.DialogMsg)
+		if !ok || len(dialog.Buttons) != 2 || dialog.Buttons[0].Label != "No" {
+			t.Fatalf("dialog = %#v, want No first", dialog)
+		}
+		return &dialog, dialog.Buttons[1].Cmd.(cmd.Task)()
+	}
+
+	// evidence: witnesses
+	if !strings.HasSuffix(m.channelText(request), requestLabel) || strings.Contains(m.channelText(friend), requestLabel) {
+		t.Error("the request is not marked, or a DM is")
+	}
+	if dialog, _ := confirm(8, "a"); dialog != nil {
+		t.Error("a DM that is no request asked to be accepted")
+	}
+	if _, msg := confirm(7, "a"); msg != (requestsChangedMsg{}) || accepted != 1 {
+		t.Fatalf("accept = %#v, %d sent", msg, accepted)
+	}
+	if channel, err := s.Cabinet.Channel(7); err != nil || channel.IsMessageRequest {
+		t.Fatal("the accepted DM is still a request")
+	}
+	if err := s.ChannelSet(&request, true); err != nil {
+		t.Fatal(err)
+	}
+	if _, msg := confirm(7, "r"); msg != (requestsChangedMsg{}) || rejected != 1 {
+		t.Fatalf("reject = %#v, %d sent", msg, rejected)
+	}
+	if _, err := s.Cabinet.Channel(7); err == nil {
+		t.Fatal("the rejected DM is still stored")
+	}
 }

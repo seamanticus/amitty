@@ -36,6 +36,11 @@ byte as `tab`.
 
 ## Guilds tree
 
+A DM from someone you are not friends with that waits in your message
+requests is marked "(request)": `a` accepts it, moving it to your DMs,
+and `r` rejects and deletes it; both ask first, No selected. DMs that
+Discord filtered as spam are not listed.
+
 `j` and `k` (or the arrows) move, `g` and `G` go to the top and bottom,
 `enter` opens a channel or expands a guild, folder or category. `J` and
 `K` jump to the next or previous unread channel. `-` collapses the
