@@ -225,9 +225,9 @@ func (m Model) membersTreeShown() bool {
 	return m.membersTreeVisible && m.membersTree.Shown()
 }
 
-// resized reports whether the terminal is narrower than ui.resize.is_less_than, which lays out the panes for a narrow terminal.
+// resized reports whether the terminal is narrower than ui.on_resize.is_less_than, which lays out the panes for a narrow terminal.
 func (m Model) resized() bool {
-	return m.cfg.UI.Resize.IsLessThan.Narrower(m.width, m.pixelWidth)
+	return m.cfg.UI.OnResize.IsLessThan.Narrower(m.width, m.pixelWidth)
 }
 
 // folded reports whether the members tree is drawn under the guilds tree rather than right of the messages.
@@ -694,7 +694,7 @@ func (m Model) View() tui.Widget {
 // sidebarWidth returns the percentage of the width the sidebar takes, wider in a narrow terminal.
 func (m Model) sidebarWidth() int {
 	if m.resized() {
-		return m.cfg.Sidebar.Resize.WidthPercent
+		return m.cfg.Sidebar.OnResize.WidthPercent
 	}
 	return m.cfg.Sidebar.WidthPercent
 }

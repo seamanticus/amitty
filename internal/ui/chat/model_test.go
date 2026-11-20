@@ -60,7 +60,7 @@ func TestModelResized(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m.cfg.Sidebar.WidthPercent, m.cfg.Sidebar.Resize.WidthPercent = 20, 35
+	m.cfg.Sidebar.WidthPercent, m.cfg.Sidebar.OnResize.WidthPercent = 20, 35
 	// evidence: witnesses (every fold mode, at each width)
 	want := [...]func(narrow bool) bool{
 		config.FoldOff:  func(bool) bool { return false },
@@ -81,7 +81,7 @@ func TestModelResized(t *testing.T) {
 		{"off at 0", off, 50, 400, false},
 	} {
 		for mode, folds := range want {
-			m.cfg.MembersTree.Fold, m.cfg.UI.Resize.IsLessThan = config.FoldMode(mode), test.below
+			m.cfg.MembersTree.Fold, m.cfg.UI.OnResize.IsLessThan = config.FoldMode(mode), test.below
 			*m, _ = m.Update(tcell.NewEventResize(test.cols, 40))
 			m.pixelWidth = test.pixelsW
 			if got := m.folded(); got != folds(test.narrow) {

@@ -37,8 +37,8 @@ func TestTerminalWidth(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		cfg, err := Parse([]byte("[ui.resize]\nis_less_than = " + string(text)))
-		if err != nil || cfg.UI.Resize.IsLessThan != test.want {
+		cfg, err := Parse([]byte("[ui.on_resize]\nis_less_than = " + string(text)))
+		if err != nil || cfg.UI.OnResize.IsLessThan != test.want {
 			t.Errorf("%s read back as %+v, %v", text, cfg, err)
 		}
 	}

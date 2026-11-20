@@ -198,18 +198,18 @@ type (
 		Markers SidebarMarkersConfig `toml:"markers"`
 		// Indentation for different item types.
 		Indents SidebarIndentsConfig `toml:"indents"`
-		// The sidebar while the layout is resized, the terminal being narrower than ui.resize.is_less_than.
-		Resize SidebarResizeConfig `toml:"resize"`
+		// The sidebar while the layout is resized, the terminal being narrower than ui.on_resize.is_less_than.
+		OnResize SidebarOnResizeConfig `toml:"on_resize"`
 	}
 
-	SidebarResizeConfig struct {
+	SidebarOnResizeConfig struct {
 		// Percentage (%) of the available width the sidebar takes while resized, in place of width_percent, with or without the members tree folded in. Valid values are 1-99. Invalid values fall back to 30.
 		WidthPercent int `toml:"width_percent"`
 	}
 
 	MembersTreeConfig struct {
 		PaneConfig
-		// Whether the members tree is folded under the guilds tree, in the sidebar: "off", "on", or "auto" while the layout is resized (see ui.resize.is_less_than).
+		// Whether the members tree is folded under the guilds tree, in the sidebar: "off", "on", or "auto" while the layout is resized (see ui.on_resize.is_less_than).
 		Fold FoldMode `toml:"fold"`
 		// Percentage (%) of the folded column's height the members tree takes, below the guilds tree. Valid values are 1-99. Invalid values fall back to 50.
 		FoldHeightPercent int `toml:"fold_height_percent"`
@@ -310,7 +310,7 @@ func Default() Config {
 			PaneConfig: pane,
 			Markers:    SidebarMarkersConfig{Expanded: "▾ ", Collapsed: "▸ "},
 			Indents:    SidebarIndentsConfig{Guild: 2, Category: 1, Channel: 2, Forum: 2, GroupDM: 1, DM: 2},
-			Resize:     SidebarResizeConfig{WidthPercent: 30},
+			OnResize:   SidebarOnResizeConfig{WidthPercent: 30},
 		},
 		MembersTree: MembersTreeConfig{PaneConfig: pane, Fold: FoldAuto, FoldHeightPercent: 50},
 		Composer:    ComposerConfig{MaxHeight: 10},
@@ -433,7 +433,7 @@ func (cfg *Config) applyDefaults() {
 	if tree := &cfg.MembersTree; tree.FoldHeightPercent <= 0 || tree.FoldHeightPercent >= 100 {
 		tree.FoldHeightPercent = 50
 	}
-	if resize := &cfg.Sidebar.Resize; resize.WidthPercent <= 0 || resize.WidthPercent >= 100 {
+	if resize := &cfg.Sidebar.OnResize; resize.WidthPercent <= 0 || resize.WidthPercent >= 100 {
 		resize.WidthPercent = 30
 	}
 

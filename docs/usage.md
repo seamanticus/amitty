@@ -10,9 +10,9 @@
 | Members tree (right) | The channel's members by role, or a DM's recipients. `enter` on one shows their profile: names, server tag, status and activities, roles, member and account dates, badges, your relationship and note; `y` copies their ID and `esc` closes it. In a terminal narrower than 100 columns it folds under the guilds tree; see `members_tree.fold` in the [configuration](config.md). |
 
 `alt+g` and `alt+y` hide or show the guilds and members trees.
-In a terminal narrower than `ui.resize.is_less_than` (100 columns, or
+In a terminal narrower than `ui.on_resize.is_less_than` (100 columns, or
 pixels such as `"1200px"`; 0 turns it off) the guilds tree widens to
-`sidebar.resize.width_percent` (30%), and the members tree folds under it.
+`sidebar.on_resize.width_percent` (30%), and the members tree folds under it.
 `alt+.` hides or shows the keybind help at the bottom, and `ctrl+.`
 switches it between compact and full: the help always lists the keys
 of the pane that has focus.

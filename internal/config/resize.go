@@ -12,7 +12,7 @@ type FoldMode uint8
 const (
 	FoldOff FoldMode = iota
 	FoldOn
-	// FoldAuto folds while the layout is resized, the terminal being narrower than ui.resize.is_less_than.
+	// FoldAuto folds while the layout is resized, the terminal being narrower than ui.on_resize.is_less_than.
 	FoldAuto
 	foldModeCount
 )
