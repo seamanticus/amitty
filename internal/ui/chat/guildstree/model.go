@@ -583,6 +583,8 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 			return m, nil
 		case keybind.Matches(msg, keybinds.JoinGuild.Keybind):
 			return m, cmd.Task(func() tui.Msg { return JoinMsg{} })
+		case keybind.Matches(msg, keybinds.MarkRead.Keybind):
+			return m, m.confirmMarkRead(m.current)
 		}
 	}
 

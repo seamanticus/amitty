@@ -75,7 +75,7 @@ func (m Model) FullHelp() [][]keybind.Keybind {
 	if requests := m.requestKeybinds(); requests != nil {
 		full = append(full, requests)
 	}
-	return append(full, []keybind.Keybind{cfg.JoinGuild.Keybind, cfg.YankID.Keybind})
+	return append(full, []keybind.Keybind{cfg.MarkRead.Keybind, cfg.JoinGuild.Keybind, cfg.YankID.Keybind})
 }
 
 func (m Model) collapseKeybinds() []keybind.Keybind {

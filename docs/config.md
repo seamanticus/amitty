@@ -406,6 +406,7 @@ Only while focusing on the guilds tree.
 | `accept_request` | `"a"` | Accept or reject the highlighted message request, a DM from someone you are not friends with; each asks first. |
 | `reject_request` | `"r"` |  |
 | `join_guild` | `"+"` | Join a server by invite link or code; asks first, and counts toward the 3 new DMs or joins an hour. |
+| `mark_read` | `"m"` | Mark every unread channel of the highlighted server, or of the servers in a folder, as read; asks first. |
 
 ## `[keybinds.members_tree]`
 

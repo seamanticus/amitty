@@ -44,7 +44,9 @@ Discord filtered as spam are not listed.
 `j` and `k` (or the arrows) move, `g` and `G` go to the top and bottom,
 `enter` opens a channel or expands a guild, folder or category. `J` and
 `K` jump to the next or previous unread channel. `-` collapses the
-parent, `_` collapses all, `i` copies the ID.
+parent, `_` collapses all, `i` copies the ID. `m` marks every unread
+channel of the highlighted server (or of a channel's server, or of
+every server in a folder) as read, after asking, No selected.
 
 `+` joins a server: paste an invite (`discord.gg/...`,
 `discord.com/invite/...` or the code alone) and press `enter`. amitty

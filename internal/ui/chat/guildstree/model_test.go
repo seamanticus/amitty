@@ -195,6 +195,58 @@ func TestModelJoinedGuild(t *testing.T) {
 	}
 }
 
+func TestModelMarkRead(t *testing.T) {
+	// evidence: witnesses
+	s := ningen.FromState(discordtest.State(t))
+	me := discord.User{ID: 9}
+	guild := discord.Guild{ID: 1, Name: "g", OwnerID: me.ID}
+	channels := []discord.Channel{
+		{ID: 11, GuildID: 1, Type: discord.GuildText, LastMessageID: 110},
+		{ID: 12, GuildID: 1, Type: discord.GuildText, LastMessageID: 120},
+		{ID: 13, GuildID: 1, Type: discord.GuildText, LastMessageID: 130},
+	}
+	if err := errors.Join(
+		s.MyselfSet(me, false),
+		s.GuildSet(&guild, false),
+		s.MemberSet(guild.ID, &discord.Member{User: me}, false),
+		s.RoleSet(guild.ID, &discord.Role{ID: discord.RoleID(guild.ID)}, false),
+	); err != nil {
+		t.Fatal(err)
+	}
+	for _, channel := range channels {
+		if err := s.ChannelSet(&channel, false); err != nil {
+			t.Fatal(err)
+		}
+	}
+	// 11 and 12 are unread, 13 is read.
+	s.State.Call(&gateway.ReadyEvent{User: me, ReadStates: []gateway.ReadState{
+		{ChannelID: 11, LastMessageID: 100}, {ChannelID: 12, LastMessageID: 100}, {ChannelID: 13, LastMessageID: 130},
+	}})
+	cfg := config.Default()
+	m := NewModel(&cfg, s)
+	m.reset()
+	folder := tree.NewNode("f")
+	m.root.AddChild(folder)
+	m.createGuildNode(folder, guild)
+
+	if got := m.unreadIn([]discord.GuildID{1}); len(got) != 2 || got[11] != 110 || got[12] != 120 {
+		t.Fatalf("unread = %v", got)
+	}
+	for _, node := range []*tree.Node{m.guildNodes[1], folder} {
+		task, ok := m.confirmMarkRead(node).(cmd.Task)
+		if !ok {
+			t.Fatal("nothing asked")
+		}
+		dialog, _ := task().(ui.DialogMsg)
+		if !strings.HasPrefix(dialog.Text, "Mark 2 channels in ") || len(dialog.Buttons) != 2 || dialog.Buttons[0].Label != "No" || dialog.Buttons[0].Cmd != nil {
+			t.Fatalf("dialog = %+v", dialog)
+		}
+	}
+	if m.confirmMarkRead(m.dmRootNode) != nil || m.confirmMarkRead(nil) != nil || m.confirmMarkRead(m.root) != nil {
+		t.Fatal("asked to mark the DMs, the root or nothing read")
+	}
+}
+
 func TestModelMessageRequests(t *testing.T) {
 	// accepted and rejected count the requests the fake Discord answered.
 	var accepted, rejected int

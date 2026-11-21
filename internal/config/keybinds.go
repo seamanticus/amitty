@@ -149,6 +149,8 @@ type GuildsTreeKeybinds struct {
 	RejectRequest Keybind `toml:"reject_request"`
 	// Join a server by invite link or code; asks first, and counts toward the 3 new DMs or joins an hour.
 	JoinGuild Keybind `toml:"join_guild"`
+	// Mark every unread channel of the highlighted server, or of the servers in a folder, as read; asks first.
+	MarkRead Keybind `toml:"mark_read"`
 }
 
 type MembersTreeKeybinds struct {
@@ -366,6 +368,7 @@ func defaultKeybinds() Keybinds {
 			AcceptRequest:        key("accept", "a"),
 			RejectRequest:        key("reject", "r"),
 			JoinGuild:            key("join", "+"),
+			MarkRead:             key("mark read", "m"),
 		},
 		MembersTree: MembersTreeKeybinds{TreeKeybinds: tree, ViewProfile: key("profile", "v")},
 		MessagesList: MessagesListKeybinds{

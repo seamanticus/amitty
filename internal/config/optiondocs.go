@@ -101,6 +101,7 @@ func optionDocs() map[string]string {
 		"keybinds.guilds_tree.select_previous_unread":     "Highlight the previous or next unread guild or channel, wrapping around.",
 		"keybinds.guilds_tree.accept_request":             "Accept or reject the highlighted message request, a DM from someone you are not friends with; each asks first.",
 		"keybinds.guilds_tree.join_guild":                 "Join a server by invite link or code; asks first, and counts toward the 3 new DMs or joins an hour.",
+		"keybinds.guilds_tree.mark_read":                  "Mark every unread channel of the highlighted server, or of the servers in a folder, as read; asks first.",
 		"keybinds.members_tree.scroll_up":                 "Scroll without changing the selection.",
 		"keybinds.members_tree.scroll_left":               "Scroll sideways to read names that are cut off.",
 		"keybinds.members_tree.select_current":            "Select the highlighted text-based channel, or expand or collapse the highlighted node.",

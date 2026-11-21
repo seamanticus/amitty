@@ -542,6 +542,9 @@
 # Join a server by invite link or code; asks first, and counts toward the 3 new DMs or joins an hour.
 # join_guild = "+"
 
+# Mark every unread channel of the highlighted server, or of the servers in a folder, as read; asks first.
+# mark_read = "m"
+
 # Only while focusing on the members tree.
 [keybinds.members_tree]
 
