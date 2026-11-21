@@ -75,8 +75,6 @@ type Message struct {
 	Embeds []Embed `json:"embeds"`
 	// Reactions contains any reactions to the message.
 	Reactions []Reaction `json:"reactions,omitempty"`
-	// Components contains any attached components.
-	Components TopLevelComponents `json:"components,omitempty"`
 
 	// Used for validating a message was sent
 	Nonce string `json:"nonce,omitempty"`
@@ -476,9 +474,6 @@ type MessageSnapshotMessage struct {
 
 	// Stickers contains the sticker "items" sent with the message.
 	Stickers []StickerItem `json:"sticker_items,omitempty"`
-
-	// Components contains any attached components.
-	Components TopLevelComponents `json:"components,omitempty"`
 }
 
 // https://discord.com/developers/docs/resources/message#message-snapshot-object

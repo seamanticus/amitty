@@ -284,7 +284,6 @@ func (m Model) drawSnapshotContent(builder *markdown.Builder, parent discord.Mes
 		Mentions:        snapshot.Mentions,
 		MentionRoleIDs:  snapshot.MentionRoleIDs,
 		Stickers:        snapshot.Stickers,
-		Components:      snapshot.Components,
 		ChannelID:       parent.ChannelID,
 		GuildID:         parent.GuildID,
 	}
