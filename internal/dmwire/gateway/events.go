@@ -1,12 +1,10 @@
 package gateway
 
 import (
-	"errors"
 	"strconv"
 	"strings"
 
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
-	"github.com/seamanticus/amitty/internal/dmwire/utils/json"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
@@ -72,8 +70,7 @@ type ResumeCommand struct {
 // https://discord.com/developers/docs/topics/gateway#connecting-and-resuming
 type InvalidSessionEvent bool
 
-// RequestGuildMembersCommand is a command for Op 8. Either UserIDs or (Query
-// and Limit) must be filled.
+// RequestGuildMembersCommand is a command for Op 8. Build it with MembersByID or MembersByName, which fill exactly one of UserIDs and Query, as Discord requires.
 type RequestGuildMembersCommand struct {
 	// GuildIDs contains the IDs of the guilds to request data from. Multiple
 	// guilds can only be requested when using user accounts.
@@ -81,43 +78,26 @@ type RequestGuildMembersCommand struct {
 	// The guild_id JSON key is intentional, despite the type being an array.
 	GuildIDs []discord.GuildID `json:"guild_id"`
 
-	// UserIDs contains the IDs of the users to request data for. If this is
-	// filled, then the Query field must be empty.
+	// UserIDs contains the IDs of the users to request data for.
 	UserIDs []discord.UserID `json:"user_ids,omitempty"`
 
-	// Query is a string to search for matching usernames. If this is filled,
-	// then the UserIDs field must be empty. If Query is empty, then all members
-	// are filled for bots.
+	// Query is a string to search for matching usernames.
 	Query option.Option[string] `json:"query,omitempty"`
-	// Limit is used to specify the maximum number of members to send back when
-	// Query is used.
-	Limit uint `json:"limit,omitempty"`
+	// Limit is the maximum number of members to send back for Query. Discord requires it, so it is always sent; it is ignored for UserIDs.
+	Limit uint `json:"limit"`
 
 	Presences bool   `json:"presences"`
 	Nonce     string `json:"nonce,omitempty"`
 }
 
-// MarshalJSON marshals a RequestGuildMembersCommand.
-func (c *RequestGuildMembersCommand) MarshalJSON() ([]byte, error) {
-	type raw RequestGuildMembersCommand
+// MembersByID requests the members of guilds with the given user IDs.
+func MembersByID(guilds []discord.GuildID, users []discord.UserID) RequestGuildMembersCommand {
+	return RequestGuildMembersCommand{GuildIDs: guilds, UserIDs: users}
+}
 
-	if c.UserIDs != nil && c.Query != nil {
-		return nil, errors.New("neither UserIDs nor Query can be filled")
-	}
-
-	var marshaling any = (*raw)(c)
-	if c.Query != nil {
-		// Force the Limit field to be present if Query is present.
-		marshaling = struct {
-			*raw
-			Limit uint `json:"limit"`
-		}{
-			raw:   (*raw)(c),
-			Limit: c.Limit,
-		}
-	}
-
-	return json.Marshal(marshaling)
+// MembersByName requests up to limit members of guilds whose names start with query.
+func MembersByName(guilds []discord.GuildID, query string, limit uint) RequestGuildMembersCommand {
+	return RequestGuildMembersCommand{GuildIDs: guilds, Query: option.Some(query), Limit: limit}
 }
 
 // UpdateVoiceStateCommand is a command for Op 4.

@@ -245,13 +245,10 @@ func (m *Model) searchMember(guildID discord.GuildID, name string) tui.Cmd {
 	m.lastSearch = now
 	nonce := memberSearchNonce + key
 	return cmd.Task(func() tui.Msg {
-		if err := m.state.SendGateway(context.Background(), &gateway.RequestGuildMembersCommand{
-			GuildIDs:  []discord.GuildID{guildID},
-			Query:     option.Some(name),
-			Presences: m.state.MemberState.RequestPresences,
-			Limit:     m.state.MemberState.SearchLimit,
-			Nonce:     nonce,
-		}); err != nil {
+		request := gateway.MembersByName([]discord.GuildID{guildID}, name, m.state.MemberState.SearchLimit)
+		request.Presences = m.state.MemberState.RequestPresences
+		request.Nonce = nonce
+		if err := m.state.SendGateway(context.Background(), &request); err != nil {
 			slog.Error("failed to search guild members", "err", err, "guild_id", guildID, "query", name)
 		}
 		return nil

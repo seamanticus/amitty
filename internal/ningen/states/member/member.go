@@ -15,7 +15,6 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/state"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
-	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 	"github.com/twmb/murmur3"
 )
@@ -224,19 +223,10 @@ func (m *State) SearchMember(guildID discord.GuildID, query string) {
 	gd.lastSearch = time.Now()
 
 	go func() {
-		var queryVar option.Option[string]
-		if query != "" {
-			queryVar = option.Some(query)
-		}
+		search := gateway.MembersByName([]discord.GuildID{guildID}, query, m.SearchLimit)
+		search.Presences = m.RequestPresences
 
-		search := &gateway.RequestGuildMembersCommand{
-			GuildIDs:  []discord.GuildID{guildID},
-			Query:     queryVar,
-			Presences: m.RequestPresences,
-			Limit:     m.SearchLimit,
-		}
-
-		err := m.state.SendGateway(context.Background(), search)
+		err := m.state.SendGateway(context.Background(), &search)
 
 		if err != nil {
 			m.OnError(fmt.Errorf("Failed to search guild members: %w", err))
@@ -296,11 +286,9 @@ func (m *State) RequestMember(guildID discord.GuildID, memberID discord.UserID) 
 		guild.mut.Unlock()
 
 		// Fetch everything that wasn't requested.
-		err := m.state.SendGateway(context.Background(), &gateway.RequestGuildMembersCommand{
-			GuildIDs:  []discord.GuildID{guildID},
-			UserIDs:   memberIDs,
-			Presences: m.RequestPresences,
-		})
+		request := gateway.MembersByID([]discord.GuildID{guildID}, memberIDs)
+		request.Presences = m.RequestPresences
+		err := m.state.SendGateway(context.Background(), &request)
 
 		if err != nil {
 			guild.mut.Lock()

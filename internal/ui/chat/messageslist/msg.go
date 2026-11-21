@@ -229,10 +229,8 @@ func (m Model) requestGuildMembers(guildID discord.GuildID, messages []discord.M
 	}
 
 	return cmd.Task(func() tui.Msg {
-		if err := m.state.SendGateway(context.Background(), &gateway.RequestGuildMembersCommand{
-			GuildIDs: []discord.GuildID{guildID},
-			UserIDs:  usersToFetch,
-		}); err != nil {
+		request := gateway.MembersByID([]discord.GuildID{guildID}, usersToFetch)
+		if err := m.state.SendGateway(context.Background(), &request); err != nil {
 			slog.Error("failed to request guild members", "guild_id", guildID, "err", err)
 		}
 		return nil

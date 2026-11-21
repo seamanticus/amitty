@@ -1,91 +1,45 @@
 package gateway
 
 import (
-	"context"
 	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/json"
-	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
-	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 )
 
+// evidence: witnesses
 func TestRequestGuildMembersCommand(t *testing.T) {
-	assert := func(cmd Event, data map[string]any) {
-		cmdBytes, err := json.Marshal(cmd)
-		if err != nil {
-			t.Fatal("failed to marshal command:", err)
-		}
-
-		var cmdMap map[string]any
-		if err := json.Unmarshal(cmdBytes, &cmdMap); err != nil {
-			t.Fatal("failed to unmarshal command:", err)
-		}
-
-		if !reflect.DeepEqual(cmdMap, data) {
-			t.Fatalf("mismatched command, got %#v", cmdMap)
-		}
+	for _, tt := range []struct {
+		name string
+		cmd  RequestGuildMembersCommand
+		want map[string]any
+	}{
+		{"by id", MembersByID([]discord.GuildID{123}, []discord.UserID{456}), map[string]any{
+			"guild_id": []any{"123"}, "user_ids": []any{"456"}, "limit": float64(0), "presences": false,
+		}},
+		{"by name", MembersByName([]discord.GuildID{123}, "abc", 10), map[string]any{
+			"guild_id": []any{"123"}, "query": "abc", "limit": float64(10), "presences": false,
+		}},
+		// An empty query is still sent: it asks for every member, up to limit.
+		{"by empty name", MembersByName([]discord.GuildID{123}, "", 0), map[string]any{
+			"guild_id": []any{"123"}, "query": "", "limit": float64(0), "presences": false,
+		}},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			b, err := json.Marshal(&tt.cmd)
+			if err != nil {
+				t.Fatal("failed to marshal command:", err)
+			}
+			var got map[string]any
+			if err := json.Unmarshal(b, &got); err != nil {
+				t.Fatal("failed to unmarshal command:", err)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("command = %#v, want %#v", got, tt.want)
+			}
+		})
 	}
-
-	t.Run("userIDs", func(t *testing.T) {
-		cmd := RequestGuildMembersCommand{
-			GuildIDs: []discord.GuildID{123},
-			UserIDs:  []discord.UserID{456},
-		}
-
-		assert(&cmd, map[string]any{
-			"guild_id":  []any{"123"},
-			"user_ids":  []any{"456"},
-			"presences": false,
-		})
-	})
-
-	t.Run("query_empty", func(t *testing.T) {
-		cmd := RequestGuildMembersCommand{
-			GuildIDs: []discord.GuildID{123},
-			Query:    option.Some(""),
-		}
-
-		assert(&cmd, map[string]any{
-			"guild_id":  []any{"123"},
-			"query":     "",
-			"limit":     float64(0),
-			"presences": false,
-		})
-	})
-
-	t.Run("query_nonempty", func(t *testing.T) {
-		cmd := RequestGuildMembersCommand{
-			GuildIDs: []discord.GuildID{123},
-			Query:    option.Some("abc"),
-		}
-
-		assert(&cmd, map[string]any{
-			"guild_id":  []any{"123"},
-			"query":     "abc",
-			"limit":     float64(0),
-			"presences": false,
-		})
-	})
-
-	t.Run("both", func(t *testing.T) {
-		cmd := RequestGuildMembersCommand{
-			GuildIDs: []discord.GuildID{123},
-			UserIDs:  []discord.UserID{456},
-			Query:    option.Some("abc"),
-		}
-
-		// Gateway should never be touched when Marshal fails, so we can just
-		// create a zero-value.
-		var gateway ws.Gateway
-
-		err := gateway.Send(context.Background(), &cmd)
-		if err == nil || !strings.Contains(err.Error(), "neither UserIDs nor Query can be filled") {
-			t.Fatal("unexpected error:", err)
-		}
-	})
 }
 
 // evidence: witnesses
