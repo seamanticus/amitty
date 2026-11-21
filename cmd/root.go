@@ -123,13 +123,10 @@ func installSounds(cfg config.NotificationSound) {
 	}
 }
 
-// loadToken opens the token store of cfg and decrypts its token before the screen starts, so a passphrase prompt owns the terminal. An empty token means none is stored.
+// loadToken opens the token store of cfg and decrypts its token before the screen starts, so a passphrase prompt owns the terminal. An empty token means none is stored. Like the lock, the token is in the default config dir whatever -config-path says.
 func loadToken(cfg *config.Config) (tokenstore.Store, string, error) {
-	dir, err := consts.StateDir()
-	if err != nil {
-		return tokenstore.Store{}, "", err
-	}
-	store, err := tokenstore.New(filepath.Join(dir, tokenstore.FileName), cfg.TokenEncryptCmd, cfg.TokenDecryptCmd)
+	path := filepath.Join(filepath.Dir(config.DefaultPath()), tokenstore.DirName, tokenstore.FileName)
+	store, err := tokenstore.New(path, cfg.TokenEncryptCmd, cfg.TokenDecryptCmd)
 	if err != nil {
 		return tokenstore.Store{}, "", fmt.Errorf("token store: %w", err)
 	}

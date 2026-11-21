@@ -43,11 +43,11 @@ option to change it.
 |------|-------|
 | `~/.config/amitty/config.toml` | The configuration. |
 | `~/.config/amitty/amitty.lock` | Held while amitty runs, so a second one stops with "amitty is already running". The kernel drops it on exit, even after a crash. |
-| `~/.local/state/amitty/token.gpg` | The encrypted token (see [Token storage](token.md)). |
+| `~/.config/amitty/credentials/token.gpg` | The encrypted token (see [Token storage](token.md)). The `credentials` folder is created readable by you alone. |
 | `~/.cache/amitty/logs.txt` | The log, and the trace of any crash (see [Troubleshooting](troubleshooting.md)). |
 
-Each follows its XDG variable when it is set: `$XDG_CONFIG_HOME`,
-`$XDG_STATE_HOME` and `$XDG_CACHE_HOME`.
+Each follows its XDG variable when it is set: `$XDG_CONFIG_HOME` and
+`$XDG_CACHE_HOME`.
 
 ## What it needs at run time
 

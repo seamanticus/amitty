@@ -11,18 +11,6 @@ import (
 
 const Name = "amitty"
 
-// StateDir returns $XDG_STATE_HOME/amitty, or ~/.local/state/amitty when that is unset or relative, as the XDG base directory spec says.
-func StateDir() (string, error) {
-	if dir := os.Getenv("XDG_STATE_HOME"); filepath.IsAbs(dir) {
-		return filepath.Join(dir, Name), nil
-	}
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", fmt.Errorf("state dir: %w", err)
-	}
-	return filepath.Join(home, ".local", "state", Name), nil
-}
-
 // DataDir returns $XDG_DATA_HOME/amitty, or ~/.local/share/amitty when that is unset or relative, as the XDG base directory spec says.
 func DataDir() (string, error) {
 	if dir := os.Getenv("XDG_DATA_HOME"); filepath.IsAbs(dir) {

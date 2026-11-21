@@ -16,7 +16,10 @@ import (
 	"github.com/mattn/go-shellwords"
 )
 
-// FileName is the file in the state directory that holds the encrypted token.
+// DirName is the directory in the config directory that holds the token file.
+const DirName = "credentials"
+
+// FileName is the file in DirName that holds the encrypted token.
 const FileName = "token.gpg"
 
 // Store is a token file and the commands that encrypt and decrypt it. Both commands read stdin and write stdout.

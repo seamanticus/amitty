@@ -257,7 +257,7 @@ type (
 		// A command runs in the background unless `terminal = true`, which suspends amitty while it runs.
 		Openers Openers `toml:"openers"`
 
-		// The command that encrypts the token: it reads the token on stdin and writes what is stored in `$XDG_STATE_HOME/amitty/token.gpg` to stdout.
+		// The command that encrypts the token: it reads the token on stdin and writes what is stored in `$XDG_CONFIG_HOME/amitty/credentials/token.gpg` to stdout.
 		TokenEncryptCmd string `toml:"token-encrypt-cmd"`
 		// The command that decrypts the stored token: it reads the file on stdin and writes the token to stdout. It runs before the screen starts, so a terminal pinentry works.
 		TokenDecryptCmd string `toml:"token-decrypt-cmd"`

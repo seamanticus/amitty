@@ -8,7 +8,7 @@ encrypted by a command you choose and stored in one file.
 
 | | |
 |-|-|
-| File | `$XDG_STATE_HOME/amitty/token.gpg`, or `~/.local/state/amitty/token.gpg` |
+| File | `$XDG_CONFIG_HOME/amitty/credentials/token.gpg`, or `~/.config/amitty/credentials/token.gpg` |
 | Encrypt | `token-encrypt-cmd = "gpg --encrypt --default-recipient-self"` |
 | Decrypt | `token-decrypt-cmd = "gpg --decrypt --quiet"` |
 
