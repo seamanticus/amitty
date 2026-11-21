@@ -196,6 +196,16 @@ func TestModelMFA(t *testing.T) {
 		}
 	})
 
+	t.Run("clicking a method picks it, unless the account does not allow it", func(t *testing.T) {
+		m := codingModel(t, methodTOTP, methodBackup)
+		if m, _ = m.Update(codeMethodMsg(methodBackup)); m.code.method != methodBackup || m.code.focus != codeFocusMethod {
+			t.Fatalf("method = %v, focus = %v", m.code.method, m.code.focus)
+		}
+		if m, _ = m.Update(codeMethodMsg(methodSMS)); m.code.method != methodBackup {
+			t.Fatalf("picked SMS, which the account does not allow")
+		}
+	})
+
 	t.Run("the title names the step", func(t *testing.T) {
 		if got := (Model{}).Title(); got != "Credentials" {
 			t.Errorf("form title = %q", got)

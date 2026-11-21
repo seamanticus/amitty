@@ -1,6 +1,7 @@
 package password
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/gdamore/tcell/v3"
@@ -9,6 +10,7 @@ import (
 	"github.com/seamanticus/amitty/internal/tui/keybind"
 	"github.com/seamanticus/amitty/internal/tui/layout"
 	"github.com/seamanticus/amitty/internal/tui/row"
+	"github.com/seamanticus/amitty/internal/tui/tabs"
 	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/seamanticus/amitty/internal/tui/textinput"
 	"github.com/seamanticus/amitty/internal/ui/login/form"
@@ -41,8 +43,10 @@ type codeForm struct {
 type (
 	codeMsg      inputMsg
 	codeFocusMsg codeFocus
-	verifyMsg    struct{}
-	sendSMSMsg   struct{}
+	// codeMethodMsg picks a method by clicking it.
+	codeMethodMsg method
+	verifyMsg     struct{}
+	sendSMSMsg    struct{}
 )
 
 // focusable reports whether f can take the focus, as the send button exists only for SMS.
@@ -76,6 +80,10 @@ func (m Model) updateCode(msg tui.Msg) (Model, tui.Cmd) {
 		m.code.text, m.code.cursor = msg.text, msg.cursor
 	case codeFocusMsg:
 		m.code.focus = codeFocus(msg)
+	case codeMethodMsg:
+		if m.code.ticket.allowed[method(msg)] {
+			m.code.method, m.code.focus = method(msg), codeFocusMethod
+		}
 	case tui.KeyMsg:
 		switch {
 		case keybind.Matches(msg, keys.FocusNext()):
@@ -111,20 +119,22 @@ func (m Model) updateCode(msg tui.Msg) (Model, tui.Cmd) {
 
 func (m Model) viewCode() tui.Widget {
 	c := m.code
-	methods := row.New().Spacing(2)
+	var labels []string
+	var shown []method
 	for method := range methodCount {
-		if !c.ticket.allowed[method] {
-			continue
+		if c.ticket.allowed[method] {
+			labels, shown = append(labels, method.label()), append(shown, method)
 		}
-		style := tcell.StyleDefault
-		if method == c.method {
-			style = style.Bold(true).Underline(true)
-			if c.focus == codeFocusMethod {
-				style = style.Reverse(true)
-			}
-		}
-		methods = methods.Push(text.New(method.label()).Style(style))
 	}
+	// Highlighted as the method tabs are, and bold while the picker has the focus; the form's keys move it.
+	active := tcell.StyleDefault.Reverse(true).Bold(c.focus == codeFocusMethod)
+	methods := tabs.New(labels...).
+		Active(slices.Index(shown, c.method)).
+		ActiveStyle(active).
+		Separator("│").
+		Padding(" ", " ").
+		Keybind(func(tui.KeyMsg) tabs.Action { return tabs.ActionNone }).
+		OnSelect(func(i int) tui.Msg { return codeMethodMsg(shown[i]) })
 
 	input := textinput.New(c.text, c.cursor).
 		Focused(c.focus == codeFocusInput).
@@ -154,7 +164,7 @@ func (m Model) viewCode() tui.Widget {
 	}
 	return column.New(
 		form.Gap(2),
-		methods.Width(layout.Shrink).Height(layout.Shrink),
+		methods,
 		form.Gap(1),
 		form.Field("Code", form.LabelWidth("Code"), codeFieldWidth, input),
 		form.Gap(1),
