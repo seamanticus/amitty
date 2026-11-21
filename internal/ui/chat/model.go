@@ -732,11 +732,15 @@ func (m Model) View() tui.Widget {
 	if picker == nil {
 		return main
 	}
+	if m.overlay != overlayJoinPrompt {
+		picker = column.New(picker).Width(layout.Fixed(m.cfg.Picker.Width)).Height(layout.Fixed(m.cfg.Picker.Height))
+	}
 	return stack.New(
 		// The panes behind the picker take no input.
 		inert.New(main),
 		backdrop.New().Style(m.cfg.Theme.Dialog.BackgroundStyle.Style),
-		center.New(column.New(picker).Width(layout.Fixed(m.cfg.Picker.Width)).Height(layout.Fixed(m.cfg.Picker.Height))),
+		// The join prompt is as large as its content; the others take the picker's size.
+		center.New(picker),
 	)
 }
 

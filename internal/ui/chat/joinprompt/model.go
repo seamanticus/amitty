@@ -9,6 +9,7 @@ import (
 	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/tui/column"
 	"github.com/seamanticus/amitty/internal/tui/keybind"
+	"github.com/seamanticus/amitty/internal/tui/layout"
 	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/seamanticus/amitty/internal/tui/textinput"
 	"github.com/seamanticus/amitty/internal/ui"
@@ -64,11 +65,20 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	return m, nil
 }
 
-// View shows the input in a box titled Join a server, over the status.
+// Sizes of the prompt: the input's width, which scrolls a longer invite, and the blank cells around the content.
+const (
+	inputWidth  = 35
+	paddingTop  = 2
+	paddingSide = 5
+)
+
+// View shows the input in a box titled Join a server, over the status, as large as they are with padding around them.
 func (m Model) View() tui.Widget {
 	cfg := m.cfg
 	input := textinput.New(m.text, m.cursor).
 		Focused(true).
+		Style(tcell.StyleDefault.Underline(true)).
+		Width(layout.Fixed(inputWidth)).
 		Keybind(inputKeybind(cfg.Keybinds.JoinPrompt.Submit.Keybind)).
 		OnInput(func(text string, cursor int) tui.Msg { return inputMsg{text, cursor} }).
 		OnSubmit(submitMsg{})
@@ -77,7 +87,13 @@ func (m Model) View() tui.Widget {
 	if m.status != "" {
 		status, style = m.status, tcell.StyleDefault.Foreground(color.Yellow)
 	}
-	return ui.Box(column.New(input, text.New(status).Style(style)), cfg, true).Title(ui.Label("Join a server", cfg.Theme.Title, true))
+	content := column.New(input, text.New(status).Style(style)).Spacing(1).Width(layout.Shrink).Height(layout.Shrink)
+	bottom := cfg.UI.Border.Padding[1]
+	return ui.Box(content, cfg, true).
+		Title(ui.Label("Join a server", cfg.Theme.Title, true)).
+		Padding(paddingTop, bottom, paddingSide, paddingSide).
+		Width(layout.Shrink).
+		Height(layout.Shrink)
 }
 
 // inputKeybind is the input's default keybind with submit as the only key that submits.
