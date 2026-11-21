@@ -7,9 +7,10 @@ amitty logs to `~/.cache/amitty/logs.txt`, emptied at each start (see
 also log the type of every gateway event as it arrives.
 
 `-log-level raw-debug` logs every API response and gateway event in
-full, for following what Discord sends when it changes. That log holds
-**your token** (in the gateway's READY event) and private messages:
-never share it, and delete it when done.
+full, for following what Discord sends when it changes. Tokens, login
+tickets and passwords in them are replaced by `<redacted>`, and the
+file is readable by you alone, but the log still holds private
+messages: never share it, and delete it when done.
 
 Below `raw-debug`, the log can hold channel and user IDs, but never
 your token or password; still, read it before sharing it.
