@@ -114,7 +114,7 @@ func TestModelUpdate(t *testing.T) {
 	})
 }
 
-var area = tui.Rectangle{Width: 60, Height: 15}
+var area = tui.Rectangle{Width: 100, Height: 30}
 
 func key(k tcell.Key) tui.KeyMsg { return tcell.NewEventKey(k, "", tcell.ModNone) }
 

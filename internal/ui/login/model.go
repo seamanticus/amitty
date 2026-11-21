@@ -8,7 +8,6 @@ import (
 	"github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/seamanticus/amitty/internal/tui/cmd"
-	"github.com/seamanticus/amitty/internal/tui/column"
 	"github.com/seamanticus/amitty/internal/ui"
 	"github.com/seamanticus/amitty/internal/ui/login/password"
 	"github.com/seamanticus/amitty/internal/ui/login/qr"
@@ -120,20 +119,31 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	return m, cmd.Batch{errCmd, command, settling}
 }
 
-// View shows the tabs in a box.
+// View shows the logo above a box of the method tabs and a box of the active method's form.
 func (m Model) View() tui.Widget {
 	var content tui.Widget
+	var title string
 	switch m.active {
 	case tabPassword:
-		content = m.password.View()
+		content, title = m.password.View(), m.password.Title()
 	case tabQR:
-		content = m.qr.View()
+		content, title = m.qr.View(), m.qr.Label()
 	case tabToken:
-		content = m.token.View()
+		content, title = m.token.View(), m.token.Label()
 	}
 	t := m.tabs().
 		Active(int(m.active)).
 		Keybind(tabsKeybind).
 		OnSelect(func(i int) tui.Msg { return selectTabMsg(i) })
-	return ui.Box(column.New(t, content), m.cfg, false)
+	theme := m.cfg.Theme
+	methods := ui.Box(t, m.cfg, false).Title(ui.Label(methodsTitle, theme.Title, false)).Height(layout.Shrink)
+	formBox := ui.Box(content, m.cfg, true).Title(ui.Label(title, theme.Title, true))
+	return page{
+		logo:    logoView(theme.Title.NormalStyle.Style, theme.Border.ActiveStyle.Style),
+		methods: methods,
+		form:    formBox,
+	}
 }
+
+// methodsTitle captions the box of the method tabs.
+const methodsTitle = "Authentication Method"

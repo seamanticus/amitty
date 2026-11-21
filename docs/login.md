@@ -1,8 +1,12 @@
 # Login
 
-amitty shows the login screen when it has no stored token. Its three
-tabs are **Password**, **QR** and **Token**; `ctrl+h` and `ctrl+l` move
-between them, `tab` and `shift+tab` between the fields of one.
+amitty shows the login screen when it has no stored token: the logo,
+when the terminal has room for it, then the **Authentication Method**
+box with three tabs, **Password**, **QR** and **Token**, and below it
+the box of the chosen method. `ctrl+h` and `ctrl+l` move between the
+tabs, `tab` and `shift+tab` between the fields of one.
+
+Leaving the QR tab ends its login; coming back shows a new code.
 
 Every login ends the same way: the token Discord gives is encrypted and
 stored (see [Token storage](token.md)), and amitty opens the chat. The
@@ -10,12 +14,13 @@ next start skips the login.
 
 ## Password
 
-Enter your email address, or your phone number in E.164 form
-(`+64211234567`), and your password, then press **Login**.
+In **Email or phone number**, enter your email address, or your phone
+number in E.164 form (`+64211234567`), then your password, and press
+**Log in**.
 
-If the account has two-factor authentication, a second step asks for a
-code. `left` and `right` choose how to give it, among the methods the
-account allows:
+If the account has two-factor authentication, the box turns into
+**Two-Factor Authentication** and asks for a code. `left` and `right`
+choose how to give it, among the methods the account allows:
 
 - **Authenticator**: the six digits of your TOTP app.
 - **SMS**: press **Send SMS**, and enter the code sent to the phone
@@ -38,7 +43,7 @@ login completes.
 
 ## Token
 
-Paste a token and press **Login**. amitty stores it as it is; a token
+Paste a token and press **Log in**. amitty stores it as it is; a token
 Discord rejects is deleted at the first connection (see
 [Token storage](token.md)). Prefer the password or QR login: a token
 copied out of a browser is tied to that browser's session.
