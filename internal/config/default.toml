@@ -115,7 +115,7 @@
 # Whether to play the sound for each message that notifies, with or without the popup.
 # enabled = true
 
-# A file in $XDG_DATA_HOME/amitty/sounds, where amitty writes the sounds it ships on first use; files of your own dropped there, in any format, can be picked too. The settings panel plays each as you browse them.
+# A file in $XDG_DATA_HOME/amitty/sounds, where amitty writes the sounds it ships at start; files of your own dropped there, in any format, can be picked too. The settings panel plays each as you browse them.
 # name = "chime.wav"
 
 # Your own sound file, such as "~/sounds/ping.ogg", played in place of name; "" plays name.

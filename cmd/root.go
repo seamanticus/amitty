@@ -17,6 +17,7 @@ import (
 	"github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/instance"
 	"github.com/seamanticus/amitty/internal/logger"
+	"github.com/seamanticus/amitty/internal/sound"
 	"github.com/seamanticus/amitty/internal/tokenstore"
 	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/seamanticus/amitty/internal/ui/root"
@@ -81,6 +82,7 @@ func Run() error {
 	slog.Info("network", "via", network)
 
 	build := fetchBuild(network)
+	installSounds(cfg.Notifications.Sound)
 
 	store, token, err := loadToken(cfg)
 	if err != nil {
@@ -105,6 +107,20 @@ func Run() error {
 	}
 
 	return tui.NewApplication(root.NewModel(cfg, *configPath, build, network, store, token), tui.WithScreen(screen)).Run()
+}
+
+// installSounds writes the shipped sounds before the first message, when the sound is on, so playing it later only checks its file. A failure is logged; playing retries it.
+func installSounds(cfg config.NotificationSound) {
+	if !cfg.Enabled {
+		return
+	}
+	dataDir, err := consts.DataDir()
+	if err == nil {
+		err = sound.Install(dataDir)
+	}
+	if err != nil {
+		slog.Warn("failed to install the notification sounds", "err", err)
+	}
 }
 
 // loadToken opens the token store of cfg and decrypts its token before the screen starts, so a passphrase prompt owns the terminal. An empty token means none is stored.

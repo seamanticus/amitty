@@ -82,7 +82,7 @@ func players() [][]string {
 	}
 }
 
-// Path returns path, or for "" the file name ("" for Default) in the sounds dir of dataDir, writing the shipped sounds missing there first. The file must exist.
+// Path returns path, or for "" the file name ("" for Default) in the sounds dir of dataDir, writing the shipped sounds again if that one is missing. The file must exist.
 // The file is checked here as players such as ffplay exit 0 on a missing one, which would hide the mistake.
 func Path(path, name, dataDir string) (string, error) {
 	if path == "" {
@@ -92,11 +92,13 @@ func Path(path, name, dataDir string) (string, error) {
 		if !IsName(name) {
 			return "", fmt.Errorf("notification sound: %q is not a file name", name)
 		}
-		dir := Dir(dataDir)
-		if err := writeShipped(dir); err != nil {
-			return "", err
+		path = filepath.Join(Dir(dataDir), name)
+		// Install ran at start; this restores a shipped sound deleted since.
+		if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) && slices.Contains(Shipped(), name) {
+			if err := Install(dataDir); err != nil {
+				return "", err
+			}
 		}
-		path = filepath.Join(dir, name)
 	}
 	info, err := os.Stat(path)
 	if err != nil {
@@ -108,8 +110,9 @@ func Path(path, name, dataDir string) (string, error) {
 	return path, nil
 }
 
-// writeShipped writes every shipped sound missing from dir, keeping files already there, which may be the user's own.
-func writeShipped(dir string) error {
+// Install writes every shipped sound missing from the sounds dir of dataDir, keeping files already there, which may be the user's own.
+func Install(dataDir string) error {
+	dir := Dir(dataDir)
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return fmt.Errorf("create sounds dir: %w", err)
 	}

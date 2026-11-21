@@ -74,6 +74,9 @@ func TestPath(t *testing.T) {
 		}
 	})
 	t.Run("shipped sounds are written once", func(t *testing.T) {
+		if err := Install(dir); err != nil {
+			t.Fatal(err)
+		}
 		got, err := Path("", "", dir)
 		if err != nil || got != filepath.Join(Dir(dir), Default) {
 			t.Fatalf("Path = %q, %v", got, err)
@@ -88,11 +91,24 @@ func TestPath(t *testing.T) {
 		if err := os.WriteFile(got, []byte("mine"), 0o600); err != nil {
 			t.Fatal(err)
 		}
-		if _, err := Path("", "pop.wav", dir); err != nil {
+		if err := Install(dir); err != nil {
 			t.Fatal(err)
 		}
 		if data, _ := os.ReadFile(got); string(data) != "mine" {
 			t.Fatal("the file in place was replaced")
+		}
+	})
+	t.Run("a shipped sound deleted since start is written again", func(t *testing.T) {
+		fresh := t.TempDir()
+		if err := Install(fresh); err != nil {
+			t.Fatal(err)
+		}
+		path := filepath.Join(Dir(fresh), Default)
+		if err := os.Remove(path); err != nil {
+			t.Fatal(err)
+		}
+		if got, err := Path("", "", fresh); got != path || err != nil {
+			t.Fatalf("Path = %q, %v", got, err)
 		}
 	})
 	t.Run("a file of the user's own is played by name", func(t *testing.T) {

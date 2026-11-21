@@ -149,7 +149,7 @@ notification (through the terminal) and plays a short sound, unless
 your status is Do not disturb. amitty ships 14 sounds (`bell.wav`,
 `blip.wav`, `bubble.wav`, `chime.wav`, `coin.wav`, `ding.wav`,
 `dong.wav`, `glass.wav`, `knock.wav`, `marimba.wav`, `pluck.wav`,
-`pop.wav`, `sparkle.wav`, `triad.wav`), written on first use to
+`pop.wav`, `sparkle.wav`, `triad.wav`), written at start (when the sound is on) to
 `$XDG_DATA_HOME/amitty/sounds/` (usually
 `~/.local/share/amitty/sounds/`). `notifications.sound.name` picks a
 file there; files of your own dropped in that directory, in any format
