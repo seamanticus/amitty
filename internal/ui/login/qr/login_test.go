@@ -12,6 +12,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -312,7 +313,9 @@ func TestModelUpdate(t *testing.T) {
 
 	t.Run("pending login closes the socket and redeems", func(t *testing.T) {
 		m, command := NewModel(dhttp.Build{}, dhttp.Network{}).Update(pendingLoginMsg{ticket: "tk"})
-		if batch, ok := command.(cmd.Batch); !ok || len(batch) != 2 || m.status != "Authenticating..." {
+		batch, ok := command.(cmd.Batch)
+		// The captcha's reset adds a nil when no page waits.
+		if !ok || len(slices.DeleteFunc(slices.Clone(batch), func(c cmd.Cmd) bool { return c == nil })) != 2 || m.status != "Authenticating..." {
 			t.Fatalf("status = %q, command = %#v", m.status, command)
 		}
 	})
