@@ -434,9 +434,9 @@
 # focus_composer = "ctrl+i"
 
 # Cycle focus between the widgets.
-# focus_previous = ["ctrl+h", "ctrl+left", "ctrl+up"]
+# focus_previous = ["ctrl+h", "ctrl+up"]
 
-# focus_next = ["ctrl+l", "ctrl+right", "ctrl+down"]
+# focus_next = ["ctrl+l", "ctrl+down"]
 
 # Log out and delete the stored token.
 # Requires re-login upon restart.

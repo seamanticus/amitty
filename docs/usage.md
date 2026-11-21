@@ -25,7 +25,7 @@ of the pane that has focus.
 | `ctrl+t` | Messages list |
 | `ctrl+i` | Composer |
 | `ctrl+y` | Members tree |
-| `ctrl+h`, `ctrl+l`, `ctrl+left`, `ctrl+right`, `ctrl+up`, `ctrl+down` | The previous or next pane |
+| `ctrl+h`, `ctrl+l`, `ctrl+up`, `ctrl+down` | The previous or next pane |
 | `ctrl+k` | A picker to jump to any channel by name |
 
 Selecting a channel focuses the composer, unless `auto_focus = false`.
