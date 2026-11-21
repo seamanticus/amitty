@@ -72,8 +72,8 @@ func (r *State) onReady(ready *gateway.ReadyEvent) {
 	r.selfID = ready.User.ID
 	clear(r.states)
 
-	for i, rs := range ready.ReadStates {
-		r.states[rs.ChannelID] = &ready.ReadStates[i]
+	for i, rs := range ready.ReadStates.Entries {
+		r.states[rs.ChannelID] = &ready.ReadStates.Entries[i]
 	}
 }
 

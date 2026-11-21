@@ -178,9 +178,9 @@ func newUnreadTestState(tb testing.TB, acked, latest discord.MessageID) (*State,
 	s := FromState(discordtest.State(tb))
 	s.State.Handler.Call(&gateway.ReadyEvent{
 		User: discord.User{ID: userID},
-		ReadStates: []gateway.ReadState{{
+		ReadStates: gateway.Versioned[gateway.ReadState]{Entries: []gateway.ReadState{{
 			ChannelID: channelID, LastMessageID: acked,
-		}},
+		}}},
 	})
 
 	if err := s.Cabinet.MyselfSet(discord.User{ID: userID}, false); err != nil {
@@ -277,8 +277,8 @@ func newMentionedGuildState(tb testing.TB, count, mention int) (*State, *countin
 	s := FromState(discordtest.State(tb))
 	s.State.Handler.Call(&gateway.ReadyEvent{
 		User:              discord.User{ID: 1},
-		ReadStates:        readStates,
-		UserGuildSettings: []gateway.UserGuildSetting{{GuildID: guildID, Muted: true}},
+		ReadStates:        gateway.Versioned[gateway.ReadState]{Entries: readStates},
+		UserGuildSettings: gateway.Versioned[gateway.UserGuildSetting]{Entries: []gateway.UserGuildSetting{{GuildID: guildID, Muted: true}}},
 	})
 	for i := range count {
 		channelID := discord.ChannelID(i + 2)
@@ -323,7 +323,7 @@ func TestStateChannelIsMuted(t *testing.T) {
 	}
 
 	ready := &gateway.ReadyEvent{User: discord.User{ID: 3}}
-	ready.UserGuildSettings = []gateway.UserGuildSetting{{
+	ready.UserGuildSettings.Entries = []gateway.UserGuildSetting{{
 		GuildID:          1,
 		ChannelOverrides: []gateway.UserChannelOverride{{ChannelID: 10, Muted: true}},
 	}}
@@ -404,7 +404,7 @@ func TestStateMessageMentionsGuildDefaults(t *testing.T) {
 		t.Helper()
 		s := FromState(discordtest.State(t))
 		ready := &gateway.ReadyEvent{User: discord.User{ID: 3}}
-		ready.UserGuildSettings = []gateway.UserGuildSetting{{
+		ready.UserGuildSettings.Entries = []gateway.UserGuildSetting{{
 			GuildID:          1,
 			Notifications:    gateway.GuildDefaults,
 			ChannelOverrides: []gateway.UserChannelOverride{{ChannelID: 20, Notifications: gateway.GuildDefaults}},

@@ -10,7 +10,7 @@ const gatewayURL = "wss://gateway.discord.gg"
 
 // New returns the gateway of id that connects through network.
 func New(network http.Network, id discordgateway.Identifier) *discordgateway.Gateway {
-	codec := ws.NewCodec(discordgateway.NewOpUnmarshalers(id.Capabilities))
+	codec := ws.NewCodec(discordgateway.NewOpUnmarshalers())
 	codec.Headers = HandshakeHeaders()
 
 	conn := ws.NewConnWithDialer(codec, NewDialer(network))

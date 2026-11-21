@@ -48,8 +48,8 @@ func (mute *State) onReady(r *gateway.ReadyEvent) {
 	clear(mute.guilds)
 	clear(mute.channels)
 
-	for i, guild := range r.UserGuildSettings {
-		mute.guilds[guild.GuildID] = r.UserGuildSettings[i]
+	for i, guild := range r.UserGuildSettings.Entries {
+		mute.guilds[guild.GuildID] = r.UserGuildSettings.Entries[i]
 
 		for i, ch := range guild.ChannelOverrides {
 			mute.channels[ch.ChannelID] = guild.ChannelOverrides[i]

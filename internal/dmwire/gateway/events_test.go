@@ -88,76 +88,54 @@ func TestRequestGuildMembersCommand(t *testing.T) {
 	})
 }
 
-func TestReadyEventCapabilities(t *testing.T) {
-	capabilities := UserSettingsProto | DedupeUserObjects | AuthTokenRefresh
-	unmarshalers := NewOpUnmarshalers(capabilities)
-	ready := unmarshalers.Lookup(0, "READY")().(*ReadyEvent)
-	if err := json.Unmarshal([]byte(`{"auth_token":"new"}`), ready); err != nil {
+// evidence: witnesses
+func TestReadyEventDecodes(t *testing.T) {
+	ready := NewOpUnmarshalers().Lookup(0, "READY")().(*ReadyEvent)
+	payload := `{
+		"user": {"id": "1"},
+		"auth_token": "new",
+		"read_state": {"entries": [{"id": "2"}], "partial": false, "version": 4},
+		"user_guild_settings": {"entries": [{"guild_id": "3"}], "partial": true, "version": 5}
+	}`
+	if err := json.Unmarshal([]byte(payload), ready); err != nil {
 		t.Fatal("failed to unmarshal READY:", err)
 	}
-	if ready.Capabilities != capabilities {
-		t.Fatalf("unexpected capabilities: %d", ready.Capabilities)
-	}
 	if ready.AuthToken != "new" {
-		t.Fatalf("unexpected auth token: %q", ready.AuthToken)
+		t.Errorf("auth token = %q, want new", ready.AuthToken)
+	}
+	if rs := ready.ReadStates; len(rs.Entries) != 1 || rs.Entries[0].ChannelID != 2 || rs.Version != 4 {
+		t.Errorf("read states = %#v", rs)
+	}
+	if gs := ready.UserGuildSettings; len(gs.Entries) != 1 || gs.Entries[0].GuildID != 3 || !gs.Partial {
+		t.Errorf("user guild settings = %#v", gs)
 	}
 }
 
-func TestReadyEventVersionedFields(t *testing.T) {
-	tests := []struct {
-		name         string
-		capabilities Capabilities
-		payload      string
-	}{
-		{
-			name: "normal",
-			payload: `{
-				"user": {"id": "1"},
-				"read_state": [{"id": "2"}],
-				"user_guild_settings": [{"guild_id": "3"}]
-			}`,
-		},
-		{
-			name:         "versioned",
-			capabilities: VersionedReadStates | VersionedUserGuildSetttings,
-			payload: `{
-				"user": {"id": "1"},
-				"read_state": {"entries": [{"id": "2"}], "partial": false, "version": 4},
-				"user_guild_settings": {"entries": [{"guild_id": "3"}], "partial": true, "version": 5}
-			}`,
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			unmarshalers := NewOpUnmarshalers(test.capabilities)
-			ready := unmarshalers.Lookup(0, "READY")().(*ReadyEvent)
-			if err := json.Unmarshal([]byte(test.payload), ready); err != nil {
-				t.Fatal("failed to unmarshal READY:", err)
-			}
-			if len(ready.ReadStates) != 1 || ready.ReadStates[0].ChannelID != 2 {
-				t.Fatalf("unexpected read states: %#v", ready.ReadStates)
-			}
-			if len(ready.UserGuildSettings) != 1 || ready.UserGuildSettings[0].GuildID != 3 {
-				t.Fatalf("unexpected user guild settings: %#v", ready.UserGuildSettings)
-			}
-		})
-	}
-}
-
-func TestReadyEventPrivateChannelRecipients(t *testing.T) {
-	ready := NewOpUnmarshalers(DedupeUserObjects).Lookup(0, "READY")().(*ReadyEvent)
+// evidence: witnesses
+func TestReadyEventHydrateUsers(t *testing.T) {
+	ready := NewOpUnmarshalers().Lookup(0, "READY")().(*ReadyEvent)
 	payload := []byte(`{
 		"user": {"id": "1"},
 		"users": [{"id": "3", "username": "friend"}],
-		"private_channels": [{"id": "2", "recipient_ids": ["3"]}]
+		"private_channels": [{"id": "2", "recipient_ids": ["3"]}, {"id": "4", "recipient_ids": ["5"]}],
+		"relationships": [{"id": "3", "type": 1}]
 	}`)
 	if err := json.Unmarshal(payload, ready); err != nil {
 		t.Fatal("failed to unmarshal READY:", err)
 	}
+	if len(ready.PrivateChannels[0].DMRecipients) != 0 {
+		t.Fatal("decoding filled recipients; only HydrateUsers should")
+	}
+	ready.HydrateUsers()
 
-	recipients := ready.PrivateChannels[0].DMRecipients
-	if len(recipients) != 1 || recipients[0].ID != 3 || recipients[0].Username != "friend" {
-		t.Fatalf("unexpected recipients: %#v", recipients)
+	if got := ready.PrivateChannels[0].DMRecipients; len(got) != 1 || got[0].ID != 3 || got[0].Username != "friend" {
+		t.Errorf("known recipient = %#v", got)
+	}
+	// An ID missing from users keeps its ID, so the DM still has its recipient.
+	if got := ready.PrivateChannels[1].DMRecipients; len(got) != 1 || got[0].ID != 5 {
+		t.Errorf("unknown recipient = %#v", got)
+	}
+	if got := ready.Relationships[0].User; got.Username != "friend" {
+		t.Errorf("relationship user = %#v", got)
 	}
 }

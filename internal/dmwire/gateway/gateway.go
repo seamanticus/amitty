@@ -101,15 +101,12 @@ var DefaultGatewayOpts = ws.GatewayOpts{
 	AlwaysCloseGracefully: true,
 }
 
-// NewOpUnmarshalers returns an event registry configured with the capabilities sent with Identify.
-func NewOpUnmarshalers(capabilities Capabilities) ws.OpUnmarshalers {
+// NewOpUnmarshalers returns a copy of the event registry, so a caller's additions stay its own.
+func NewOpUnmarshalers() ws.OpUnmarshalers {
 	unmarshalers := ws.NewOpUnmarshalers()
 	OpUnmarshalers.Each(func(_ ws.OpCode, _ ws.EventType, fn ws.OpFunc) bool {
 		unmarshalers.Add(fn)
 		return false
-	})
-	unmarshalers.Add(func() ws.Event {
-		return &ReadyEvent{Capabilities: capabilities}
 	})
 	return unmarshalers
 }
@@ -360,6 +357,8 @@ func (g *gatewayImpl) OnOp(ctx context.Context, op ws.Op) bool {
 		g.gateway.QueueReconnect()
 
 	case *ReadyEvent:
+		// Before the event leaves the gateway, so every handler sees whole users.
+		data.HydrateUsers()
 		g.state.SessionID = data.SessionID
 		if data.AuthToken != "" {
 			g.state.Identifier.Token = data.AuthToken

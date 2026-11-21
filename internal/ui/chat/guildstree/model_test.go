@@ -125,10 +125,10 @@ func TestMentionsLabel(t *testing.T) {
 
 func TestModelMentions(t *testing.T) {
 	s := ningen.FromState(discordtest.State(t))
-	s.State.Call(&gateway.ReadyEvent{ReadStates: []gateway.ReadState{
+	s.State.Call(&gateway.ReadyEvent{ReadStates: gateway.Versioned[gateway.ReadState]{Entries: []gateway.ReadState{
 		{ChannelID: 1, LastMessageID: 10, MentionCount: 2},
 		{ChannelID: 2, LastMessageID: 20, MentionCount: 3},
-	}})
+	}}})
 	m := Model{state: s}
 	channels := []discord.Channel{{ID: 1}, {ID: 2}, {ID: 3}}
 	if got := m.mentions(channels...); got != 5 {
@@ -219,9 +219,9 @@ func TestModelMarkRead(t *testing.T) {
 		}
 	}
 	// 11 and 12 are unread, 13 is read.
-	s.State.Call(&gateway.ReadyEvent{User: me, ReadStates: []gateway.ReadState{
+	s.State.Call(&gateway.ReadyEvent{User: me, ReadStates: gateway.Versioned[gateway.ReadState]{Entries: []gateway.ReadState{
 		{ChannelID: 11, LastMessageID: 100}, {ChannelID: 12, LastMessageID: 100}, {ChannelID: 13, LastMessageID: 130},
-	}})
+	}}})
 	cfg := config.Default()
 	m := NewModel(&cfg, s)
 	m.reset()

@@ -118,7 +118,7 @@ func TestMarkReadBulk(t *testing.T) {
 	}, readHandler)
 	ready := &gateway.ReadyEvent{User: discord.User{ID: 4}}
 	// Channel 5 is read already; 6 and 7 are not.
-	ready.ReadStates = []gateway.ReadState{{ChannelID: 5, LastMessageID: 50}, {ChannelID: 6, LastMessageID: 60, MentionCount: 1}}
+	ready.ReadStates.Entries = []gateway.ReadState{{ChannelID: 5, LastMessageID: 50}, {ChannelID: 6, LastMessageID: 60, MentionCount: 1}}
 	readHandler.Call(ready)
 
 	if err := readState.MarkReadBulk(map[discord.ChannelID]discord.MessageID{7: 71, 5: 50, 6: 61, 8: 0}); err != nil {
@@ -155,7 +155,7 @@ func TestStateReadState(t *testing.T) {
 		s := NewState(&state.State{Cabinet: cabinet, Handler: handler.New()}, h)
 
 		ready := &gateway.ReadyEvent{User: discord.User{ID: 4}}
-		ready.ReadStates = []gateway.ReadState{{ChannelID: 2, LastMessageID: 3, MentionCount: 1}}
+		ready.ReadStates.Entries = []gateway.ReadState{{ChannelID: 2, LastMessageID: 3, MentionCount: 1}}
 		for _, event := range append([]ws.Event{ready}, events...) {
 			h.Call(event)
 		}

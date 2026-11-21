@@ -714,9 +714,6 @@ type ConversationSummary struct {
 //
 // https://discord.com/developers/docs/topics/gateway#ready
 type ReadyEvent struct {
-	// Capabilities are the capabilities sent with Identify and are not part of the Ready payload.
-	Capabilities Capabilities `json:"-"`
-
 	Version int `json:"v"`
 
 	User      discord.User `json:"user"`
@@ -733,42 +730,12 @@ type ReadyEvent struct {
 		Flags discord.ApplicationFlags `json:"flags"`
 	} `json:"application"`
 
-	// Bot users need not concern with what's in here. This field is only
-	// unmarshaled, not marshaled.
-	ReadyEventExtras `json:"-"`
+	// The members only a user account receives.
+	ReadyEventExtras
 }
 
-func (r *ReadyEvent) UnmarshalJSON(b []byte) error {
-	type raw ReadyEvent
-	if err := json.Unmarshal(b, (*raw)(r)); err != nil {
-		return err
-	}
-
-	// Optionally unmarshal ReadyEventExtras.
-	if !r.User.Bot {
-		extras := struct {
-			*ReadyEventExtras
-			ReadStates        json.Raw `json:"read_state"`
-			UserGuildSettings json.Raw `json:"user_guild_settings"`
-		}{ReadyEventExtras: &r.ReadyEventExtras}
-		if err := json.Unmarshal(b, &extras); err != nil {
-			return err
-		}
-		if err := decodeReadyField(extras.ReadStates, r.Capabilities&VersionedReadStates != 0, &r.ReadStates); err != nil {
-			return err
-		}
-		if err := decodeReadyField(extras.UserGuildSettings, r.Capabilities&VersionedUserGuildSetttings != 0, &r.UserGuildSettings); err != nil {
-			return err
-		}
-	}
-	if r.Capabilities&DedupeUserObjects != 0 {
-		r.hydrateUsers()
-	}
-
-	return nil
-}
-
-func (r *ReadyEvent) hydrateUsers() {
+// HydrateUsers fills the DM recipients and relationship users that READY sends as IDs, when the client asks to dedupe them, from Users.
+func (r *ReadyEvent) HydrateUsers() {
 	users := make(map[discord.UserID]discord.User, len(r.Users))
 	for _, user := range r.Users {
 		users[user.ID] = user
@@ -807,27 +774,12 @@ type Versioned[T any] struct {
 	Version int64 `json:"version"`
 }
 
-func decodeReadyField[T any](raw json.Raw, versioned bool, entries *[]T) error {
-	if !versioned {
-		return raw.UnmarshalTo(entries)
-	}
-
-	var value Versioned[T]
-	if err := raw.UnmarshalTo(&value); err != nil {
-		return err
-	}
-	*entries = value.Entries
-	return nil
-}
-
 // Ready subtypes.
 type (
-	// ReadyEventExtras contains undocumented fields pertaining to the Ready
-	// event. This is the only event that receives this special treatment,
-	// because it's the one with the most undocumented things.
+	// ReadyEventExtras contains the undocumented members of READY, sent to user accounts only. ReadStates and UserGuildSettings are versioned lists, as the client identifies with VersionedReadStates and VersionedUserGuildSetttings.
 	ReadyEventExtras struct {
-		ReadStates        []ReadState        `json:"read_state,omitempty"`
-		UserGuildSettings []UserGuildSetting `json:"user_guild_settings,omitempty"`
+		ReadStates        Versioned[ReadState]        `json:"read_state"`
+		UserGuildSettings Versioned[UserGuildSetting] `json:"user_guild_settings"`
 
 		UserSettings    *UserSettings             `json:"user_settings,omitempty"`
 		Relationships   []discord.Relationship    `json:"relationships,omitempty"`
