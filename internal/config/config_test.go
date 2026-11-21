@@ -107,7 +107,7 @@ func TestMessagesLimit(t *testing.T) {
 		}
 		want := uint8(limit)
 		if limit < 1 || limit > 100 {
-			want = 50
+			want = Default().MessagesLimit
 		}
 		if cfg.MessagesLimit != want {
 			t.Fatalf("messages_limit = %d loads as %d, want %d", limit, cfg.MessagesLimit, want)

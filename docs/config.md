@@ -19,7 +19,7 @@ Every option of `~/.config/amitty/config.toml`, by its TOML key, with its defaul
 | `status` | `"default"` | "default" (unknown), "online", "dnd", "idle", "invisible" or "offline". |
 | `hide_blocked_users` | `true` |  |
 | `hide_deleted_users` | `true` | Whether to leave DMs with deleted accounts out of the guilds tree's Direct Messages and the channels picker. |
-| `messages_limit` | `50` | The number of messages to fetch when a text-based channel is selected, from 1 to 100. |
+| `messages_limit` | `10` | The number of messages to fetch when a text-based channel is selected, and per page of older ones, from 1 to 100; 10 is what the web client asks for. |
 | `theme_profile` | `"TokyoNight"` | A color scheme every style of [theme] starts from, such as "Catppuccin Mocha", TokyoNight by default; "" keeps the terminal's own colors. Styles set under [theme] override it. The profiles are listed in docs/themes.md. The profile paints its background and text color everywhere. |
 | `inherit_background` | `false` | Whether a theme profile leaves the background to the terminal, keeping its transparency, and paints only text. |
 

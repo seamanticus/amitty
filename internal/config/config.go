@@ -271,7 +271,7 @@ type (
 		// Whether to leave DMs with deleted accounts out of the guilds tree's Direct Messages and the channels picker.
 		HideDeletedUsers bool `toml:"hide_deleted_users"`
 
-		// The number of messages to fetch when a text-based channel is selected, from 1 to 100.
+		// The number of messages to fetch when a text-based channel is selected, and per page of older ones, from 1 to 100; 10 is what the web client asks for.
 		MessagesLimit uint8 `toml:"messages_limit"`
 
 		Markdown        MarkdownConfig  `toml:"markdown"`
@@ -323,7 +323,7 @@ func Default() Config {
 		HideBlockedUsers: true,
 		HideDeletedUsers: true,
 
-		MessagesLimit: 50,
+		MessagesLimit: 10,
 
 		Markdown:        MarkdownConfig{Enabled: true, Theme: "monokai"},
 		Help:            HelpConfig{Enabled: true, CompactModifiers: true, Padding: [2]int{1, 1}, Separator: " • "},
@@ -450,7 +450,7 @@ func (cfg *Config) applyDefaults() {
 
 	// 0 would fetch a channel's whole history, and more than 100 several pages per fetch.
 	if cfg.MessagesLimit < 1 || cfg.MessagesLimit > 100 {
-		cfg.MessagesLimit = 50
+		cfg.MessagesLimit = Default().MessagesLimit
 	}
 
 	if cfg.Composer.MaxHeight <= 0 {
