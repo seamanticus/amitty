@@ -8,16 +8,14 @@ import (
 	"github.com/gdamore/tcell/v3/color"
 	dhttp "github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/tui"
-	"github.com/seamanticus/amitty/internal/tui/button"
 	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/tui/column"
 	"github.com/seamanticus/amitty/internal/tui/help"
 	"github.com/seamanticus/amitty/internal/tui/keybind"
-	"github.com/seamanticus/amitty/internal/tui/layout"
-	"github.com/seamanticus/amitty/internal/tui/row"
 	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/seamanticus/amitty/internal/tui/textinput"
 	"github.com/seamanticus/amitty/internal/ui"
+	"github.com/seamanticus/amitty/internal/ui/login/form"
 	"github.com/seamanticus/amitty/internal/ui/login/keys"
 )
 
@@ -68,6 +66,14 @@ func NewModel(build dhttp.Build, network dhttp.Network) Model {
 
 func (Model) Label() string {
 	return "Password"
+}
+
+// Title names the step shown: the password form, or the code that follows it.
+func (m Model) Title() string {
+	if m.coding() {
+		return "Two-Factor Authentication"
+	}
+	return m.Label()
 }
 
 var _ tui.Model[Model] = Model{}
@@ -197,7 +203,7 @@ func (m Model) View() tui.Widget {
 	if m.coding() {
 		return m.viewCode()
 	}
-	labelWidth := layout.Fixed(len("Password") + 1)
+	labelWidth := form.LabelWidth(loginLabel, passwordLabel)
 	login := textinput.New(m.login, m.loginCursor).
 		Focused(m.focus == focusLogin).
 		OnInput(func(text string, cursor int) tui.Msg { return loginMsg{text, cursor} }).
@@ -207,7 +213,7 @@ func (m Model) View() tui.Widget {
 		Focused(m.focus == focusPassword).
 		OnInput(func(text string, cursor int) tui.Msg { return passwordMsg{text, cursor} }).
 		OnSubmit(focusMsg(focusButton))
-	label := "Login"
+	label := "Log in"
 	switch {
 	case m.captcha.Waiting():
 		label = "Captcha..."
@@ -216,11 +222,7 @@ func (m Model) View() tui.Widget {
 	case m.submitting:
 		label = "Logging in..."
 	}
-	submit := button.New(text.New(label)).
-		Style(buttonStyle(m.focus == focusButton, m.buttonHovered)).
-		Width(layout.Fixed(len(label) + 4)).
-		Focused(m.focus == focusButton).
-		Hovered(m.buttonHovered).
+	submit := form.Button(label, m.focus == focusButton, m.buttonHovered).
 		OnHover(func(hovered bool) tui.Msg { return hoverMsg(hovered) }).
 		OnClick(submitMsg{})
 	var warning tui.Widget
@@ -231,23 +233,18 @@ func (m Model) View() tui.Widget {
 		warning = retryWarning(m.retryIn, m.retryReason)
 	}
 	return column.New(
-		row.New(text.New("Login").Width(labelWidth), login).Height(layout.Shrink),
-		row.New(text.New("Password").Width(labelWidth), password).Height(layout.Shrink),
+		form.Field(loginLabel, labelWidth, login),
+		form.Field(passwordLabel, labelWidth, password),
 		submit,
 		warning,
 	).Spacing(1).AlignX(tui.HorizontalAlignmentCenter)
 }
 
-// buttonStyle is reversed when focused, else underlined when hovered.
-func buttonStyle(focused, hovered bool) tcell.Style {
-	switch {
-	case focused:
-		return tcell.StyleDefault.Reverse(true)
-	case hovered:
-		return tcell.StyleDefault.Underline(true)
-	}
-	return tcell.StyleDefault
-}
+// The labels of the inputs; Discord takes a phone number in place of the email.
+const (
+	loginLabel    = "Email or phone number"
+	passwordLabel = "Password"
+)
 
 // retryWarning says that the one retry starts in left seconds and why.
 func retryWarning(left int, reason string) tui.Widget {

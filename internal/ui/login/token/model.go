@@ -1,16 +1,12 @@
 package token
 
 import (
-	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/tui"
-	"github.com/seamanticus/amitty/internal/tui/button"
 	"github.com/seamanticus/amitty/internal/tui/column"
 	"github.com/seamanticus/amitty/internal/tui/help"
 	"github.com/seamanticus/amitty/internal/tui/keybind"
-	"github.com/seamanticus/amitty/internal/tui/layout"
-	"github.com/seamanticus/amitty/internal/tui/row"
-	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/seamanticus/amitty/internal/tui/textinput"
+	"github.com/seamanticus/amitty/internal/ui/login/form"
 	"github.com/seamanticus/amitty/internal/ui/login/keys"
 )
 
@@ -68,22 +64,11 @@ func (m Model) View() tui.Widget {
 		Focused(!m.buttonFocused).
 		OnInput(func(text string, cursor int) tui.Msg { return tokenMsg{text, cursor} }).
 		OnSubmit(focusButtonMsg{})
-	buttonStyle := tcell.StyleDefault
-	switch {
-	case m.buttonFocused:
-		buttonStyle = buttonStyle.Reverse(true)
-	case m.buttonHovered:
-		buttonStyle = buttonStyle.Underline(true)
-	}
-	submit := button.New(text.New("Login")).
-		Style(buttonStyle).
-		Width(layout.Fixed(len("Login") + 4)).
-		Focused(m.buttonFocused).
-		Hovered(m.buttonHovered).
+	submit := form.Button("Log in", m.buttonFocused, m.buttonHovered).
 		OnHover(func(hovered bool) tui.Msg { return hoverMsg(hovered) }).
 		OnClick(submitMsg{})
 	return column.New(
-		row.New(text.New("Token").Width(layout.Fixed(len("Token")+1)), input).Height(layout.Shrink),
+		form.Field("Token", form.LabelWidth("Token"), input),
 		submit,
 	).Spacing(1).AlignX(tui.HorizontalAlignmentCenter)
 }

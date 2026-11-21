@@ -10,7 +10,7 @@ import (
 	"github.com/seamanticus/amitty/internal/tui/cmd"
 )
 
-var area = tui.Rectangle{Width: 40, Height: 5}
+var area = tui.Rectangle{Width: 60, Height: 5}
 
 // send delivers msg the way the application does: through the view, then Update.
 func send(m *Model, msg tui.Msg) (tui.Msg, tui.Cmd) {

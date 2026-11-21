@@ -12,7 +12,7 @@ import (
 )
 
 // codeHeight fits the code form.
-const codeHeight = 13
+const codeHeight = 15
 
 // codingModel returns a model that submitted a password and was asked for a code allowing methods.
 func codingModel(t *testing.T, methods ...method) Model {
@@ -193,6 +193,15 @@ func TestModelMFA(t *testing.T) {
 			if strings.Contains(drawn, label) != want {
 				t.Errorf("%q drawn = %v, want %v:\n%s", label, !want, want, drawn)
 			}
+		}
+	})
+
+	t.Run("the title names the step", func(t *testing.T) {
+		if got := (Model{}).Title(); got != "Password" {
+			t.Errorf("form title = %q", got)
+		}
+		if got := codingModel(t, methodTOTP).Title(); got != "Two-Factor Authentication" {
+			t.Errorf("code title = %q", got)
 		}
 	})
 }

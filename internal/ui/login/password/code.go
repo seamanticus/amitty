@@ -5,13 +5,13 @@ import (
 
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/tui"
-	"github.com/seamanticus/amitty/internal/tui/button"
 	"github.com/seamanticus/amitty/internal/tui/column"
 	"github.com/seamanticus/amitty/internal/tui/keybind"
 	"github.com/seamanticus/amitty/internal/tui/layout"
 	"github.com/seamanticus/amitty/internal/tui/row"
 	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/seamanticus/amitty/internal/tui/textinput"
+	"github.com/seamanticus/amitty/internal/ui/login/form"
 	"github.com/seamanticus/amitty/internal/ui/login/keys"
 )
 
@@ -153,9 +153,8 @@ func (m Model) viewCode() tui.Widget {
 		warning = retryWarning(m.retryIn, m.retryReason)
 	}
 	return column.New(
-		text.New("Two-factor code required"),
 		methods.Height(layout.Shrink),
-		row.New(text.New("Code").Width(layout.Fixed(len("Code")+1)), input).Height(layout.Shrink),
+		form.Field("Code", form.LabelWidth("Code"), input),
 		buttons,
 		text.New(strings.Join(status, " - ")),
 		warning,
@@ -164,9 +163,5 @@ func (m Model) viewCode() tui.Widget {
 
 // codeButton is a button of the code form that sends onClick.
 func codeButton(label string, focused bool, onClick tui.Msg) tui.Widget {
-	return button.New(text.New(label)).
-		Style(buttonStyle(focused, false)).
-		Width(layout.Fixed(len(label) + 4)).
-		Focused(focused).
-		OnClick(onClick)
+	return form.Button(label, focused, false).OnClick(onClick)
 }

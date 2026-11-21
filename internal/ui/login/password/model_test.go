@@ -11,7 +11,7 @@ import (
 	"github.com/seamanticus/amitty/internal/tui"
 )
 
-var area = tui.Rectangle{Width: 40, Height: 7}
+var area = tui.Rectangle{Width: 80, Height: 15}
 
 // send delivers msg the way the application does: through the view, then Update.
 func send(m *Model, msg tui.Msg) (tui.Msg, tui.Cmd) {
@@ -174,7 +174,7 @@ func TestModelCountdown(t *testing.T) {
 
 	t.Run("the warning and the countdown share one line", func(t *testing.T) {
 		m, _ := start().Update(CountdownMsg{left: 4, err: reason})
-		drawn := discordtest.Draw(t, m.View(), 120, 9)
+		drawn := discordtest.Draw(t, m.View(), 120, 11)
 		var found bool
 		for line := range strings.Lines(drawn) {
 			if strings.Contains(line, "retrying once in 4 s") && strings.Contains(line, "connection refused") {
