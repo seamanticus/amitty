@@ -176,8 +176,7 @@ func (m *Model) send() tui.Cmd {
 		}
 
 		data.Content = text
-		m.sendMessage(selectedChannel.ID, data)
-		return nil
+		return m.sendMessage(selectedChannel.ID, data)
 	})}
 }
 
@@ -188,10 +187,18 @@ func (m Model) editMessage(message discord.Message, text string) {
 	}
 }
 
-func (m Model) sendMessage(channelID discord.ChannelID, data api.SendMessageData) {
+// sendMessage sends data to channelID and returns nil, or the dialog saying a message with files was not sent, as its files would be lost.
+func (m Model) sendMessage(channelID discord.ChannelID, data api.SendMessageData) tui.Msg {
+	if len(data.Files) > 0 {
+		if err := sendWithFiles(context.Background(), m.state, m.upload, channelID, data, data.Files); err != nil {
+			return ui.ErrorDialog("send the message with its files", err)
+		}
+		return nil
+	}
 	if _, err := m.state.SendMessageComplex(channelID, data); err != nil {
 		slog.Error("failed to send message in channel", "channel_id", channelID, "err", err)
 	}
+	return nil
 }
 
 func (m *Model) complete() tui.Cmd {

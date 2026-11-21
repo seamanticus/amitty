@@ -148,8 +148,9 @@ func NewModel(cfg *config.Config, build http.Build, network http.Network, token 
 
 	m.guildsTree = guildstree.NewModel(cfg, m.state)
 	m.membersTree = memberstree.NewModel(cfg, m.state)
-	m.messagesList = messageslist.NewModel(cfg, m.state, http.NewMedia(network))
-	m.composer = composer.NewModel(cfg, m.state)
+	media := http.NewMedia(network)
+	m.messagesList = messageslist.NewModel(cfg, m.state, media)
+	m.composer = composer.NewModel(cfg, m.state, media)
 	m.channelsPicker = channelspicker.NewModel(cfg)
 	m.attachmentsPicker = attachmentspicker.NewModel(cfg)
 	m.reactionsPicker = reactionspicker.NewModel(cfg, m.state)

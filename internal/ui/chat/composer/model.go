@@ -60,6 +60,8 @@ type Model struct {
 	disabled bool
 
 	state *ningen.State
+	// upload puts attachments at their upload URLs, apart from Discord's API.
+	upload uploader
 	// channel is the selected channel, or nil for none.
 	channel *discord.Channel
 
@@ -84,11 +86,13 @@ type Model struct {
 // TypingDuration is how long Discord shows someone as typing after they start.
 const TypingDuration = 10 * time.Second
 
-func NewModel(cfg *config.Config, state *ningen.State) Model {
+// NewModel returns a composer sending through state, its attachments put by upload.
+func NewModel(cfg *config.Config, state *ningen.State, upload uploader) Model {
 	return Model{
 		disabled:          true,
 		cfg:               cfg,
 		state:             state,
+		upload:            upload,
 		sendMessageData:   &api.SendMessageData{},
 		memberSearchCache: make(map[string]uint),
 		autocomplete:      autocomplete.NewModel(cfg),

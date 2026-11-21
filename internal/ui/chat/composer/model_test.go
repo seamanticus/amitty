@@ -28,7 +28,7 @@ func newTestModel(t *testing.T) (*Model, *config.Config) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	c := NewModel(cfg, ningen.FromState(discordtest.State(t)))
+	c := NewModel(cfg, ningen.FromState(discordtest.State(t)), nil)
 	c.disabled = false
 	return &c, cfg
 }
@@ -78,7 +78,7 @@ func TestModelSetChannel(t *testing.T) {
 		}
 	}
 
-	c := NewModel(cfg, state)
+	c := NewModel(cfg, state, nil)
 	for name, tt := range map[string]struct {
 		channel  discord.Channel
 		disabled bool
