@@ -196,6 +196,25 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	return m, nil
 }
 
+// Leave ends a login in progress, closing its connection, as its tab is no longer shown; Init starts a new one.
+func (m Model) Leave() (Model, tui.Cmd) {
+	if m.ended {
+		return m, nil
+	}
+	m, closing := m.end("Canceled")
+	// Forgotten now, as the hidden tab does not get the close message.
+	m.conn = nil
+	return m, closing
+}
+
+// Settle handles msg while the tab is hidden: a connection that opens after Leave is closed, and anything else is dropped.
+func (m Model) Settle(msg tui.Msg) (Model, tui.Cmd) {
+	if msg, ok := msg.(connCreateMsg); ok {
+		return m, closeConn(msg.conn)
+	}
+	return m, nil
+}
+
 // end stops the login with status, hiding the code and closing the connection and any captcha page.
 func (m Model) end(status string) (Model, tui.Cmd) {
 	m.status = status

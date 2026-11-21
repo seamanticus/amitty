@@ -74,8 +74,16 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 		if msg < 0 || tab(msg) >= tabCount {
 			return m, nil
 		}
+		var leaving tui.Cmd
+		if m.active == tabQR && tab(msg) != tabQR {
+			// Its heartbeats reach only the shown tab, so a hidden connection would be closed by the gateway.
+			m.qr, leaving = m.qr.Leave()
+		}
 		m.active = tab(msg)
-		return m, m.Init()
+		if leaving == nil {
+			return m, m.Init()
+		}
+		return m, cmd.Batch{leaving, m.Init()}
 	case password.FailedMsg:
 		// The password tab gets it even when inactive, so its submit unlocks.
 		var command tui.Cmd
@@ -88,7 +96,11 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 		m.password, command = m.password.Update(msg)
 		return m, command
 	case error:
-		// The active tab still gets the error, so the QR tab can close its connection.
+		if m.active != tabQR {
+			// Only the QR tab fails with a bare error, and leaving it ended its login: this one is late.
+			return m, nil
+		}
+		// The QR tab still gets the error, so it can close its connection.
 		errCmd = showErrorDialog(msg)
 	}
 
@@ -101,7 +113,11 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	case tabToken:
 		m.token, command = m.token.Update(msg)
 	}
-	return m, cmd.Batch{errCmd, command}
+	var settling tui.Cmd
+	if m.active != tabQR {
+		m.qr, settling = m.qr.Settle(msg)
+	}
+	return m, cmd.Batch{errCmd, command, settling}
 }
 
 // View shows the tabs in a box.

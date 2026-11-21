@@ -344,6 +344,40 @@ func TestModelUpdate(t *testing.T) {
 		})
 	}
 
+	t.Run("leaving closes the connection and forgets it", func(t *testing.T) {
+		m := NewModel(dhttp.Build{}, dhttp.Network{})
+		conn := &gatewayConn{}
+		m.conn = conn
+		m, command := m.Leave()
+		if !m.ended || m.conn != nil {
+			t.Fatalf("ended = %v, conn = %v", m.ended, m.conn)
+		}
+		batch, ok := command.(cmd.Batch)
+		if !ok || len(batch) == 0 {
+			t.Fatalf("command = %#v, want a batch that closes", command)
+		}
+		if _, ok := batch[0].(cmd.Task); !ok {
+			t.Fatalf("first command = %#v, want the close", batch[0])
+		}
+		if _, command := m.Leave(); command != nil {
+			t.Fatalf("leaving an ended login ran %#v", command)
+		}
+	})
+
+	t.Run("a hidden tab closes a connection that opens late and drops the rest", func(t *testing.T) {
+		m := NewModel(dhttp.Build{}, dhttp.Network{})
+		if _, command := m.Settle(connCreateMsg{}); command == nil {
+			t.Fatal("late connection kept open")
+		} else if msg := run(t, command); msg != (connCloseMsg{}) {
+			t.Fatalf("close sent %#v", msg)
+		}
+		for _, msg := range []tui.Msg{errors.New("late"), cancelMsg{}, heartbeatTickMsg{}} {
+			if _, command := m.Settle(msg); command != nil {
+				t.Fatalf("%#v ran %#v", msg, command)
+			}
+		}
+	})
+
 	t.Run("closing forgets the connection", func(t *testing.T) {
 		m := NewModel(dhttp.Build{}, dhttp.Network{})
 		m.conn = &gatewayConn{}

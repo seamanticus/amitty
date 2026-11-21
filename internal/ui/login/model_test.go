@@ -100,6 +100,18 @@ func TestModelUpdate(t *testing.T) {
 			t.Fatalf("buttons = %+v", b)
 		}
 	})
+
+	t.Run("leaving the QR tab ends its login, whose late errors show nothing", func(t *testing.T) {
+		m := newModel(t)
+		m, _ = m.Update(selectTabMsg(tabQR))
+		m, command := m.Update(selectTabMsg(tabPassword))
+		if !hasTask(command) {
+			t.Fatal("leaving ran nothing to close the connection")
+		}
+		if _, command := m.Update(errors.New("remote auth gateway: session closed (close 1000)")); len(dialogs(command)) != 0 {
+			t.Fatalf("late error shown: %+v", dialogs(command))
+		}
+	})
 }
 
 var area = tui.Rectangle{Width: 60, Height: 15}
