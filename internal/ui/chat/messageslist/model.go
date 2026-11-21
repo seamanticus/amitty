@@ -572,22 +572,6 @@ func (m *Model) selectReply() {
 	}
 }
 
-// SelectLastOwn selects the last message in the selected channel that the user can edit, and returns it.
-func (m *Model) SelectLastOwn() (discord.Message, bool) {
-	channel := m.channel
-	if channel == nil {
-		return discord.Message{}, false
-	}
-	for index, item := range slices.Backward(m.items) {
-		if m.isEditable(item, channel.ID) {
-			m.setCursor(index)
-			return item.message, true
-		}
-	}
-
-	return discord.Message{}, false
-}
-
 // isEditable reports whether item is a message of the user in channelID with text content they can edit.
 func (m Model) isEditable(item messageItem, channelID discord.ChannelID) bool {
 	message := item.message

@@ -15,9 +15,7 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/utils/sendpart"
 	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/internal/tui"
-	"github.com/seamanticus/amitty/internal/tui/cmd"
 	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
-	"github.com/seamanticus/amitty/internal/tui/keybind"
 	"github.com/seamanticus/amitty/internal/ui/images"
 )
 
@@ -137,46 +135,6 @@ func TestModelSetChannel(t *testing.T) {
 }
 
 func TestModelUpdate(t *testing.T) {
-	up := tcell.NewEventKey(tcell.KeyUp, "", tcell.ModNone)
-	for _, tt := range []struct {
-		name  string
-		setup func(*Model, *config.Config) tui.KeyMsg
-		want  bool
-	}{
-		{"empty", func(*Model, *config.Config) tui.KeyMsg { return up }, true},
-		{"draft", func(c *Model, _ *config.Config) tui.KeyMsg { c.setText("draft", len("draft")); return up }, false},
-		{"reply", func(c *Model, _ *config.Config) tui.KeyMsg {
-			c.StartReply(discord.Message{ID: 3}, "name", false)
-			return up
-		}, false},
-		{"attachment", func(c *Model, _ *config.Config) tui.KeyMsg {
-			c.sendMessageData.Files = []sendpart.File{{Name: "file"}}
-			return up
-		}, false},
-		{"editing", func(c *Model, _ *config.Config) tui.KeyMsg { c.StartEdit(discord.Message{}); return up }, false},
-		{"disabled", func(c *Model, _ *config.Config) tui.KeyMsg { c.disabled = true; return up }, false},
-		{"remapped", func(_ *Model, cfg *config.Config) tui.KeyMsg {
-			cfg.Keybinds.Composer.EditLast.Keybind = keybind.New("ctrl+p")
-			return tcell.NewEventKey(tcell.KeyCtrlP, "", tcell.ModNone)
-		}, true},
-		{"unbound", func(_ *Model, cfg *config.Config) tui.KeyMsg {
-			cfg.Keybinds.Composer.EditLast.Keybind = keybind.New()
-			return up
-		}, false},
-	} {
-		t.Run("edit last message: "+tt.name, func(t *testing.T) {
-			c, cfg := newTestModel(t)
-			// setup changes c, so it runs before Update copies it.
-			msg := tt.setup(c, cfg)
-			var command tui.Cmd
-			*c, command = c.Update(msg)
-			task, ok := command.(cmd.Task)
-			if got := ok && task() == (EditLastMsg{}); got != tt.want {
-				t.Fatalf("asked to edit the last message = %v, want %v", got, tt.want)
-			}
-		})
-	}
-
 	t.Run("images before completing", func(t *testing.T) {
 		c, _ := newTestModel(t)
 		c.Update(images.ChangedMsg{"cat": tuiimage.New(image.NewAlpha(image.Rect(0, 0, 2, 2)))})

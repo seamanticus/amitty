@@ -28,9 +28,6 @@ import (
 // RefreshAutocompleteMsg refreshes the autocomplete.
 type RefreshAutocompleteMsg struct{}
 
-// EditLastMsg asks to edit the user's last message.
-type EditLastMsg struct{}
-
 // SentMsg reports that the composer sent a message.
 type SentMsg struct{}
 
@@ -44,10 +41,6 @@ type edit struct {
 
 // editMsg is the text and cursor that typing in the composer left.
 type editMsg edit
-
-func editLastMessage() tui.Cmd {
-	return cmd.Task(func() tui.Msg { return EditLastMsg{} })
-}
 
 type imagePastedMsg []byte
 

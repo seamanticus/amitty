@@ -466,7 +466,6 @@ Only while typing a message.
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `edit_last` | `"up"` | Edit your newest editable message loaded in the current channel, with no age limit. Only when the composer is empty, with no reply, attachments, or edit in progress. |
 | `paste` | `"ctrl+v"` | Paste from clipboard (supports both text and images). |
 | `send` | `"enter"` |  |
 | `newline` | `"shift+enter"` | Insert a new line at the cursor. |

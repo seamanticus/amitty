@@ -23,9 +23,6 @@ func (m Model) ShortHelp() []keybind.Keybind {
 
 	cfg := m.cfg.Keybinds.Composer
 	short := []keybind.Keybind{cfg.Send.Keybind, cfg.Newline.Keybind, cfg.Cancel.Keybind, cfg.Paste.Keybind, cfg.OpenEditor.Keybind}
-	if m.canEditLastMessage() {
-		short = append(short, cfg.EditLast.Keybind)
-	}
 	if m.sendMessageData.Reference != nil {
 		short = append(short, cfg.ToggleReplyMention.Keybind)
 	}
@@ -53,9 +50,6 @@ func (m Model) FullHelp() [][]keybind.Keybind {
 	}
 
 	compose := []keybind.Keybind{cfg.Send.Keybind, cfg.Newline.Keybind, cfg.Cancel.Keybind, cfg.Undo.Keybind}
-	if m.canEditLastMessage() {
-		compose = append(compose, cfg.EditLast.Keybind)
-	}
 	if m.sendMessageData.Reference != nil {
 		compose = append(compose, cfg.ToggleReplyMention.Keybind)
 	}

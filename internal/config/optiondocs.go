@@ -116,7 +116,6 @@ func optionDocs() map[string]string {
 		"keybinds.messages_list.react":                    "React to the selected message with an emoji picked from a list.",
 		"keybinds.messages_list.download":                 "Download one of the selected message's attachments.",
 		"keybinds.messages_list.yank_content":             "Yank (copy) the selected message's content/url/id.",
-		"keybinds.composer.edit_last":                     "Edit your newest editable message loaded in the current channel, with no age limit. Only when the composer is empty, with no reply, attachments, or edit in progress.",
 		"keybinds.composer.paste":                         "Paste from clipboard (supports both text and images).",
 		"keybinds.composer.newline":                       "Insert a new line at the cursor.",
 		"keybinds.composer.cancel":                        "Remove existing text or cancel reply.",

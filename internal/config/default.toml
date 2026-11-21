@@ -645,10 +645,6 @@
 # Only while typing a message.
 [keybinds.composer]
 
-# Edit your newest editable message loaded in the current channel, with no age limit.
-# Only when the composer is empty, with no reply, attachments, or edit in progress.
-# edit_last = "up"
-
 # Paste from clipboard (supports both text and images).
 # paste = "ctrl+v"
 

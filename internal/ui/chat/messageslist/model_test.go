@@ -236,37 +236,6 @@ func TestModelRebuildItems(t *testing.T) {
 	}
 }
 
-func TestModelSelectLastOwn(t *testing.T) {
-	messages := []discord.Message{
-		{ID: 1, ChannelID: 1, Author: discord.User{ID: 1}, Content: "old message"},
-		{ID: 2, ChannelID: 1, Author: discord.User{ID: 1}, Content: "latest message"},
-		{ID: 3, ChannelID: 1, Author: discord.User{ID: 2}, Content: "someone else"},
-		{ID: 4, ChannelID: 1, Author: discord.User{ID: 1}, Type: discord.ChannelPinnedMessage, Content: "system"},
-		{ID: 5, ChannelID: 1, Author: discord.User{ID: 1}},
-	}
-	for _, tt := range []struct {
-		name     string
-		messages []discord.Message
-		want     string
-	}{
-		{"latest", messages, "latest message"},
-		{"old", messages[:1], "old message"},
-		{"no own message", messages[2:3], ""},
-	} {
-		t.Run(tt.name, func(t *testing.T) {
-			ml := newTestModel(t, testConfig(t))
-			newest := slices.Clone(tt.messages)
-			slices.Reverse(newest)
-			ml.setMessages(newest)
-			message, _ := ml.SelectLastOwn()
-			selected, _ := ml.selectedMessage()
-			if message.Content != tt.want || tt.want != "" && selected.Content != tt.want {
-				t.Fatalf("returned %q, selected %v, want %q", message.Content, selected, tt.want)
-			}
-		})
-	}
-}
-
 func TestModelMessageURLs(t *testing.T) {
 	t.Run("schemes", func(t *testing.T) {
 		ml := newTestModel(t, testConfig(t))

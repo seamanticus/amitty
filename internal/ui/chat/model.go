@@ -451,11 +451,6 @@ func (m Model) update(msg tui.Msg) (Model, tui.Cmd) {
 		m.composer.StartEdit(discord.Message(msg))
 		m.setFocus(paneComposer)
 		return m, nil
-	case composer.EditLastMsg:
-		if message, ok := m.messagesList.SelectLastOwn(); ok {
-			m.composer.StartEdit(message)
-		}
-		return m, nil
 	case composer.SentMsg:
 		m.messagesList.ShowNewest()
 		return m, nil

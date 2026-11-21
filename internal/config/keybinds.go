@@ -195,9 +195,6 @@ type MessagesListKeybinds struct {
 }
 
 type ComposerKeybinds struct {
-	// Edit your newest editable message loaded in the current channel, with no age limit.
-	// Only when the composer is empty, with no reply, attachments, or edit in progress.
-	EditLast Keybind `toml:"edit_last"`
 	// Paste from clipboard (supports both text and images).
 	Paste Keybind `toml:"paste"`
 	Send  Keybind `toml:"send"`
@@ -395,7 +392,6 @@ func defaultKeybinds() Keybinds {
 			YankID:      key("copy id", "i"),
 		},
 		Composer: ComposerKeybinds{
-			EditLast:           key("edit last", "up"),
 			Paste:              key("paste", "ctrl+v"),
 			Send:               key("send", "enter"),
 			Newline:            key("nl", "shift+enter"),

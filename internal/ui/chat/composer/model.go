@@ -184,7 +184,7 @@ func (m Model) footer() string {
 // isBound reports whether key is one of the composer's keybinds.
 func (m Model) isBound(key tui.KeyMsg) bool {
 	keybinds := m.cfg.Keybinds.Composer
-	if keybind.Matches(key,
+	return keybind.Matches(key,
 		keybinds.Paste.Keybind,
 		keybinds.Send.Keybind,
 		keybinds.OpenEditor.Keybind,
@@ -193,10 +193,7 @@ func (m Model) isBound(key tui.KeyMsg) bool {
 		keybinds.TabComplete.Keybind,
 		keybinds.ToggleReplyMention.Keybind,
 		keybinds.Undo.Keybind,
-	) {
-		return true
-	}
-	return keybind.Matches(key, keybinds.EditLast.Keybind) && m.canEditLastMessage()
+	)
 }
 
 // setText replaces the text and moves the cursor, remembering what they were for undo if the text changed.
@@ -243,12 +240,6 @@ func (m *Model) reset() {
 	m.editing = nil
 	m.sendMessageData = &api.SendMessageData{}
 	m.setText("", 0)
-}
-
-func (m Model) canEditLastMessage() bool {
-	return !m.Disabled() && m.editing == nil && m.text == "" &&
-		m.sendMessageData.Reference == nil && len(m.sendMessageData.Files) == 0 &&
-		!m.autocomplete.Visible()
 }
 
 // StartEdit puts message in the composer to be edited.
@@ -561,8 +552,6 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	case tui.KeyMsg:
 		keybinds := m.cfg.Keybinds.Composer
 		switch {
-		case keybind.Matches(msg, keybinds.EditLast.Keybind) && m.canEditLastMessage():
-			return m, editLastMessage()
 		case keybind.Matches(msg, keybinds.Paste.Keybind):
 			m.pasteText()
 			return m, pasteImage()
