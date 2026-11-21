@@ -100,7 +100,7 @@ func (m Model) selectChannel(node *tree.Node, channelID discord.ChannelID) tui.C
 	}
 
 	if channel.Type != discord.GuildForum {
-		return loadChannel(m.state, uint(m.cfg.MessagesLimit), *channel)
+		return loadChannel(m.state, openLimit, *channel)
 	}
 
 	m.expandForum(node, *channel)
@@ -136,6 +136,9 @@ func (m Model) expandPrivateChannels(node *tree.Node) {
 
 	node.Expand()
 }
+
+// openLimit is the messages fetched when a channel is opened, as many as the web client asks for; older ones page by messages_limit.
+const openLimit = 10
 
 func loadChannel(state *ningen.State, limit uint, channel discord.Channel) tui.Cmd {
 	return cmd.Task(func() tui.Msg {
