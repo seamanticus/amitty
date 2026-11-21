@@ -1,6 +1,7 @@
 package ws
 
 import (
+	"bytes"
 	"context"
 	"encoding"
 	"encoding/binary"
@@ -71,7 +72,8 @@ func (c Codec) DecodeInto(ctx context.Context, r io.Reader, buf *DecodeBuffer, o
 	}
 
 	if EnableRawEvents {
-		dt := op.Data
+		// A copy, as the next decode reuses buf while the event is still read.
+		dt := bytes.Clone(op.Data)
 		op := op.Op
 		op.Data = &RawEvent{
 			Raw:          dt,
