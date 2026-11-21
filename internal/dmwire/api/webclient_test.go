@@ -133,4 +133,15 @@ func TestWebClientRequests(t *testing.T) {
 			}
 		}
 	})
+	t.Run("mark as read", func(t *testing.T) {
+		client, got := fakeClient(t, "")
+		if err := client.AckBulk([]BulkAck{{ChannelID: 1573420507158810744, MessageID: 1573425345812631655}}); err != nil {
+			t.Fatal(err)
+		}
+		// The web client's 109 B, NetLog 2.
+		want := sent{"POST", "/api/v9/read-states/ack-bulk", `{"read_states":[{"channel_id":"1573420507158810744","message_id":"1573425345812631655","read_state_type":0}]}`, ""}
+		if len(*got) != 1 || (*got)[0] != want {
+			t.Fatalf("sent %+v, want %+v", *got, want)
+		}
+	})
 }

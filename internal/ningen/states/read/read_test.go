@@ -108,6 +108,40 @@ func TestMarkReadAcksUncachedChannelCursor(t *testing.T) {
 	}
 }
 
+func TestMarkReadBulk(t *testing.T) {
+	// evidence: witnesses
+	driver := &ackDriver{requests: make(chan *httpdriver.MockRequest, 1)}
+	client := api.NewCustomClient("token", httputil.NewClientWithDriver(driver))
+	readHandler := handler.New()
+	readState := NewState(&state.State{
+		Session: session.NewCustom(gateway.DefaultIdentifier("token"), client, handler.New()), Cabinet: defaultstore.New(), Handler: handler.New(),
+	}, readHandler)
+	ready := &gateway.ReadyEvent{User: discord.User{ID: 4}}
+	// Channel 5 is read already; 6 and 7 are not.
+	ready.ReadStates = []gateway.ReadState{{ChannelID: 5, LastMessageID: 50}, {ChannelID: 6, LastMessageID: 60, MentionCount: 1}}
+	readHandler.Call(ready)
+
+	if err := readState.MarkReadBulk(map[discord.ChannelID]discord.MessageID{7: 71, 5: 50, 6: 61, 8: 0}); err != nil {
+		t.Fatal(err)
+	}
+	request := <-driver.requests
+	if want := `{"read_states":[{"channel_id":"6","message_id":"61","read_state_type":0},{"channel_id":"7","message_id":"71","read_state_type":0}]}`; request.GetPath() != "/api/v9/read-states/ack-bulk" || string(request.Body) != want {
+		t.Fatalf("%s %s, want %s", request.GetPath(), request.Body, want)
+	}
+	if rs := readState.ReadState(6); rs.LastMessageID != 61 || rs.MentionCount != 0 {
+		t.Fatalf("read state = %+v", rs)
+	}
+
+	if err := readState.MarkReadBulk(map[discord.ChannelID]discord.MessageID{6: 61}); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case request := <-driver.requests:
+		t.Fatalf("acked what was read: %s", request.Body)
+	default:
+	}
+}
+
 func TestStateReadState(t *testing.T) {
 	// read returns the state of user 4, who has read message 3 of forum 2, after events.
 	read := func(t *testing.T, events ...ws.Event) *State {

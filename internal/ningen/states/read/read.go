@@ -3,6 +3,8 @@ package read
 
 import (
 	"log/slog"
+	"maps"
+	"slices"
 	"sync"
 	"time"
 
@@ -209,7 +211,22 @@ func (r *State) MarkRead(chID discord.ChannelID, msgID discord.MessageID) {
 	r.markRead(chID, msgID, true)
 }
 
-func (r *State) markRead(chID discord.ChannelID, msgID discord.MessageID, sendack bool) {
+// MarkReadBulk marks each channel read up to its message, in one bulk ack for those not read already, as the web client's Mark As Read does.
+func (r *State) MarkReadBulk(reads map[discord.ChannelID]discord.MessageID) error {
+	var acks []api.BulkAck
+	for _, chID := range slices.Sorted(maps.Keys(reads)) {
+		if msgID := reads[chID]; msgID.IsValid() && r.markRead(chID, msgID, false) {
+			acks = append(acks, api.BulkAck{ChannelID: chID, MessageID: msgID})
+		}
+	}
+	if len(acks) == 0 {
+		return nil
+	}
+	return r.state.AckBulk(acks)
+}
+
+// markRead records chID as read up to msgID, sending its ack if sendack, and reports whether that changed its read state.
+func (r *State) markRead(chID discord.ChannelID, msgID discord.MessageID, sendack bool) bool {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
@@ -224,7 +241,7 @@ func (r *State) markRead(chID discord.ChannelID, msgID discord.MessageID, sendac
 	// If we've already marked the message as read.
 	if rs.LastMessageID == msgID && rs.MentionCount == 0 {
 		// log.Println("ningen: NOT acking", chID, "for message", msgID)
-		return
+		return false
 	}
 
 	// Update.
@@ -254,6 +271,7 @@ func (r *State) markRead(chID discord.ChannelID, msgID discord.MessageID, sendac
 			Unread:    false,
 		})
 	}()
+	return true
 }
 
 func (r *State) ack(chID discord.ChannelID, msgID discord.MessageID) {

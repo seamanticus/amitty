@@ -391,6 +391,22 @@ func (c *Client) Ack(channelID discord.ChannelID, messageID discord.MessageID, a
 	)
 }
 
+// BulkAck sets the read state of one channel to a message, for AckBulk.
+type BulkAck struct {
+	ChannelID discord.ChannelID `json:"channel_id"`
+	MessageID discord.MessageID `json:"message_id"`
+	// ReadStateType is 0, a channel's messages; the web client sends it.
+	ReadStateType int `json:"read_state_type"`
+}
+
+// AckBulk marks the read states of several channels at once, as the web client's Mark As Read does. A message ID not newer than the one acknowledged is ignored by Discord. Fires Message Ack Gateway events.
+func (c *Client) AckBulk(acks []BulkAck) error {
+	body := struct {
+		ReadStates []BulkAck `json:"read_states"`
+	}{acks}
+	return c.FastRequest("POST", Endpoint+"read-states/ack-bulk", httputil.WithJSONBody(body))
+}
+
 // https://discord.com/developers/docs/resources/channel#start-thread-with-message-json-params
 // and
 // https://discord.com/developers/docs/resources/channel#start-thread-without-message-json-params
