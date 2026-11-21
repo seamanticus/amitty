@@ -591,14 +591,10 @@ func (s *State) Message(
 }
 
 // Messages returns a slice filled with the most recent messages sent in the
-// channel with the passed ID. The method automatically paginates until it
-// reaches the passed limit, or, if the limit is set to 0, has fetched all
-// messages in the channel.
+// channel with the passed ID: those stored, and as many more from the API as
+// make up limit, in one request for a limit up to 100. A limit of 0 fetches as
+// many as the message store holds.
 //
-// As the underlying endpoint is capped at a maximum of 100 messages per
-// request, at maximum a total of limit/100 rounded up requests will be made,
-// although they may be less, if no more messages are available or there are
-// cached messages.
 // When fetching the messages, those with the highest ID, will be fetched
 // first. The returned slice will be sorted from latest to oldest.
 func (s *State) Messages(channelID discord.ChannelID, limit uint) ([]discord.Message, error) {
@@ -624,10 +620,11 @@ func (s *State) Messages(channelID discord.ChannelID, limit uint) ([]discord.Mes
 		return storeMessages[:limit], nil
 	}
 
-	fetchLimit := max(
-		// If the user is requesting less than MaxMessages, then increase the limit
-		// to at least that so that channels don't accidentally get marked as tiny.
-		limit, uint(s.MaxMessages()))
+	// Fetch only what was asked, so opening a channel is one request of the caller's size.
+	fetchLimit := limit
+	if fetchLimit == 0 {
+		fetchLimit = uint(s.MaxMessages())
+	}
 
 	// Decrease the fetchLimit, if we aren't fetching all messages.
 	if fetchLimit > 0 {
@@ -644,7 +641,8 @@ func (s *State) Messages(channelID discord.ChannelID, limit uint) ([]discord.Mes
 		return nil, err
 	}
 
-	if len(storeMessages)+len(apiMessages) < s.MaxMessages() {
+	// Fewer than asked means the channel has no more.
+	if uint(len(apiMessages)) < fetchLimit {
 		// Tiny channel, store this.
 		s.fewMutex.Lock()
 		s.fewMessages[channelID] = struct{}{}
