@@ -9,7 +9,8 @@ import (
 	"io"
 )
 
-var v1Options = jsonv1.DefaultOptionsV1()
+// Options are the options every encode and decode uses: encoding/json's v1 behaviour on encoding/json/v2. Tools that must decode as amitty does use them too.
+func Options() jsonv2.Options { return jsonv1.DefaultOptionsV1() }
 
 type Driver interface {
 	Marshal(v any) ([]byte, error)
@@ -22,19 +23,19 @@ type Driver interface {
 type DefaultDriver struct{}
 
 func (d DefaultDriver) Marshal(v any) ([]byte, error) {
-	return jsonv2.Marshal(v, v1Options)
+	return jsonv2.Marshal(v, Options())
 }
 
 func (d DefaultDriver) Unmarshal(data []byte, v any) error {
-	return jsonv2.Unmarshal(data, v, v1Options)
+	return jsonv2.Unmarshal(data, v, Options())
 }
 
 func (d DefaultDriver) DecodeStream(r io.Reader, v any) error {
-	return jsonv2.UnmarshalDecode(jsontext.NewDecoder(r), v, v1Options)
+	return jsonv2.UnmarshalDecode(jsontext.NewDecoder(r), v, Options())
 }
 
 func (d DefaultDriver) EncodeStream(w io.Writer, v any) error {
-	return jsonv2.MarshalEncode(jsontext.NewEncoder(w), v, v1Options)
+	return jsonv2.MarshalEncode(jsontext.NewEncoder(w), v, Options())
 }
 
 // Default is the default JSON driver, which uses encoding/json/v2.
