@@ -18,8 +18,8 @@ In **Email or phone number**, enter your email address, or your phone
 number in E.164 form (`+64211234567`), then your password, and press
 **Log in**.
 
-If the account has two-factor authentication, the box turns into
-**Two-Factor Authentication** and asks for a code. `left` and `right`
+If the account has two-factor authentication, the **Credentials** box
+turns into **Two-Factor Authentication** and asks for a code. `left` and `right`
 choose how to give it, among the methods the account allows:
 
 - **Authenticator**: the six digits of your TOTP app.

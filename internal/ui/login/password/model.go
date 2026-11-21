@@ -68,12 +68,12 @@ func (Model) Label() string {
 	return "Password"
 }
 
-// Title names the step shown: the password form, or the code that follows it.
+// Title names the step shown: the credentials form, or the code that follows it.
 func (m Model) Title() string {
 	if m.coding() {
 		return "Two-Factor Authentication"
 	}
-	return m.Label()
+	return "Credentials"
 }
 
 var _ tui.Model[Model] = Model{}
@@ -233,11 +233,23 @@ func (m Model) View() tui.Widget {
 		warning = retryWarning(m.retryIn, m.retryReason)
 	}
 	return column.New(
-		form.Field(loginLabel, labelWidth, login),
-		form.Field(passwordLabel, labelWidth, password),
+		form.Gap(2),
+		form.Field(loginLabel, labelWidth, form.FieldWidth, login),
+		form.Gap(1),
+		form.Field(passwordLabel, labelWidth, form.FieldWidth, password),
+		form.Gap(1),
 		submit,
+		warningGap(warning),
 		warning,
-	).Spacing(1).AlignX(tui.HorizontalAlignmentCenter)
+	).AlignX(tui.HorizontalAlignmentCenter)
+}
+
+// warningGap is the empty row above warning, or nil when there is none.
+func warningGap(warning tui.Widget) tui.Widget {
+	if warning == nil {
+		return nil
+	}
+	return form.Gap(1)
 }
 
 // The labels of the inputs; Discord takes a phone number in place of the email.

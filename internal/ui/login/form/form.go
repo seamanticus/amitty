@@ -9,6 +9,7 @@ import (
 	"github.com/seamanticus/amitty/internal/tui/button"
 	"github.com/seamanticus/amitty/internal/tui/layout"
 	"github.com/seamanticus/amitty/internal/tui/row"
+	"github.com/seamanticus/amitty/internal/tui/spacer"
 	"github.com/seamanticus/amitty/internal/tui/text"
 	"github.com/seamanticus/amitty/internal/tui/textinput"
 )
@@ -42,10 +43,15 @@ func Button(label string, focused, hovered bool) button.Widget {
 // FieldWidth is the cells an input takes, enough for an email address or a token's start.
 const FieldWidth = 40
 
-// Field returns input underlined so it shows as a line while empty, at most FieldWidth wide, after its label in a centered row.
-func Field(name string, labelWidth int, input textinput.Widget) tui.Widget {
-	input = input.Style(tcell.StyleDefault.Underline(true)).Width(layout.Fixed(FieldWidth))
+// Field returns input underlined so it shows as a line while empty, width cells wide, after its label in a centered row.
+func Field(name string, labelWidth, width int, input textinput.Widget) tui.Widget {
+	input = input.Style(tcell.StyleDefault.Underline(true)).Width(layout.Fixed(width))
 	return row.New(Label(name, labelWidth), input).Width(layout.Shrink).Height(layout.Shrink)
+}
+
+// Gap returns rows empty rows, for a column laid out without spacing.
+func Gap(rows int) tui.Widget {
+	return spacer.New().Height(layout.Fixed(rows))
 }
 
 // Label returns name as the label of an input, right-aligned in width cells so the colons of a column of labels line up.

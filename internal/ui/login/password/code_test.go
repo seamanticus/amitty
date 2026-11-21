@@ -197,7 +197,7 @@ func TestModelMFA(t *testing.T) {
 	})
 
 	t.Run("the title names the step", func(t *testing.T) {
-		if got := (Model{}).Title(); got != "Password" {
+		if got := (Model{}).Title(); got != "Credentials" {
 			t.Errorf("form title = %q", got)
 		}
 		if got := codingModel(t, methodTOTP).Title(); got != "Two-Factor Authentication" {

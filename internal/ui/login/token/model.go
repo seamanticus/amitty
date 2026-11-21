@@ -68,7 +68,9 @@ func (m Model) View() tui.Widget {
 		OnHover(func(hovered bool) tui.Msg { return hoverMsg(hovered) }).
 		OnClick(submitMsg{})
 	return column.New(
-		form.Field("Token", form.LabelWidth("Token"), input),
+		form.Gap(2),
+		form.Field("Token", form.LabelWidth("Token"), form.FieldWidth, input),
+		form.Gap(1),
 		submit,
-	).Spacing(1).AlignX(tui.HorizontalAlignmentCenter)
+	).AlignX(tui.HorizontalAlignmentCenter)
 }

@@ -138,7 +138,7 @@ func (m Model) viewCode() tui.Widget {
 	case m.submitting:
 		label = "Verifying..."
 	}
-	buttons := row.New(codeButton(label, c.focus == codeFocusVerify, verifyMsg{})).Spacing(2).Height(layout.Shrink)
+	buttons := row.New(codeButton(label, c.focus == codeFocusVerify, verifyMsg{})).Spacing(2).Width(layout.Shrink).Height(layout.Shrink)
 	if c.method == methodSMS {
 		buttons = buttons.Push(codeButton("Send SMS", c.focus == codeFocusSMS, sendSMSMsg{}))
 	}
@@ -153,13 +153,21 @@ func (m Model) viewCode() tui.Widget {
 		warning = retryWarning(m.retryIn, m.retryReason)
 	}
 	return column.New(
-		methods.Height(layout.Shrink),
-		form.Field("Code", form.LabelWidth("Code"), input),
+		form.Gap(2),
+		methods.Width(layout.Shrink).Height(layout.Shrink),
+		form.Gap(1),
+		form.Field("Code", form.LabelWidth("Code"), codeFieldWidth, input),
+		form.Gap(1),
 		buttons,
+		form.Gap(1),
 		text.New(strings.Join(status, " - ")),
+		warningGap(warning),
 		warning,
-	).Spacing(1).AlignX(tui.HorizontalAlignmentCenter)
+	).AlignX(tui.HorizontalAlignmentCenter)
 }
+
+// codeFieldWidth fits a backup code (9 characters with its dash) with room to spare, should Discord lengthen them.
+const codeFieldWidth = 12
 
 // codeButton is a button of the code form that sends onClick.
 func codeButton(label string, focused bool, onClick tui.Msg) tui.Widget {
