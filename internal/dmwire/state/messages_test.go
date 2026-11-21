@@ -66,7 +66,7 @@ func TestMessagesFetchesOnlyTheLimit(t *testing.T) {
 			driver := &limitDriver{have: tt.have}
 			client := api.NewCustomClient("token", httputil.NewClientWithDriver(driver))
 			cabinet := defaultstore.New()
-			if err := cabinet.ChannelSet(&discord.Channel{ID: 10, Type: discord.DirectMessage}, false); err != nil {
+			if err := cabinet.ChannelSet(&discord.Channel{ID: 10, Type: discord.DirectMessage, DMRecipients: []discord.User{{ID: 20}}}, false); err != nil {
 				t.Fatal(err)
 			}
 			state := NewFromSession(session.NewCustom(gateway.DefaultIdentifier("token"), client, handler.New()), cabinet)
