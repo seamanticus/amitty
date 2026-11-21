@@ -56,6 +56,58 @@ func imageHeaders() map[string]string {
 	}
 }
 
+// uploadHeaderOrder is the order of the web client's PUT of a file to its upload URL, from NetLog 4, Brave's sec-gpc left out.
+func uploadHeaderOrder() []string {
+	return []string{
+		"content-length", "sec-ch-ua-platform", "user-agent", "sec-ch-ua", "content-type", "sec-ch-ua-mobile", "accept",
+		"origin", "sec-fetch-site", "sec-fetch-mode", "sec-fetch-dest", "referer", "accept-encoding", "accept-language", "priority",
+	}
+}
+
+// uploadHeaders are the values of that PUT; it carries no Discord headers and no cookies.
+func uploadHeaders() map[string]string {
+	return map[string]string{
+		"Sec-Ch-Ua-Platform": `"` + osName + `"`,
+		"User-Agent":         BrowserUserAgent(),
+		"Sec-Ch-Ua":          browserBrands(),
+		"Content-Type":       "application/octet-stream",
+		"Sec-Ch-Ua-Mobile":   "?0",
+		"Accept":             "*/*",
+		"Origin":             api.BaseEndpoint,
+		"Sec-Fetch-Site":     "cross-site",
+		"Sec-Fetch-Mode":     "cors",
+		"Sec-Fetch-Dest":     "empty",
+		"Referer":            api.BaseEndpoint + "/",
+		"Accept-Language":    "en-US,en;q=0.9",
+		"Priority":           "u=1, i",
+	}
+}
+
+// uploadPreflightHeaderOrder is the order of the CORS preflight Chromium sends before that PUT.
+func uploadPreflightHeaderOrder() []string {
+	return []string{
+		"accept", "access-control-request-method", "access-control-request-headers", "origin", "user-agent",
+		"sec-fetch-mode", "sec-fetch-site", "sec-fetch-dest", "referer", "accept-encoding", "accept-language", "priority",
+	}
+}
+
+// uploadPreflightHeaders are the values of that preflight.
+func uploadPreflightHeaders() map[string]string {
+	return map[string]string{
+		"Accept":                         "*/*",
+		"Access-Control-Request-Method":  "PUT",
+		"Access-Control-Request-Headers": "content-type",
+		"Origin":                         api.BaseEndpoint,
+		"User-Agent":                     BrowserUserAgent(),
+		"Sec-Fetch-Mode":                 "cors",
+		"Sec-Fetch-Site":                 "cross-site",
+		"Sec-Fetch-Dest":                 "empty",
+		"Referer":                        api.BaseEndpoint + "/",
+		"Accept-Language":                "en-US,en;q=0.9",
+		"Priority":                       "u=1, i",
+	}
+}
+
 // Headers returns the headers the web client of build sends with its API requests.
 func Headers(build Build) stdHttp.Header {
 	headers := make(stdHttp.Header)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/url"
 	"slices"
 
@@ -89,4 +90,50 @@ func (m Media) Get(ctx context.Context, url string) (*fhttp.Response, error) {
 	}
 	orderHeaders(req.Header, imageHeaderOrder())
 	return m.client.Do(req)
+}
+
+// Put uploads size bytes from body to url, an upload URL Discord gave, as the web client does: a CORS preflight, then a bare PUT with no Discord headers or cookies.
+func (m Media) Put(ctx context.Context, url string, body io.Reader, size int64) error {
+	if m.client == nil {
+		return errors.New("media client not set up")
+	}
+	preflight, err := fhttp.NewRequestWithContext(ctx, fhttp.MethodOptions, url, nil)
+	if err != nil {
+		return err
+	}
+	for name, value := range uploadPreflightHeaders() {
+		preflight.Header.Set(name, value)
+	}
+	orderHeaders(preflight.Header, uploadPreflightHeaderOrder())
+	if err := m.done(preflight); err != nil {
+		return fmt.Errorf("upload preflight: %w", err)
+	}
+
+	put, err := fhttp.NewRequestWithContext(ctx, fhttp.MethodPut, url, body)
+	if err != nil {
+		return err
+	}
+	put.ContentLength = size
+	for name, value := range uploadHeaders() {
+		put.Header.Set(name, value)
+	}
+	orderHeaders(put.Header, uploadHeaderOrder())
+	if err := m.done(put); err != nil {
+		return fmt.Errorf("upload: %w", err)
+	}
+	return nil
+}
+
+// done sends req and fails unless it answers 2xx.
+func (m Media) done(req *fhttp.Request) error {
+	resp, err := m.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 1<<16))
+	if resp.StatusCode/100 != 2 {
+		return fmt.Errorf("status %s", resp.Status)
+	}
+	return nil
 }

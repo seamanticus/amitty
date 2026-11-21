@@ -99,4 +99,38 @@ func TestWebClientRequests(t *testing.T) {
 			t.Fatalf("sent %+v, want %+v", *got, want)
 		}
 	})
+	t.Run("upload a file and send it", func(t *testing.T) {
+		client, got := fakeClient(t, `{"attachments":[{"id":0,"upload_url":"https://up.invalid/u/a.png?upload_id=x","upload_filename":"u/a.png"}]}`)
+		upload, err := client.RequestUpload(1, UploadFile{Name: "a.png", Size: 74858, ContentType: "image/png"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if upload.URL != "https://up.invalid/u/a.png?upload_id=x" || upload.Filename != "u/a.png" {
+			t.Fatalf("upload = %+v", upload)
+		}
+		// The web client's 111 B, with id "3" there and "0" here.
+		if want := `{"files":[{"filename":"a.png","file_size":74858,"id":"0","is_clip":false,"original_content_type":"image/png"}]}`; (*got)[0].body != want {
+			t.Fatalf("body = %s", (*got)[0].body)
+		}
+
+		for _, test := range []struct {
+			content, name string
+			want          int
+		}{
+			// NetLogs 4 and 2: the sizes of the web client's bodies, the upload name being a 36-character UUID, a slash and the name.
+			{"", "a.png", 245},
+			{"x", "a.png", 246},
+			{"pic", "sugar_consumption_history.png", 296},
+		} {
+			*got = nil
+			uploaded := []UploadedFile{{Name: test.name, Upload: Upload{Filename: "d3e28063-3c12-4cd3-9161-ed28e44590ad/" + test.name}}}
+			_, _ = client.SendMessageUploaded(1, SendMessageData{Content: test.content, Nonce: "1573467639949295616"}, uploaded)
+			if len(*got) != 1 {
+				t.Fatalf("sent %d requests", len(*got))
+			}
+			if n := len((*got)[0].body); n != test.want || (*got)[0].context != chatInputContext {
+				t.Errorf("%q: %d B %s, want %d B", test.content, n, (*got)[0].body, test.want)
+			}
+		}
+	})
 }

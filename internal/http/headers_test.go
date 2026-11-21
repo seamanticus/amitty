@@ -152,8 +152,18 @@ func TestHeaderOrder(t *testing.T) {
 		}
 	})
 
+	t.Run("upload preflight", func(t *testing.T) {
+		got := rawHeaderNames(t, func(client tls_client.HttpClient, url string) {
+			_ = (Media{client: client}).Put(t.Context(), url, strings.NewReader("x"), 1)
+		})
+		// The preflight fails against the frame reader, so the PUT is never sent.
+		if len(got) < 10 || !inOrder(got, uploadPreflightHeaderOrder()) || slices.Contains(got, "cookie") || slices.Contains(got, "authorization") {
+			t.Fatalf("headers arrived as %v, want the order %v", got, uploadPreflightHeaderOrder())
+		}
+	})
+
 	t.Run("every listed name is lowercase and listed once", func(t *testing.T) {
-		for _, order := range [][]string{want, imageHeaderOrder()} {
+		for _, order := range [][]string{want, imageHeaderOrder(), uploadHeaderOrder(), uploadPreflightHeaderOrder()} {
 			for i, name := range order {
 				if name != strings.ToLower(name) || slices.Index(order, name) != i {
 					t.Fatalf("%q", name)

@@ -196,13 +196,21 @@ func (c *Client) SendMessageComplex(
 		data.MobileNetworkType = "unknown"
 	}
 	if data.Nonce == "" {
-		data.Nonce = discord.NewSnowflake(time.Now()).String()
+		data.Nonce = newNonce()
 	}
 
 	var URL = EndpointChannels + channelID.String() + "/messages"
 	var msg *discord.Message
 	// The web client names the composer as where a message comes from.
-	return msg, sendpart.POST(c.Client, data, &msg, URL, httputil.WithHeaders(http.Header{"X-Context-Properties": {chatInputContext}}))
+	return msg, sendpart.POST(c.Client, data, &msg, URL, httputil.WithHeaders(chatInputHeader()))
+}
+
+// newNonce is a snowflake of now, the nonce the web client sends a message with.
+func newNonce() string { return discord.NewSnowflake(time.Now()).String() }
+
+// chatInputHeader names the composer as where a message comes from, as the web client does.
+func chatInputHeader() http.Header {
+	return http.Header{"X-Context-Properties": {chatInputContext}}
 }
 
 // chatInputContext is base64 of {"location":"chat_input"}, the context properties of a message sent from the composer.
