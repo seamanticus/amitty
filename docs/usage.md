@@ -100,6 +100,10 @@ an enhanced keyboard protocol, such as kitty, ghostty or foot.
   # file_picker = "yazi --chooser-file={file}"
   ```
 
+  Attached files are uploaded when you send the message, as the web
+  client uploads them; if an upload fails, nothing is sent and a
+  dialog says why.
+
 - **Opening**: `o` downloads the attachment to
   `~/.cache/amitty/attachments` and opens it with `xdg-open`, so videos
   go to your video player and documents to their viewer. Types outside
