@@ -775,10 +775,15 @@ func (r *ReadyEvent) hydrateUsers() {
 	}
 
 	for i := range r.PrivateChannels {
-		for j := range r.PrivateChannels[i].DMRecipients {
-			id := r.PrivateChannels[i].DMRecipients[j].ID
-			if user, ok := users[id]; ok {
-				r.PrivateChannels[i].DMRecipients[j] = user
+		ch := &r.PrivateChannels[i]
+		if len(ch.DMRecipients) == 0 {
+			for _, id := range ch.RecipientIDs {
+				ch.DMRecipients = append(ch.DMRecipients, discord.User{ID: id})
+			}
+		}
+		for j := range ch.DMRecipients {
+			if user, ok := users[ch.DMRecipients[j].ID]; ok {
+				ch.DMRecipients[j] = user
 			}
 		}
 	}

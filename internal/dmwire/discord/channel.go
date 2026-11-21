@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/seamanticus/amitty/internal/dmwire/utils/json"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/json/option"
 )
 
@@ -73,6 +72,8 @@ type Channel struct {
 
 	// DMRecipients are the recipients of the DM.
 	DMRecipients []User `json:"recipients,omitempty"`
+	// RecipientIDs are the recipients of a DM in READY, which sends IDs in place of users when the client asks to dedupe them; READY fills DMRecipients from them.
+	RecipientIDs []UserID `json:"recipient_ids,omitempty"`
 	// Icon is the icon hash.
 	Icon Hash `json:"icon,omitempty"`
 
@@ -137,35 +138,6 @@ type Channel struct {
 	IsMessageRequest bool `json:"is_message_request,omitempty"`
 	// IsSpam reports whether Discord filtered the DM as spam.
 	IsSpam bool `json:"is_spam,omitempty"`
-}
-
-func (ch *Channel) UnmarshalJSON(data []byte) error {
-	type RawChannel Channel
-	var raw struct {
-		*RawChannel
-		RecipientIDs []UserID `json:"recipient_ids"`
-	}
-	raw.RawChannel = (*RawChannel)(ch)
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
-	}
-	if len(ch.DMRecipients) == 0 && len(raw.RecipientIDs) > 0 {
-		ch.DMRecipients = make([]User, len(raw.RecipientIDs))
-		for i, id := range raw.RecipientIDs {
-			ch.DMRecipients[i].ID = id
-		}
-	}
-
-	// In the docs, Discord states that if VideoQualityMode is omitted, it is
-	// actually 1 aka. AutoVideoQuality, and they just didn't bother to send
-	// it.
-	// Refer to:
-	// https://discord.com/developers/docs/resources/channel#channel-object-channel-structure
-	if ch.VideoQualityMode == 0 {
-		ch.VideoQualityMode = 1
-	}
-
-	return nil
 }
 
 // CreatedAt returns a time object representing when the channel was created.
