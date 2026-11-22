@@ -112,19 +112,26 @@ func TestExchangeLog(t *testing.T) {
 		}
 		return string(b)
 	}
-	for i, want := range []struct{ request, response string }{
+	for i, want := range []struct {
+		request  []string
+		response string
+	}{
 		{
-			`{"body":{"login":"a","password":"<redacted>"},"headers":{"authorization":"<redacted>","content-type":"application/json"}}`,
+			[]string{`{"body":{"login":"a","password":"<redacted>"},`, `"authorization":"<redacted>"`, `"content-length":"28"`},
 			`{"body":{"captcha_key":["captcha-required"],"captcha_rqtoken":"<redacted>"},`,
 		},
-		{`{"body":"<28 bytes>",`, `"set-cookie":"<redacted>"`},
+		{[]string{`{"body":"<28 bytes>",`}, `"set-cookie":"<redacted>"`},
 	} {
 		record := got[i]
 		if record["status"] != 400.0 || record["method"] != "POST" {
 			t.Errorf("record %d: %v", i, record)
 		}
-		if request := encode(record["request"]); !strings.HasPrefix(request, want.request) {
-			t.Errorf("record %d request %s, want %s", i, request, want.request)
+		// The transport's own content-length shows the headers are the wire's, not only those amitty set.
+		request := encode(record["request"])
+		for j, part := range want.request {
+			if j == 0 && !strings.HasPrefix(request, part) || !strings.Contains(request, part) {
+				t.Errorf("record %d request %s, want %s in it", i, request, part)
+			}
 		}
 		if response := encode(record["response"]); !strings.Contains(response, want.response) {
 			t.Errorf("record %d response %s, want %s", i, response, want.response)

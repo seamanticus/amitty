@@ -118,6 +118,7 @@ func TestBody(t *testing.T) {
 func TestHeaders(t *testing.T) {
 	header := map[string][]string{
 		"Header-Order:":      {"x"},
+		":method":            {"POST"},
 		"Content-Type":       {"application/json"},
 		"Authorization":      {"secret"},
 		"X-Super-Properties": {"e30="},
@@ -125,10 +126,10 @@ func TestHeaders(t *testing.T) {
 		"Cookie":             {""},
 	}
 	var got []string
-	for _, attr := range Headers(header, []string{"authorization", "x-super-properties", "absent"}).Group() {
+	for _, attr := range Headers(header, []string{":method", "authorization", "x-super-properties", "absent"}).Group() {
 		got = append(got, attr.Key+"="+attr.Value.String())
 	}
-	want := []string{"authorization=<redacted>", "x-super-properties=e30=", "accept=*/*", "content-type=application/json", "cookie="}
+	want := []string{":method=POST", "authorization=<redacted>", "x-super-properties=e30=", "accept=*/*", "content-type=application/json", "cookie="}
 	if !slices.Equal(got, want) {
 		t.Errorf("Headers = %q, want %q", got, want)
 	}

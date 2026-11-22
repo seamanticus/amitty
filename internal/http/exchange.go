@@ -8,9 +8,11 @@ import (
 	"log/slog"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	fhttp "github.com/bogdanfinn/fhttp"
+	"github.com/bogdanfinn/fhttp/httptrace"
 	tls_client "github.com/bogdanfinn/tls-client"
 	"github.com/seamanticus/amitty/internal/logger"
 )
@@ -23,6 +25,9 @@ func do(client tls_client.HttpClient, req *fhttp.Request, keepBody bool) (*fhttp
 		return client.Do(req)
 	}
 	ex := &exchange{ctx: ctx, req: req, start: time.Now()}
+	// The transport reports each header as written, its own included, so the log shows the wire's order.
+	req = req.WithContext(httptrace.WithClientTrace(ctx, &httptrace.ClientTrace{WroteHeaderField: ex.wrote}))
+	ex.req = req
 	if req.Body != nil && req.Body != fhttp.NoBody {
 		ex.sent = &capture{ReadCloser: req.Body, keep: keepBody}
 		req.Body = ex.sent
@@ -61,6 +66,37 @@ type exchange struct {
 	req   *fhttp.Request
 	sent  *capture
 	start time.Time
+
+	mu    sync.Mutex
+	wire  map[string][]string
+	order []string
+}
+
+// wrote records a header the transport wrote.
+func (ex *exchange) wrote(name string, values []string) {
+	ex.mu.Lock()
+	defer ex.mu.Unlock()
+	if ex.wire == nil {
+		ex.wire = map[string][]string{}
+	}
+	// The first header again is the transport retrying the request: keep the last attempt.
+	if len(ex.order) > 0 && ex.order[0] == name {
+		ex.wire, ex.order = map[string][]string{}, nil
+	}
+	if _, ok := ex.wire[name]; !ok {
+		ex.order = append(ex.order, name)
+	}
+	ex.wire[name] = append(ex.wire[name], values...)
+}
+
+// requestHeaders is what the transport wrote, in wire order, or the headers amitty set when it reported none.
+func (ex *exchange) requestHeaders() slog.Value {
+	ex.mu.Lock()
+	defer ex.mu.Unlock()
+	if len(ex.order) == 0 {
+		return logger.Headers(ex.req.Header, ex.req.Header[fhttp.HeaderOrderKey])
+	}
+	return logger.Headers(ex.wire, ex.order)
 }
 
 // log writes the exchange: the response and what was read of its body, or the error that left no response.
@@ -74,8 +110,7 @@ func (ex *exchange) log(resp *fhttp.Response, received *capture, err error) {
 	}
 	attrs = append(attrs,
 		slog.Int64("ms", time.Since(ex.start).Milliseconds()),
-		// The headers amitty set; the transport adds its own, such as content-length and host.
-		slog.Group("request", slog.Any("headers", logger.Headers(ex.req.Header, ex.req.Header[fhttp.HeaderOrderKey])), slog.Any("body", ex.sent.body())),
+		slog.Group("request", slog.Any("headers", ex.requestHeaders()), slog.Any("body", ex.sent.body())),
 	)
 	if resp != nil {
 		attrs = append(attrs, slog.Group("response", slog.Any("headers", logger.Headers(resp.Header, nil)), slog.Any("body", received.body())))

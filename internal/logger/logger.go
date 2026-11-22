@@ -78,8 +78,8 @@ func secretHeader(name string) bool {
 func Headers(header map[string][]string, order []string) slog.Value {
 	byName := make(map[string][]string, len(header))
 	for name, values := range header {
-		// fhttp keeps its ordering keys, which end in ':', among the headers.
-		if strings.Contains(name, ":") {
+		// fhttp keeps its ordering keys, which end in ':', among the headers; HTTP/2 pseudo-headers start with one.
+		if strings.HasSuffix(name, ":") {
 			continue
 		}
 		lower := strings.ToLower(name)
