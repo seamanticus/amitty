@@ -3,6 +3,7 @@ package password
 import (
 	json "encoding/json/v2"
 	"errors"
+	"log/slog"
 	"slices"
 
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
@@ -19,6 +20,11 @@ func (e verifyLocationError) Error() string {
 }
 
 func (e verifyLocationError) Unwrap() error { return e.err }
+
+// LogValue keeps Discord's own answer in the log, which the message shown leaves out.
+func (e verifyLocationError) LogValue() slog.Value {
+	return slog.GroupValue(slog.String("message", e.Error()), slog.String("cause", e.err.Error()))
+}
 
 // isVerifyLocation reports whether err is that held login.
 func isVerifyLocation(err error) bool {

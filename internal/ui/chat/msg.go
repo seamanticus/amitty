@@ -75,6 +75,11 @@ func (e rejectedTokenError) Error() string {
 
 func (e rejectedTokenError) Unwrap() error { return e.err }
 
+// LogValue keeps the gateway's own error in the log, which the message shown leaves out.
+func (e rejectedTokenError) LogValue() slog.Value {
+	return slog.GroupValue(slog.String("message", e.Error()), slog.String("cause", e.err.Error()))
+}
+
 // unconfirmedLogoutError is a logout Discord did not confirm, whose session may still be open.
 type unconfirmedLogoutError struct{ err error }
 

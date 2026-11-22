@@ -1,10 +1,12 @@
 package chat
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 	"testing"
@@ -55,6 +57,20 @@ func TestRefreshToken(t *testing.T) {
 	}
 	if m.refreshToken("new") != nil {
 		t.Fatal("the same refresh asked to be stored twice")
+	}
+}
+
+// evidence: witnesses
+func TestRejectedTokenLog(t *testing.T) {
+	var buf bytes.Buffer
+	err := rejectedTokenError{&ws.CloseEvent{Code: 4004, Err: errors.New("4004 Authentication failed.")}}
+	slog.New(slog.NewJSONHandler(&buf, nil)).Error("failed to open the chat", "err", err)
+	// The dialog shows the message alone; the log keeps the gateway's close too.
+	if got := buf.String(); !strings.Contains(got, `"message":"Discord no longer accepts`) || !strings.Contains(got, "4004") {
+		t.Errorf("logged %s, want the message and the 4004 cause", got)
+	}
+	if strings.Contains(err.Error(), "4004") {
+		t.Errorf("shown %q, want the plain message", err)
 	}
 }
 
