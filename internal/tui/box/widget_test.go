@@ -69,6 +69,25 @@ func TestWidgetDraw(t *testing.T) {
 			t.Fatalf("top = %q", got)
 		}
 	})
+	// evidence: witnesses
+	t.Run("label inset", func(t *testing.T) {
+		for _, tt := range []struct {
+			width int
+			title string
+			want  string
+		}{
+			{10, "ab", "┌─ab─────┐"},
+			// The inset gives way before the title is cut.
+			{6, "abcd", "┌abcd┐"},
+			{7, "abcd", "┌abcd─┐"},
+		} {
+			screen := screentest.New(t, tt.width, 3)
+			New(areaWidget{new(tui.Rectangle)}).Borders(tui.BordersAll).LabelInset(1).Title(text.New(tt.title)).TitleAlignment(tui.HorizontalAlignmentLeft).Draw(screen, tui.Rectangle{Width: tt.width, Height: 3})
+			if got := screentest.Row(screen, 0, tt.width); got != tt.want {
+				t.Errorf("width %d: top = %q, want %q", tt.width, got, tt.want)
+			}
+		}
+	})
 	t.Run("title over styled cells", func(t *testing.T) {
 		screen := screentest.New(t, 8, 3)
 		screen.FillArea(0, 0, 8, 3, 'x', tcell.StyleDefault.Background(color.Red))

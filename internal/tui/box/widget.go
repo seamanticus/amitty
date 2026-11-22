@@ -22,6 +22,8 @@ type Widget struct {
 	paddingLeft, paddingRight       int
 	title, footer                   tui.Widget
 	titleAlignment, footerAlignment tui.HorizontalAlignment
+	// labelInset is the border cells kept between a corner and the title or footer.
+	labelInset int
 }
 
 var _ tui.Widget = Widget{}
@@ -83,6 +85,12 @@ func (w Widget) Padding(top, bottom, left, right int) Widget {
 // Title sets the widget drawn in the top border, one row tall and as wide as its content, such as text or tabs, or nil for none.
 func (w Widget) Title(title tui.Widget) Widget {
 	w.title = title
+	return w
+}
+
+// LabelInset sets the border cells kept between each corner and the title or footer, while the box is wide enough to show them.
+func (w Widget) LabelInset(cells int) Widget {
+	w.labelInset = max(cells, 0)
 	return w
 }
 
@@ -239,9 +247,12 @@ func (w Widget) labels(area tui.Rectangle) []label {
 			continue
 		}
 
-		room := area.Width - 2
-		width := l.widget.Layout(layout.Limits{Max: layout.Size{Width: room, Height: 1}}).Width
-		x := area.X + 1
+		// The inset gives way before the label is cut, from both sides so a centered label stays centered.
+		natural := l.widget.Layout(layout.Limits{Max: layout.Size{Width: area.Width - 2, Height: 1}}).Width
+		inset := min(w.labelInset, max(area.Width-2-natural, 0)/2)
+		room := area.Width - 2 - 2*inset
+		width := min(natural, room)
+		x := area.X + 1 + inset
 		switch l.align {
 		case tui.HorizontalAlignmentLeft:
 		case tui.HorizontalAlignmentCenter:

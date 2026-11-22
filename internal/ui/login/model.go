@@ -1,12 +1,8 @@
 package login
 
 import (
-	"strings"
-
 	"github.com/seamanticus/amitty/internal/tui/layout"
-	"github.com/seamanticus/amitty/internal/tui/row"
 	"github.com/seamanticus/amitty/internal/tui/tabs"
-	"github.com/seamanticus/amitty/internal/tui/text"
 
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/http"
@@ -140,8 +136,8 @@ func (m Model) View() tui.Widget {
 		Keybind(tabsKeybind).
 		OnSelect(func(i int) tui.Msg { return selectTabMsg(i) })
 	theme := m.cfg.Theme
-	methods := ui.Box(t, m.cfg, false).Title(m.title(methodsTitle, false)).Height(layout.Shrink)
-	formBox := ui.Box(content, m.cfg, true).Title(m.title(title, true))
+	methods := ui.Box(t, m.cfg, false).Title(ui.Label(methodsTitle, theme.Title, false)).Height(layout.Shrink)
+	formBox := ui.Box(content, m.cfg, true).Title(ui.Label(title, theme.Title, true))
 	return page{
 		logo:    logoView(theme.Title.NormalStyle.Style, theme.Border.ActiveStyle.Style),
 		methods: methods,
@@ -151,20 +147,3 @@ func (m Model) View() tui.Widget {
 
 // methodsTitle captions the box of the method tabs.
 const methodsTitle = "Authentication Method"
-
-// titleInset is the border cells drawn between a box's corner and its title.
-const titleInset = 2
-
-// title returns label padded by a space on each side, after titleInset cells of the border of a box focused or not, so it stands clear of the corner.
-func (m Model) title(label string, focused bool) tui.Widget {
-	border := m.cfg.UI.Border
-	set, style := border.NormalSet.BorderSet, m.cfg.Theme.Border.NormalStyle.Style
-	if focused {
-		set, style = border.ActiveSet.BorderSet, m.cfg.Theme.Border.ActiveStyle.Style
-	}
-	var inset tui.Widget
-	if border.Enabled {
-		inset = text.New(strings.Repeat(set.Top, titleInset)).Style(style).Wrapping(text.WrappingNone)
-	}
-	return row.New(inset, ui.Label(" "+label+" ", m.cfg.Theme.Title, focused)).Width(layout.Shrink).Height(layout.Shrink)
-}

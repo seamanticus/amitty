@@ -7,12 +7,16 @@ import (
 	"github.com/seamanticus/amitty/internal/tui/text"
 )
 
+// labelInset is the border cells between a corner and a title or footer, as in ┌─Label─.
+const labelInset = 1
+
 // Box returns child in a box laid out and styled by cfg, highlighted while focused.
 func Box(child tui.Widget, cfg *config.Config, focused bool) box.Widget {
 	ui, theme := cfg.UI, cfg.Theme
 	padding := ui.Border.Padding
 	widget := box.New(child).
 		Padding(padding[0], padding[1], padding[2], padding[3]).
+		LabelInset(labelInset).
 		TitleAlignment(ui.Title.Alignment.HorizontalAlignment).
 		FooterAlignment(ui.Footer.Alignment.HorizontalAlignment)
 	if ui.Border.Enabled {
