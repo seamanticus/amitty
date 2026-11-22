@@ -2,7 +2,9 @@ package password
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"slices"
 	"testing"
 
 	"github.com/seamanticus/amitty/internal/discordtest"
@@ -60,6 +62,26 @@ func TestRequestFingerprint(t *testing.T) {
 			t.Fatalf("got %#v, want CountdownMsg", msg)
 		}
 	})
+}
+
+// evidence: witnesses
+func TestVisitLoginPage(t *testing.T) {
+	var got []string
+	client := authClient(discordtest.Client(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, auth := r.Header["Authorization"]
+		got = append(got, fmt.Sprintf("%s %s fp=%s auth=%v len=%d", r.Method, r.URL.Path, r.Header.Get("X-Fingerprint"), auth, r.ContentLength))
+		// A failed call must not stop the next.
+		w.WriteHeader(http.StatusInternalServerError)
+	})), dhttp.Build{}, "1.x")
+	visitLoginPage(t.Context(), client)
+	// The order, fingerprint and empty body of the web client's login page in a NetLog.
+	want := []string{
+		"GET /api/v9/auth/location-metadata fp=1.x auth=false len=0",
+		"POST /api/v9/auth/conditional/start fp=1.x auth=false len=0",
+	}
+	if !slices.Equal(got, want) {
+		t.Errorf("sent %q, want %q", got, want)
+	}
 }
 
 func TestModelFingerprint(t *testing.T) {

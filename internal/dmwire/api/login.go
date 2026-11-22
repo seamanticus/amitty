@@ -6,9 +6,11 @@ import (
 )
 
 var (
-	EndpointAuth   = Endpoint + "auth/"
-	EndpointLogin  = EndpointAuth + "login"
-	EndpointLogout = EndpointAuth + "logout"
+	EndpointAuth             = Endpoint + "auth/"
+	EndpointLogin            = EndpointAuth + "login"
+	EndpointLogout           = EndpointAuth + "logout"
+	EndpointLocationMetadata = EndpointAuth + "location-metadata"
+	EndpointConditionalStart = EndpointAuth + "conditional/start"
 
 	EndpointMFA  = EndpointAuth + "mfa/"
 	EndpointTOTP = EndpointMFA + "totp"
@@ -47,6 +49,16 @@ func (c *Client) Login(login, password string) (*LoginResponse, error) {
 	param.Password = password
 
 	return c.RequestJSON[*LoginResponse]("POST", EndpointLogin, httputil.WithJSONBody(param))
+}
+
+// LocationMetadata asks for the consent rules of where the request comes from, as the web client's login page does on loading; the answer is not read.
+func (c *Client) LocationMetadata() error {
+	return c.FastRequest("GET", EndpointLocationMetadata)
+}
+
+// StartConditional starts the passkey login the web client's login page offers on loading, with no body; the answer is not read.
+func (c *Client) StartConditional() error {
+	return c.FastRequest("POST", EndpointConditionalStart)
 }
 
 // Logout ends the client's token at Discord, with the body the web client sends: no push notification providers to unregister.
