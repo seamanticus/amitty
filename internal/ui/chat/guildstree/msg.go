@@ -156,7 +156,7 @@ func loadChannel(state *ningen.State, limit uint, channel discord.Channel) tui.C
 	})
 }
 
-// RefreshPrivateChannels lists the DMs again under an expanded Direct Messages node, as which are shown may have changed.
+// RefreshPrivateChannels lists the DMs again under an expanded DMs node, as which are shown may have changed.
 func (m *Model) RefreshPrivateChannels() {
 	node := m.dmRootNode
 	if node == nil {

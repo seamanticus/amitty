@@ -34,7 +34,7 @@ func TestModelMoveDMToFront(t *testing.T) {
 		first := tree.NewNode("first").SetReference(firstID)
 		second := tree.NewNode("second").SetReference(secondID)
 		third := tree.NewNode("third").SetReference(thirdID)
-		dmRoot := tree.NewNode("Direct Messages").SetChildren([]*tree.Node{first, second, third})
+		dmRoot := tree.NewNode("DMs").SetChildren([]*tree.Node{first, second, third})
 		m := Model{
 			dmRootNode: dmRoot,
 			channelNodes: map[discord.ChannelID]*tree.Node{
@@ -55,7 +55,7 @@ func TestModelMoveDMToFront(t *testing.T) {
 	t.Run("ignores unrendered channel", func(t *testing.T) {
 		firstID := discord.ChannelID(1)
 		first := tree.NewNode("first").SetReference(firstID)
-		dmRoot := tree.NewNode("Direct Messages").SetChildren([]*tree.Node{first})
+		dmRoot := tree.NewNode("DMs").SetChildren([]*tree.Node{first})
 		m := Model{
 			dmRootNode:   dmRoot,
 			channelNodes: map[discord.ChannelID]*tree.Node{},

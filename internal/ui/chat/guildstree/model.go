@@ -24,7 +24,7 @@ import (
 type dmNode struct{}
 
 const (
-	dmNodeName        = "Direct Messages"
+	dmNodeName        = "DMs"
 	maxMentions       = 99
 	mentionsFormat    = " (%d)"
 	maxMentionsFormat = " (%d+)"

@@ -267,7 +267,7 @@ type (
 		// "default" (unknown), "online", "dnd", "idle", "invisible" or "offline".
 		Status           discord.Status `toml:"status"`
 		HideBlockedUsers bool           `toml:"hide_blocked_users"`
-		// Whether to leave DMs with deleted accounts out of the guilds tree's Direct Messages and the channels picker.
+		// Whether to leave DMs with deleted accounts out of the guilds tree's DMs and the channels picker.
 		HideDeletedUsers bool `toml:"hide_deleted_users"`
 
 		// The number of older messages fetched per page when scrolling up through a channel, from 1 to 100. Opening a channel fetches 10 and then one page before them, as the web client does, which pages by 20.
