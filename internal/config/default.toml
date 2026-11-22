@@ -144,7 +144,7 @@
 # receive = true
 
 # How the line saying who is typing moves while someone is: "off", "dots", "spinner" or "pulsing". It redraws only while someone types.
-# animation = "dots"
+# animation = "spinner"
 
 # The guilds tree pane.
 [sidebar]

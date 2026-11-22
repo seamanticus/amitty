@@ -10,8 +10,8 @@ import (
 	"github.com/seamanticus/amitty/internal/tui/text"
 )
 
-// spinnerFrames are the turns of the spinner, in ASCII so every terminal font has them.
-var spinnerFrames = [...]string{"-", "\\", "|", "/"}
+// spinnerFrames are the turns of the braille spinner, escaped so the source stays ASCII.
+var spinnerFrames = [...]string{"\u280b", "\u2819", "\u2839", "\u2838", "\u283c", "\u2834", "\u2826", "\u2827", "\u2807", "\u280f"}
 
 // typingTickMsg advances the typing animation by a frame; ticks of an earlier run, by generation, are dropped.
 type typingTickMsg struct{ generation int }
@@ -24,7 +24,7 @@ func typingInterval(animation config.TypingAnimation) time.Duration {
 	case config.TypingAnimationDots:
 		return 400 * time.Millisecond
 	case config.TypingAnimationSpinner:
-		return 150 * time.Millisecond
+		return 80 * time.Millisecond
 	case config.TypingAnimationPulsing:
 		return 300 * time.Millisecond
 	}

@@ -22,7 +22,7 @@ func TestTypingLabel(t *testing.T) {
 	want := map[config.TypingAnimation][]string{
 		config.TypingAnimationOff:     {"a is typing...", "a is typing..."},
 		config.TypingAnimationDots:    {"a is typing.  ", "a is typing.. ", "a is typing...", "a is typing.  "},
-		config.TypingAnimationSpinner: {"- a is typing...", "\\ a is typing...", "| a is typing...", "/ a is typing...", "- a is typing..."},
+		config.TypingAnimationSpinner: {"\u280b a is typing...", "\u2819 a is typing...", "\u2839 a is typing...", "\u2838 a is typing...", "\u283c a is typing...", "\u2834 a is typing...", "\u2826 a is typing...", "\u2827 a is typing...", "\u2807 a is typing...", "\u280f a is typing...", "\u280b a is typing..."},
 		config.TypingAnimationPulsing: {"a is typing...", "a is typing..."},
 	}
 	for animation := range config.TypingAnimation(len(want)) {

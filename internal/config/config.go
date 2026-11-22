@@ -332,7 +332,7 @@ func Default() Config {
 		Timestamps:      Timestamps{Enabled: true, Format: "3:04PM"},
 		DateSeparator:   DateSeparator{Enabled: true, Format: "January 2, 2006", Character: "─"},
 		Notifications:   Notifications{Popup: true, WhenUnfocused: true, Sound: NotificationSound{Enabled: true, Name: SoundName(sound.Default)}},
-		TypingIndicator: TypingIndicator{Send: true, Receive: true, Animation: TypingAnimationDots},
+		TypingIndicator: TypingIndicator{Send: true, Receive: true, Animation: TypingAnimationSpinner},
 		Sidebar: SidebarConfig{
 			PaneConfig: pane,
 			Markers:    SidebarMarkersConfig{Expanded: "▾ ", Collapsed: "▸ "},
