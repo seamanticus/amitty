@@ -4,8 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"testing"
 
+	"github.com/seamanticus/amitty/internal/discordtest"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 	"github.com/seamanticus/amitty/internal/tui/cmd"
 )
@@ -63,5 +66,39 @@ func TestCloseState(t *testing.T) {
 	}
 	if got := task(); got != next || !stopped {
 		t.Fatalf("without a session it sent %#v and stopped = %v, want %#v and the events stopped", got, stopped, next)
+	}
+}
+
+// evidence: witnesses
+func TestLogOut(t *testing.T) {
+	for _, tt := range []struct {
+		name    string
+		status  int
+		wantErr bool
+	}{
+		{"ended", http.StatusNoContent, false},
+		{"refused", http.StatusUnauthorized, true},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			var sent string
+			client := discordtest.Client(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				body, _ := io.ReadAll(r.Body)
+				sent = r.Method + " " + r.URL.Path + " " + string(body)
+				w.WriteHeader(tt.status)
+			}))
+			stopped := false
+			task, ok := logOut(nil, func() { stopped = true }, client).(cmd.Task)
+			if !ok {
+				t.Fatal("logOut is not a task")
+			}
+			msg, ok := task().(LogoutMsg)
+			if !ok || !stopped || (msg.Err != nil) != tt.wantErr || tt.wantErr && msg.What == "" {
+				t.Fatalf("got %#v, stopped = %v", msg, stopped)
+			}
+			// The body the web client's logout sends, 38 bytes in a NetLog.
+			if want := `POST /api/v9/auth/logout {"provider":null,"voip_provider":null}`; sent != want {
+				t.Errorf("sent %q, want %q", sent, want)
+			}
+		})
 	}
 }

@@ -6,8 +6,9 @@ import (
 )
 
 var (
-	EndpointAuth  = Endpoint + "auth/"
-	EndpointLogin = EndpointAuth + "login"
+	EndpointAuth   = Endpoint + "auth/"
+	EndpointLogin  = EndpointAuth + "login"
+	EndpointLogout = EndpointAuth + "logout"
 
 	EndpointMFA  = EndpointAuth + "mfa/"
 	EndpointTOTP = EndpointMFA + "totp"
@@ -46,6 +47,15 @@ func (c *Client) Login(login, password string) (*LoginResponse, error) {
 	param.Password = password
 
 	return c.RequestJSON[*LoginResponse]("POST", EndpointLogin, httputil.WithJSONBody(param))
+}
+
+// Logout ends the client's token at Discord, with the body the web client sends: no push notification providers to unregister.
+func (c *Client) Logout() error {
+	body := struct {
+		Provider     *string `json:"provider"`
+		VoIPProvider *string `json:"voip_provider"`
+	}{}
+	return c.FastRequest("POST", EndpointLogout, httputil.WithJSONBody(body))
 }
 
 // SendMFASMS sends a multi-factor authentication code to the user's phone number for verification.

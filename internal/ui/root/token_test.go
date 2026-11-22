@@ -176,7 +176,7 @@ func TestModelTokens(t *testing.T) {
 		t.Run(tt.name+" deletes the token", func(t *testing.T) {
 			store := testStore(t)
 			run(t, storeToken(store, "t"))
-			m, command := newModel(t, store, "t").Update(chat.LogoutMsg{Err: tt.err})
+			m, command := newModel(t, store, "t").Update(chat.LogoutMsg{What: "open chat state", Err: tt.err})
 			runAll(command)
 			if m.screen.isChat() || (m.dialog != nil) != tt.wantDialog {
 				t.Fatalf("chat = %v, dialog = %+v", m.screen.isChat(), m.dialog)

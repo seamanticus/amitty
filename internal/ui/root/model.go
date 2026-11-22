@@ -174,7 +174,7 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 		command := cmd.Batch{m.showLogin(), deleteToken(m.store)}
 		// Shown after the login, as showing it closes any dialog.
 		if msg.Err != nil {
-			dialog := ui.ErrorDialog("open chat state", msg.Err)
+			dialog := ui.ErrorDialog(msg.What, msg.Err)
 			m.dialog, m.dialogFocus = &dialog, 0
 		}
 		return m, command

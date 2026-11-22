@@ -495,7 +495,7 @@ func (m Model) update(msg tui.Msg) (Model, tui.Cmd) {
 			return m, ui.ShowDialog(
 				"Are you sure you want to log out?",
 				ui.DialogButton{Label: "No"},
-				ui.DialogButton{Label: "Yes", Cmd: closeState(m.state, m.stopEvents, LogoutMsg{})},
+				ui.DialogButton{Label: "Yes", Cmd: logOut(m.state, m.stopEvents, m.state.Client)},
 			)
 		}
 	case composer.RefreshAutocompleteMsg, autocomplete.Msg:

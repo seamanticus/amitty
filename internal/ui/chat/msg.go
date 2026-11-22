@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/seamanticus/amitty/internal/dmwire/api"
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
@@ -53,7 +54,7 @@ func openState(state *ningen.State) tui.Cmd {
 		// A rejected token never works again, so say so over the login.
 		if isAuthenticationFailed(err) {
 			slog.Error("failed to open chat state", "err", err)
-			return LogoutMsg{Err: err}
+			return LogoutMsg{What: "open chat state", Err: err}
 		}
 
 		// The deadline closes the session, so the chat would otherwise sit empty with no reason given.
@@ -69,15 +70,36 @@ func isAuthenticationFailed(err error) bool {
 // closeState stops the events, then closes the session, if any, before sending next, so that next comes after the session is gone.
 func closeState(state *ningen.State, stopEvents func(), next tui.Msg) tui.Cmd {
 	return cmd.Task(func() tui.Msg {
-		if stopEvents != nil {
-			stopEvents()
-		}
-		if state != nil {
-			if err := state.Close(); err != nil {
-				slog.Error("failed to close the session", "err", err)
-			}
-		}
+		shut(state, stopEvents)
 		return next
+	})
+}
+
+// shut stops the events, then closes the session, if any.
+func shut(state *ningen.State, stopEvents func()) {
+	if stopEvents != nil {
+		stopEvents()
+	}
+	if state != nil {
+		if err := state.Close(); err != nil {
+			slog.Error("failed to close the session", "err", err)
+		}
+	}
+}
+
+// logoutTimeout bounds the wait for Discord to end the token.
+const logoutTimeout = 10 * time.Second
+
+// logOut closes the session, then asks Discord through client to end its token, as the web client does; the login shows either way, with the error if Discord did not answer.
+func logOut(state *ningen.State, stopEvents func(), client *api.Client) tui.Cmd {
+	return cmd.Task(func() tui.Msg {
+		shut(state, stopEvents)
+		ctx, cancel := context.WithTimeout(context.Background(), logoutTimeout)
+		defer cancel()
+		if err := client.WithContext(ctx).Logout(); err != nil {
+			return LogoutMsg{What: "log out at Discord", Err: err}
+		}
+		return LogoutMsg{}
 	})
 }
 
@@ -92,8 +114,11 @@ func listen(ctx context.Context, events *handler.Queue) tui.Cmd {
 	})
 }
 
-// LogoutMsg asks for the login screen, with Err, if set, as why the session ended.
-type LogoutMsg struct{ Err error }
+// LogoutMsg asks for the login screen, with Err, if set, as why the session ended or what went wrong on the way, in What.
+type LogoutMsg struct {
+	What string
+	Err  error
+}
 
 type (
 	QuitMsg        struct{}
