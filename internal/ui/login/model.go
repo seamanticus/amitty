@@ -37,9 +37,9 @@ type Model struct {
 	active   tab
 }
 
-// NewModel returns the login methods, whose requests identify as build and connect through network.
-func NewModel(cfg *config.Config, build http.Build, network http.Network) Model {
-	return Model{cfg: cfg, password: password.NewModel(build, network), qr: qr.NewModel(build, network)}
+// NewModel returns the login methods, whose requests identify as build and go through browser.
+func NewModel(cfg *config.Config, build http.Build, browser *http.Browser) Model {
+	return Model{cfg: cfg, password: password.NewModel(build, browser), qr: qr.NewModel(build, browser)}
 }
 
 // tabs returns the login methods as tabs set up by the tabs config.

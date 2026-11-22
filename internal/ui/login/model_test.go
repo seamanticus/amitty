@@ -21,7 +21,7 @@ func newModel(t *testing.T) Model {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return NewModel(cfg, http.Build{}, http.Network{})
+	return NewModel(cfg, http.Build{}, http.NewBrowser(http.Network{}))
 }
 
 // dialogs runs the tasks in command, one level of batches deep, and returns the dialogs they show.

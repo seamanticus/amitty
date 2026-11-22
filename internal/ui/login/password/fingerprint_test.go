@@ -18,10 +18,14 @@ func TestRequestFingerprint(t *testing.T) {
 			path = r.Method + " " + r.URL.Path
 			_, sent = r.Header["X-Fingerprint"]
 			_, auth = r.Header["Authorization"]
-			reply(http.StatusOK, `{"fingerprint":"1.x","assignments":[]}`)(w, r)
+			reply(http.StatusOK, `{"fingerprint":"1.x","assignments":[],"installation":"i.x"}`)(w, r)
 		})), dhttp.Build{}, "")
-		if msg := requestFingerprint(t.Context(), client); msg != (FingerprintMsg{fingerprint: "1.x"}) {
+		browser := dhttp.NewBrowser(dhttp.Network{})
+		if msg := requestFingerprint(t.Context(), client, browser); msg != (FingerprintMsg{fingerprint: "1.x"}) {
 			t.Fatalf("got %#v", msg)
+		}
+		if got := browser.Installation(); got != "i.x" {
+			t.Errorf("installation = %q, want the one experiments gave", got)
 		}
 		if path != "GET /api/v9/experiments" {
 			t.Errorf("request = %s", path)
@@ -44,14 +48,14 @@ func TestRequestFingerprint(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			client := authClient(discordtest.Client(t, reply(tt.status, tt.body)), dhttp.Build{}, "")
-			if msg := requestFingerprint(t.Context(), client); !isFailed(msg) {
+			if msg := requestFingerprint(t.Context(), client, dhttp.NewBrowser(dhttp.Network{})); !isFailed(msg) {
 				t.Fatalf("got %#v, want FailedMsg", msg)
 			}
 		})
 	}
 
 	t.Run("a closed server is retryable once", func(t *testing.T) {
-		msg := requestFingerprint(t.Context(), discordtest.ClosedClient(t))
+		msg := requestFingerprint(t.Context(), discordtest.ClosedClient(t), dhttp.NewBrowser(dhttp.Network{}))
 		if _, ok := countdownOr(msg, false).(CountdownMsg); !ok {
 			t.Fatalf("got %#v, want CountdownMsg", msg)
 		}

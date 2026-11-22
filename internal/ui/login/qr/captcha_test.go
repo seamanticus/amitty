@@ -39,7 +39,7 @@ func TestRedeemTicketCaptcha(t *testing.T) {
 
 // exchanging is a login redeeming ticket tk.
 func exchanging() Model {
-	m := NewModel(dhttp.Build{}, dhttp.Network{})
+	m := NewModel(dhttp.Build{}, dhttp.NewBrowser(dhttp.Network{}))
 	m, _ = m.Update(pendingLoginMsg{ticket: "tk"})
 	return m
 }

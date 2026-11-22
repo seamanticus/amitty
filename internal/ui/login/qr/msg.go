@@ -69,10 +69,10 @@ type connCreateMsg struct {
 // connCloseMsg says conn is closed; the model forgets it only if it is still the current one.
 type connCloseMsg struct{ conn *gatewayConn }
 
-// connect opens the Remote Auth Gateway through network with the handshake of the web client's login page, which carries no API headers.
-func connect(network http.Network) tui.Cmd {
+// connect opens the Remote Auth Gateway through browser's network with the handshake of the web client's login page, which carries no API headers.
+func connect(browser *http.Browser) tui.Cmd {
 	return cmd.Task(func() tui.Msg {
-		dialer := gateway.NewDialer(network)
+		dialer := gateway.NewDialer(browser.Network())
 		conn, _, err := dialer.Dial(remoteAuthGatewayURL, gateway.HandshakeHeaders())
 		if err != nil {
 			return err
@@ -355,11 +355,11 @@ type retryMsg struct {
 }
 
 // exchangeTicket redeems ticket once, with the captcha solution if set. A first attempt whose connection failed starts the countdown to a retry; a final one fails.
-func exchangeTicket(build http.Build, network http.Network, fingerprint string, solution captcha.Solution, privateKey *rsa.PrivateKey, ticket string, final bool) tui.Cmd {
+func exchangeTicket(build http.Build, browser *http.Browser, fingerprint string, solution captcha.Solution, privateKey *rsa.PrivateKey, ticket string, final bool) tui.Cmd {
 	return cmd.Task(func() tui.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), http.AuthTimeout)
 		defer cancel()
-		client := ticketClient(http.NewClient(network, ""), build, fingerprint)
+		client := ticketClient(browser.Client(""), build, fingerprint)
 		client.OnRequest = append(client.OnRequest, solution.Option())
 		return retryOr(redeemTicket(ctx, client, privateKey, ticket), ticket, final)
 	})

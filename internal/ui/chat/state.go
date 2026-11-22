@@ -125,6 +125,7 @@ func (m Model) showTypingIndicator(event *gateway.TypingStartEvent) tui.Cmd {
 func (m *Model) applyEvent(event gateway.Event) tui.Cmd {
 	switch event := event.(type) {
 	case *gateway.ReadyEvent:
+		m.browser.SetInstallation(event.ApexExperiments.Installation)
 		return cmd.Batch{m.loadGuildsTree(event), m.updatePane(paneMembersTree, event), m.refreshToken(event.AuthToken)}
 
 	case *gateway.MessageCreateEvent:

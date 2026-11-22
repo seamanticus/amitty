@@ -15,7 +15,7 @@ func TestModelShortHelp(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m := NewModel(cfg, http.Build{}, http.Network{})
+	m := NewModel(cfg, http.Build{}, http.NewBrowser(http.Network{}))
 	for _, tt := range []struct {
 		name               string
 		active             tab
@@ -49,13 +49,13 @@ func TestModelSelectTab(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, i := range []int{-1, int(tabCount), int(tabCount) + 1} {
-		m, _ := NewModel(cfg, http.Build{}, http.Network{}).Update(selectTabMsg(i))
+		m, _ := NewModel(cfg, http.Build{}, http.NewBrowser(http.Network{})).Update(selectTabMsg(i))
 		if m.active != tabPassword {
 			t.Fatalf("index %d selected tab %d", i, m.active)
 		}
 	}
 	for want := range tabCount {
-		if m, _ := NewModel(cfg, http.Build{}, http.Network{}).Update(selectTabMsg(want)); m.active != want {
+		if m, _ := NewModel(cfg, http.Build{}, http.NewBrowser(http.Network{})).Update(selectTabMsg(want)); m.active != want {
 			t.Fatalf("index %d selected tab %d", want, m.active)
 		}
 	}

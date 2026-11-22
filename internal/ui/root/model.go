@@ -46,19 +46,19 @@ type Model struct {
 
 	// build is what every request and the gateway identify as, fetched once at startup.
 	build http.Build
-	// network is how they connect.
-	network http.Network
+	// browser holds the cookies and installation every request shares, and how they connect.
+	browser *http.Browser
 	// store keeps the token between runs.
 	store tokenstore.Store
 }
 
 // NewModel returns the application, opening the chat with token if set and the login otherwise. configPath is the file cfg was read from.
-func NewModel(cfg *config.Config, configPath string, build http.Build, network http.Network, store tokenstore.Store, token string) Model {
-	m := Model{cfg: cfg, configPath: configPath, build: build, network: network, store: store, helpVisible: cfg.Help.Enabled}
+func NewModel(cfg *config.Config, configPath string, build http.Build, browser *http.Browser, store tokenstore.Store, token string) Model {
+	m := Model{cfg: cfg, configPath: configPath, build: build, browser: browser, store: store, helpVisible: cfg.Help.Enabled}
 	if token == "" {
-		m.screen = loginScreen(login.NewModel(cfg, build, network))
+		m.screen = loginScreen(login.NewModel(cfg, build, browser))
 	} else {
-		m.screen = chatScreen(chat.NewModel(cfg, build, network, token))
+		m.screen = chatScreen(chat.NewModel(cfg, build, browser, token))
 	}
 	return m
 }

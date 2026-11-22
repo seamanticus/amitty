@@ -24,7 +24,7 @@ func TestModelView(t *testing.T) {
 		}
 		t.Cleanup(screen.Fini)
 
-		m := NewModel(dhttp.Build{}, dhttp.Network{})
+		m := NewModel(dhttp.Build{}, dhttp.NewBrowser(dhttp.Network{}))
 		code, err := qrcode.New("test", qrcode.Low)
 		if err != nil {
 			t.Fatal(err)

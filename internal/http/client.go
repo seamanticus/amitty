@@ -9,18 +9,8 @@ import (
 
 	fhttp "github.com/bogdanfinn/fhttp"
 	tls_client "github.com/bogdanfinn/tls-client"
-	"github.com/seamanticus/amitty/internal/dmwire/api"
-	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
 )
-
-// NewClient returns an API client for token, or for none before login, that connects through network.
-func NewClient(network Network, token string) *api.Client {
-	httpClient := httputil.NewClientWithDriver(OmitEmptyHeaders(wrapClient(network.TLSClient(tls_client.WithCookieJar(tls_client.NewCookieJar())))))
-	client := api.NewCustomClient(token, httpClient)
-	client.UserAgent = BrowserUserAgent()
-	return client
-}
 
 type client struct {
 	tls_client.HttpClient

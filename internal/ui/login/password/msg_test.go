@@ -182,7 +182,7 @@ func TestAuthClient(t *testing.T) {
 
 func TestSubmitLogin(t *testing.T) {
 	for _, final := range []bool{false, true} {
-		if _, ok := submitLogin(dhttp.Build{}, dhttp.Network{}, "f", captcha.Solution{}, "a", "b", final).(cmd.Task); !ok {
+		if _, ok := submitLogin(dhttp.Build{}, dhttp.NewBrowser(dhttp.Network{}), "f", captcha.Solution{}, "a", "b", final).(cmd.Task); !ok {
 			t.Fatal("submitLogin does not run as a task, so it would block Update")
 		}
 	}

@@ -33,8 +33,8 @@ const (
 type Model struct {
 	// build is what the login requests identify as.
 	build dhttp.Build
-	// network is how they connect.
-	network dhttp.Network
+	// browser holds the cookies and installation every request shares, and how they connect.
+	browser *dhttp.Browser
 
 	login, password string
 	// loginCursor and passwordCursor are the byte offsets of the cursor in login and password.
@@ -59,9 +59,9 @@ type Model struct {
 	captcha ui.Captcha[attempt]
 }
 
-// NewModel returns an empty form whose login requests identify as build and connect through network.
-func NewModel(build dhttp.Build, network dhttp.Network) Model {
-	return Model{build: build, network: network}
+// NewModel returns an empty form whose login requests identify as build and go through browser.
+func NewModel(build dhttp.Build, browser *dhttp.Browser) Model {
+	return Model{build: build, browser: browser}
 }
 
 func (Model) Label() string {
@@ -108,7 +108,7 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 			return m, nil
 		}
 		m.fingerprint = msg.fingerprint
-		return m, submitLogin(m.build, m.network, m.fingerprint, m.captcha.Solution(), m.login, m.password, msg.final)
+		return m, submitLogin(m.build, m.browser, m.fingerprint, m.captcha.Solution(), m.login, m.password, msg.final)
 	case SMSSentMsg:
 		m.submitting = false
 		m.code.phone = msg.phone
@@ -123,7 +123,7 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 		}
 		m.retryIn, m.retryReason = 0, ""
 		if m.coding() {
-			return m, submitCode(m.build, m.network, m.code.ticket, m.code.method, m.code.text, true)
+			return m, submitCode(m.build, m.browser, m.code.ticket, m.code.method, m.code.text, true)
 		}
 		return m, m.submit(true)
 	case ChallengedMsg:
@@ -191,9 +191,9 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 // submit logs in with the form, first fetching the fingerprint if there is none yet.
 func (m Model) submit(final bool) tui.Cmd {
 	if m.fingerprint == "" {
-		return fetchFingerprint(m.build, m.network, final)
+		return fetchFingerprint(m.build, m.browser, final)
 	}
-	return submitLogin(m.build, m.network, m.fingerprint, m.captcha.Solution(), m.login, m.password, final)
+	return submitLogin(m.build, m.browser, m.fingerprint, m.captcha.Solution(), m.login, m.password, final)
 }
 
 // coding reports whether the code form is shown.

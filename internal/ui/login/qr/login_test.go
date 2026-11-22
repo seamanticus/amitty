@@ -271,7 +271,7 @@ func TestRedeemTicket(t *testing.T) {
 
 func TestModelUpdate(t *testing.T) {
 	t.Run("a new model asks to connect", func(t *testing.T) {
-		m := NewModel(dhttp.Build{}, dhttp.Network{})
+		m := NewModel(dhttp.Build{}, dhttp.NewBrowser(dhttp.Network{}))
 		if msg := run(t, m.Init()); msg != (startMsg{}) {
 			t.Fatalf("Init sent %#v", msg)
 		}
@@ -282,7 +282,7 @@ func TestModelUpdate(t *testing.T) {
 	})
 
 	t.Run("hello schedules a heartbeat at its interval", func(t *testing.T) {
-		m, command := NewModel(dhttp.Build{}, dhttp.Network{}).Update(helloMsg{heartbeatInterval: 41250})
+		m, command := NewModel(dhttp.Build{}, dhttp.NewBrowser(dhttp.Network{})).Update(helloMsg{heartbeatInterval: 41250})
 		if m.heartbeatInterval.Milliseconds() != 41250 {
 			t.Fatalf("interval = %v", m.heartbeatInterval)
 		}
@@ -292,7 +292,7 @@ func TestModelUpdate(t *testing.T) {
 	})
 
 	t.Run("no heartbeat once the connection is gone", func(t *testing.T) {
-		if _, command := NewModel(dhttp.Build{}, dhttp.Network{}).Update(heartbeatTickMsg{}); command != nil {
+		if _, command := NewModel(dhttp.Build{}, dhttp.NewBrowser(dhttp.Network{})).Update(heartbeatTickMsg{}); command != nil {
 			t.Fatal("heartbeat scheduled without a connection")
 		}
 	})
@@ -305,14 +305,14 @@ func TestModelUpdate(t *testing.T) {
 			{userMsg{discriminator: "0", username: "name"}, "Logging in as name"},
 			{userMsg{discriminator: "1234", username: "name"}, "Logging in as name#1234"},
 		} {
-			if m, _ := NewModel(dhttp.Build{}, dhttp.Network{}).Update(tt.msg); !strings.HasSuffix(m.status, tt.want) {
+			if m, _ := NewModel(dhttp.Build{}, dhttp.NewBrowser(dhttp.Network{})).Update(tt.msg); !strings.HasSuffix(m.status, tt.want) {
 				t.Fatalf("status = %q, want suffix %q", m.status, tt.want)
 			}
 		}
 	})
 
 	t.Run("pending login closes the socket and redeems", func(t *testing.T) {
-		m, command := NewModel(dhttp.Build{}, dhttp.Network{}).Update(pendingLoginMsg{ticket: "tk"})
+		m, command := NewModel(dhttp.Build{}, dhttp.NewBrowser(dhttp.Network{})).Update(pendingLoginMsg{ticket: "tk"})
 		batch, ok := command.(cmd.Batch)
 		// The captcha's reset adds a nil when no page waits.
 		if !ok || len(slices.DeleteFunc(slices.Clone(batch), func(c cmd.Cmd) bool { return c == nil })) != 2 || m.status != "Authenticating..." {
@@ -330,7 +330,7 @@ func TestModelUpdate(t *testing.T) {
 		{"an error", errors.New("boom"), "boom"},
 	} {
 		t.Run(tt.name+" closes the connection", func(t *testing.T) {
-			m, command := NewModel(dhttp.Build{}, dhttp.Network{}).Update(tt.msg)
+			m, command := NewModel(dhttp.Build{}, dhttp.NewBrowser(dhttp.Network{})).Update(tt.msg)
 			if m.status != tt.want {
 				t.Fatalf("status = %q, want %q", m.status, tt.want)
 			}
@@ -345,7 +345,7 @@ func TestModelUpdate(t *testing.T) {
 	}
 
 	t.Run("leaving closes the connection and forgets it", func(t *testing.T) {
-		m := NewModel(dhttp.Build{}, dhttp.Network{})
+		m := NewModel(dhttp.Build{}, dhttp.NewBrowser(dhttp.Network{}))
 		conn := &gatewayConn{}
 		m.conn = conn
 		m, command := m.Leave()
@@ -365,7 +365,7 @@ func TestModelUpdate(t *testing.T) {
 	})
 
 	t.Run("a hidden tab closes a connection that opens late and drops the rest", func(t *testing.T) {
-		m := NewModel(dhttp.Build{}, dhttp.Network{})
+		m := NewModel(dhttp.Build{}, dhttp.NewBrowser(dhttp.Network{}))
 		if _, command := m.Settle(connCreateMsg{}); command == nil {
 			t.Fatal("late connection kept open")
 		} else if msg := run(t, command); msg != (connCloseMsg{}) {
@@ -379,7 +379,7 @@ func TestModelUpdate(t *testing.T) {
 	})
 
 	t.Run("closing forgets the connection", func(t *testing.T) {
-		m := NewModel(dhttp.Build{}, dhttp.Network{})
+		m := NewModel(dhttp.Build{}, dhttp.NewBrowser(dhttp.Network{}))
 		m.conn = &gatewayConn{}
 		if m, _ = m.Update(connCloseMsg{m.conn}); m.conn != nil {
 			t.Fatal("connection kept")
@@ -387,7 +387,7 @@ func TestModelUpdate(t *testing.T) {
 	})
 
 	t.Run("closing an old connection keeps the current one", func(t *testing.T) {
-		m := NewModel(dhttp.Build{}, dhttp.Network{})
+		m := NewModel(dhttp.Build{}, dhttp.NewBrowser(dhttp.Network{}))
 		m.conn = &gatewayConn{}
 		if m, _ = m.Update(connCloseMsg{&gatewayConn{}}); m.conn == nil {
 			t.Fatal("current connection forgotten")
@@ -395,7 +395,7 @@ func TestModelUpdate(t *testing.T) {
 	})
 
 	t.Run("keys other than Esc do nothing", func(t *testing.T) {
-		m := NewModel(dhttp.Build{}, dhttp.Network{})
+		m := NewModel(dhttp.Build{}, dhttp.NewBrowser(dhttp.Network{}))
 		if got, command := m.Update(tui.KeyMsg(tcell.NewEventKey(tcell.KeyRune, "q", tcell.ModNone))); command != nil || got.status != m.status {
 			t.Fatalf("status = %q, command = %v", got.status, command)
 		}
@@ -523,7 +523,7 @@ func TestModelLifecycle(t *testing.T) {
 		return m.Update(tui.KeyMsg(tcell.NewEventKey(tcell.KeyRune, key, tcell.ModNone)))
 	}
 	live := func() Model {
-		m := NewModel(dhttp.Build{}, dhttp.Network{})
+		m := NewModel(dhttp.Build{}, dhttp.NewBrowser(dhttp.Network{}))
 		m.conn = &gatewayConn{}
 		return m
 	}
@@ -591,7 +591,7 @@ func TestModelLifecycle(t *testing.T) {
 	})
 
 	t.Run("an ended login closes a connection that arrives late", func(t *testing.T) {
-		m, _ := NewModel(dhttp.Build{}, dhttp.Network{}).end("Canceled")
+		m, _ := NewModel(dhttp.Build{}, dhttp.NewBrowser(dhttp.Network{})).end("Canceled")
 		late := &gatewayConn{}
 		m, command := m.Update(connCreateMsg{conn: late})
 		if m.conn != nil || command == nil {
@@ -600,7 +600,7 @@ func TestModelLifecycle(t *testing.T) {
 	})
 
 	t.Run("an ended login ignores late errors and retries", func(t *testing.T) {
-		m, _ := NewModel(dhttp.Build{}, dhttp.Network{}).end("Code expired")
+		m, _ := NewModel(dhttp.Build{}, dhttp.NewBrowser(dhttp.Network{})).end("Code expired")
 		for _, msg := range []tui.Msg{errors.New("late"), retryMsg{ticket: "tk", left: 1}} {
 			if got, command := m.Update(msg); command != nil || got.status != "Code expired" {
 				t.Fatalf("%T: status = %q, command = %v", msg, got.status, command)
@@ -609,7 +609,7 @@ func TestModelLifecycle(t *testing.T) {
 	})
 
 	t.Run("a retry counts down, then redeems once more", func(t *testing.T) {
-		m, command := NewModel(dhttp.Build{}, dhttp.Network{}).Update(retryMsg{ticket: "tk", left: 3, err: errors.New("refused")})
+		m, command := NewModel(dhttp.Build{}, dhttp.NewBrowser(dhttp.Network{})).Update(retryMsg{ticket: "tk", left: 3, err: errors.New("refused")})
 		if !strings.Contains(m.status, "retrying once in 3 s: refused") || command == nil {
 			t.Fatalf("status = %q, command = %v", m.status, command)
 		}

@@ -26,7 +26,7 @@ func newTestModel(t *testing.T) *Model {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m := NewModel(cfg, http.Build{}, http.Network{}, "")
+	m := NewModel(cfg, http.Build{}, http.NewBrowser(http.Network{}), "")
 	return &m
 }
 

@@ -18,11 +18,11 @@ type FingerprintMsg struct {
 }
 
 // fetchFingerprint gets the fingerprint that ties a login to its two-factor step, as the web client does before it posts credentials.
-func fetchFingerprint(build dhttp.Build, network dhttp.Network, final bool) tui.Cmd {
+func fetchFingerprint(build dhttp.Build, browser *dhttp.Browser, final bool) tui.Cmd {
 	return cmd.Task(func() tui.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), dhttp.AuthTimeout)
 		defer cancel()
-		msg := requestFingerprint(ctx, authClient(dhttp.NewClient(network, ""), build, ""))
+		msg := requestFingerprint(ctx, authClient(browser.Client(""), build, ""), browser)
 		if fp, ok := msg.(FingerprintMsg); ok {
 			fp.final = final
 			return fp
@@ -31,14 +31,16 @@ func fetchFingerprint(build dhttp.Build, network dhttp.Network, final bool) tui.
 	})
 }
 
-// requestFingerprint asks with client, which must send no fingerprint or token, for a new one and returns a FingerprintMsg or a FailedMsg.
-func requestFingerprint(ctx context.Context, client *api.Client) tui.Msg {
+// requestFingerprint asks with client, which must send no fingerprint or token, for a new one and returns a FingerprintMsg or a FailedMsg. The installation ID in the answer goes to browser, as the web client keeps it.
+func requestFingerprint(ctx context.Context, client *api.Client, browser *dhttp.Browser) tui.Msg {
 	resp, err := client.WithContext(ctx).RequestJSON[struct {
-		Fingerprint string `json:"fingerprint"`
+		Fingerprint  string `json:"fingerprint"`
+		Installation string `json:"installation"`
 	}](http.MethodGet, api.Endpoint+"experiments")
 	if err != nil {
 		return FailedMsg{err}
 	}
+	browser.SetInstallation(resp.Installation)
 	if resp.Fingerprint == "" {
 		return FailedMsg{errors.New("experiments response did not include a fingerprint")}
 	}

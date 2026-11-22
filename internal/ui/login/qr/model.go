@@ -35,8 +35,8 @@ const (
 type Model struct {
 	// build is what the gateway and ticket requests identify as.
 	build http.Build
-	// network is how they connect.
-	network http.Network
+	// browser holds the cookies and installation every request shares, and how they connect.
+	browser *http.Browser
 
 	conn              *gatewayConn
 	heartbeatInterval time.Duration
@@ -55,9 +55,9 @@ type Model struct {
 	status string
 }
 
-// NewModel returns a QR login whose requests identify as build and connect through network.
-func NewModel(build http.Build, network http.Network) Model {
-	return Model{build: build, network: network, status: "Connecting to Remote Auth Gateway..."}
+// NewModel returns a QR login whose requests identify as build and go through browser.
+func NewModel(build http.Build, browser *http.Browser) Model {
+	return Model{build: build, browser: browser, status: "Connecting to Remote Auth Gateway..."}
 }
 
 func (Model) Label() string {
@@ -85,10 +85,10 @@ func (Model) Init() tui.Cmd {
 func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	switch msg := msg.(type) {
 	case startMsg:
-		next := NewModel(m.build, m.network)
+		next := NewModel(m.build, m.browser)
 		next.status = "Connecting to Remote Auth Gateway..."
 		_, closing := m.captcha.Stop()
-		return next, cmd.Batch{closeConn(m.conn), closing, connect(m.network)}
+		return next, cmd.Batch{closeConn(m.conn), closing, connect(m.browser)}
 	case tui.KeyMsg:
 		switch {
 		case m.ended && keybind.Matches(msg, keys.Renew()):
@@ -151,14 +151,14 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 		m.expiresIn = 0
 		var closing tui.Cmd
 		m.captcha, closing = m.captcha.Start(msg.ticket)
-		return m, cmd.Batch{closeConn(m.conn), closing, exchangeTicket(m.build, m.network, m.fingerprint, m.captcha.Solution(), m.privateKey, msg.ticket, false)}
+		return m, cmd.Batch{closeConn(m.conn), closing, exchangeTicket(m.build, m.browser, m.fingerprint, m.captcha.Solution(), m.privateKey, msg.ticket, false)}
 	case retryMsg:
 		if m.ended {
 			return m, nil
 		}
 		if msg.left <= 0 {
 			m.status = "Authenticating..."
-			return m, exchangeTicket(m.build, m.network, m.fingerprint, m.captcha.Solution(), m.privateKey, msg.ticket, true)
+			return m, exchangeTicket(m.build, m.browser, m.fingerprint, m.captcha.Solution(), m.privateKey, msg.ticket, true)
 		}
 		m.status = fmt.Sprintf("Connection failed, retrying once in %d s: %v", msg.left, msg.err)
 		return m, tickRetry(msg)

@@ -88,6 +88,8 @@ type Model struct {
 	stopEvents func()
 	// token is the one the session uses, so a different one in READY is a refresh to store.
 	token string
+	// browser keeps a new installation ID READY gives.
+	browser *http.Browser
 
 	// typers maps the users typing in the selected channel to when their typing indicator expires.
 	typers map[discord.UserID]time.Time
@@ -105,11 +107,12 @@ type Model struct {
 	cfg *config.Config
 }
 
-// NewModel returns the chat of the account with token, whose requests and gateway identify as build and connect through network.
-func NewModel(cfg *config.Config, build http.Build, network http.Network, token string) Model {
+// NewModel returns the chat of the account with token, whose requests and gateway identify as build and go through browser.
+func NewModel(cfg *config.Config, build http.Build, browser *http.Browser, token string) Model {
 	m := Model{
-		typers: make(map[discord.UserID]time.Time),
-		images: make(map[discord.URL]tuiimage.Widget),
+		browser: browser,
+		typers:  make(map[discord.UserID]time.Time),
+		images:  make(map[discord.URL]tuiimage.Widget),
 
 		token: token,
 		cfg:   cfg,
@@ -129,7 +132,7 @@ func NewModel(cfg *config.Config, build http.Build, network http.Network, token 
 			gateway.DebounceMessageReactions,
 	})
 
-	session := session.NewWithGateway(clientgateway.New(network, id), http.NewClient(network, token), handler.New())
+	session := session.NewWithGateway(clientgateway.New(browser.Network(), id), browser.Client(token), handler.New())
 	state := state.NewFromSession(session, defaultstore.New())
 	m.state = ningen.FromState(state)
 
@@ -148,7 +151,7 @@ func NewModel(cfg *config.Config, build http.Build, network http.Network, token 
 
 	m.guildsTree = guildstree.NewModel(cfg, m.state)
 	m.membersTree = memberstree.NewModel(cfg, m.state)
-	media := http.NewMedia(network)
+	media := http.NewMedia(browser.Network())
 	m.messagesList = messageslist.NewModel(cfg, m.state, media)
 	m.composer = composer.NewModel(cfg, m.state, media)
 	m.channelsPicker = channelspicker.NewModel(cfg)

@@ -45,7 +45,7 @@ func (m Model) updateCaptcha(msg tui.Msg) (Model, tui.Cmd) {
 			return m.end(err.Error())
 		}
 		m.status = "Authenticating..."
-		return m, exchangeTicket(m.build, m.network, m.fingerprint, m.captcha.Solution(), m.privateKey, msg.Key, false)
+		return m, exchangeTicket(m.build, m.browser, m.fingerprint, m.captcha.Solution(), m.privateKey, msg.Key, false)
 	}
 	return m, nil
 }

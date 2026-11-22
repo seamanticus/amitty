@@ -20,7 +20,7 @@ func TestNewModel(t *testing.T) {
 	t.Run("help enabled", func(t *testing.T) {
 		cfg := *cfg
 		cfg.Help.Enabled = true
-		m := NewModel(&cfg, "", http.Build{}, http.Network{}, tokenstore.Store{}, "")
+		m := NewModel(&cfg, "", http.Build{}, http.NewBrowser(http.Network{}), tokenstore.Store{}, "")
 		t.Run("shown", func(t *testing.T) {
 			if !m.helpVisible {
 				t.Fatal("help is hidden")
@@ -46,7 +46,7 @@ func TestNewModel(t *testing.T) {
 	t.Run("help disabled", func(t *testing.T) {
 		cfg := *cfg
 		cfg.Help.Enabled = false
-		m := NewModel(&cfg, "", http.Build{}, http.Network{}, tokenstore.Store{}, "")
+		m := NewModel(&cfg, "", http.Build{}, http.NewBrowser(http.Network{}), tokenstore.Store{}, "")
 		t.Run("hidden", func(t *testing.T) {
 			if m.helpVisible {
 				t.Fatal("help is visible")
@@ -70,7 +70,7 @@ func TestModelQuit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m := NewModel(cfg, "", http.Build{}, http.Network{}, tokenstore.Store{}, "")
+	m := NewModel(cfg, "", http.Build{}, http.NewBrowser(http.Network{}), tokenstore.Store{}, "")
 
 	m, command := m.Update(tcell.NewEventKey(tcell.KeyCtrlC, "", tcell.ModCtrl))
 	t.Run("asks", func(t *testing.T) {
