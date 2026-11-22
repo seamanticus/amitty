@@ -14,12 +14,15 @@ import (
 type Browser struct {
 	network Network
 	jar     tls_client.CookieJar
+	// path is the file the browser is kept in, or "" when it is kept in memory alone.
+	path   string
+	saving sync.Mutex
 
 	mu           sync.Mutex
 	installation string
 }
 
-// NewBrowser returns a browser with no cookies and no installation, connecting through network.
+// NewBrowser returns a browser with no cookies and no installation, connecting through network, kept in memory alone.
 func NewBrowser(network Network) *Browser {
 	return &Browser{network: network, jar: tls_client.NewCookieJar()}
 }
@@ -42,8 +45,12 @@ func (b *Browser) SetInstallation(id string) {
 		return
 	}
 	b.mu.Lock()
-	defer b.mu.Unlock()
+	changed := b.installation != id
 	b.installation = id
+	b.mu.Unlock()
+	if changed && b.path != "" {
+		b.save()
+	}
 }
 
 // Client returns an API client for token, or for none before login, that sends the browser's cookies and installation ID and keeps the cookies Discord sets.

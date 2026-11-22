@@ -104,7 +104,8 @@ func Run() error {
 		screen.EnableFocus()
 	}
 
-	return tui.NewApplication(root.NewModel(cfg, *configPath, build, http.NewBrowser(network), store, token), tui.WithScreen(screen)).Run()
+	browser := http.OpenBrowser(network, filepath.Join(filepath.Dir(store.Path()), http.BrowserFileName))
+	return tui.NewApplication(root.NewModel(cfg, *configPath, build, browser, store, token), tui.WithScreen(screen)).Run()
 }
 
 // installSounds writes the shipped sounds before the first message, when the sound is on, so playing it later only checks its file. A failure is logged; playing retries it.

@@ -44,6 +44,7 @@ option to change it.
 | `~/.config/amitty/config.toml` | The configuration. |
 | `~/.config/amitty/amitty.lock` | Held while amitty runs, so a second one stops with "amitty is already running". The kernel drops it on exit, even after a crash. |
 | `~/.config/amitty/credentials/token.gpg` | The encrypted token (see [Token storage](token.md)). The `credentials` folder is created readable by you alone. |
+| `~/.config/amitty/credentials/browser.json` | The cookies Discord set and the installation ID it gave, kept between runs and across logouts as a browser keeps them, so Discord sees the same device. Not encrypted, readable by you alone. Delete it to look like a new device. |
 | `~/.cache/amitty/logs.txt` | The log, and the trace of any crash (see [Troubleshooting](troubleshooting.md)). |
 
 Each follows its XDG variable when it is set: `$XDG_CONFIG_HOME` and
