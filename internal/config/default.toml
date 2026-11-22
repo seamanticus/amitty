@@ -3,9 +3,8 @@
 # amitty's configuration with every option at its default, commented out.
 # Uncomment an option to change it. The manual is docs/config.md.
 
-# Whether to focus the composer automatically when a channel is selected.
-# Set to false to preview channels without moving focus.
-# auto_focus = true
+# Whether to focus the composer when a channel is opened from the guilds tree. Off, the focus stays in the tree.
+# auto_focus = false
 
 # Whether to enable the mouse.
 # mouse = true

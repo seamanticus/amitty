@@ -5,7 +5,7 @@ package config
 // optionDocs returns the doc comment of each option by its dotted TOML path, for the settings panel.
 func optionDocs() map[string]string {
 	return map[string]string{
-		"auto_focus":                                      "Whether to focus the composer automatically when a channel is selected. Set to false to preview channels without moving focus.",
+		"auto_focus":                                      "Whether to focus the composer when a channel is opened from the guilds tree. Off, the focus stays in the tree.",
 		"mouse":                                           "Whether to enable the mouse.",
 		"editor":                                          "The program opened by the `composer.open_editor` keybind. \"default\" uses `$EDITOR`.",
 		"file_picker":                                     "The program the `composer.open_file_picker` keybind runs in place of amitty's path prompt, such as \"fzf --multi\" or \"yazi --chooser-file={file}\"; \"\" uses the prompt. It runs in the terminal while amitty is suspended. It writes the chosen paths, one per line, to stdout, or to the file named where `{file}` is written.",

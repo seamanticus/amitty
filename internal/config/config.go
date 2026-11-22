@@ -241,8 +241,7 @@ type (
 	}
 
 	Config struct {
-		// Whether to focus the composer automatically when a channel is selected.
-		// Set to false to preview channels without moving focus.
+		// Whether to focus the composer when a channel is opened from the guilds tree. Off, the focus stays in the tree.
 		AutoFocus bool `toml:"auto_focus"`
 		// Whether to enable the mouse.
 		Mouse bool `toml:"mouse"`
@@ -311,7 +310,7 @@ type (
 func Default() Config {
 	pane := PaneConfig{Visible: true, WidthPercent: 20}
 	cfg := Config{
-		AutoFocus: true,
+		AutoFocus: false,
 		Mouse:     true,
 		Editor:    "default",
 		Openers:   Openers{},
