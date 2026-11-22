@@ -89,7 +89,7 @@ func requestLogin(ctx context.Context, client *api.Client, login, password strin
 		return ChallengedMsg{challenge}
 	}
 	if err != nil {
-		return FailedMsg{err}
+		return FailedMsg{explainLogin(err)}
 	}
 
 	if loginResp.Token != "" {

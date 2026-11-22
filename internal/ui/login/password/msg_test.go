@@ -196,6 +196,35 @@ func TestRefusedLoginRetryable(t *testing.T) {
 	}
 }
 
+// The bodies are those Discord answered in a raw-debug log and a NetLog.
+// evidence: witnesses
+func TestLoginRefusal(t *testing.T) {
+	for _, tt := range []struct {
+		name     string
+		body     string
+		location bool
+	}{
+		{"new location", `{"message":"Invalid Form Body","code":50035,"errors":{"login":{"_errors":[{"code":"ACCOUNT_LOGIN_VERIFICATION_EMAIL","message":"New login location detected, please check your e-mail."}]}}}`, true},
+		{"wrong password", `{"message":"Invalid Form Body","code":50035,"errors":{"login":{"_errors":[{"code":"INVALID_LOGIN","message":"Login or password is invalid."}]},"password":{"_errors":[{"code":"INVALID_LOGIN","message":"Login or password is invalid."}]}}}`, false},
+		{"no field errors", `{"message":"Invalid Form Body","code":50035}`, false},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			client := discordtest.Client(t, reply(http.StatusBadRequest, tt.body))
+			failed, ok := requestLogin(t.Context(), client, "a", "b").(FailedMsg)
+			if !ok || isVerifyLocation(failed.Err) != tt.location {
+				t.Fatalf("got %#v, want the new-location error = %v", failed, tt.location)
+			}
+			// Discord's own answer stays reachable, and a refusal is never retried.
+			if _, ok := errors.AsType[*httputil.HTTPError](failed.Err); !ok || dhttp.Retryable(failed.Err) {
+				t.Errorf("%v: HTTP error kept = %v, retryable = %v", failed.Err, ok, dhttp.Retryable(failed.Err))
+			}
+			if tt.location && !strings.Contains(failed.Err.Error(), "emailed you a link") {
+				t.Errorf("message %q does not say to click the emailed link", failed.Err)
+			}
+		})
+	}
+}
+
 func TestAuthClientPostsOnce(t *testing.T) {
 	for _, code := range []int{http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusTooManyRequests} {
 		var calls atomic.Int32

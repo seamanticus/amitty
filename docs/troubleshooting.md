@@ -48,6 +48,7 @@ enter, even if you cannot see what you type.
 | amitty stops at start, naming `token.gpg` | The token does not decrypt: gpg's key or passphrase is missing. Fix gpg, or delete the file to log in again (see [Token storage](token.md)). |
 | The login screen comes back on its own | Discord rejected the token (gateway close 4004), which deletes it. Log in again. |
 | "did not accept the captcha after 3 tries" | Discord kept rejecting the answers. Wait, then try again or use the QR login (see [Login](login.md#the-captcha-page)). |
+| "Discord does not know this location yet and emailed you a link" | A login from a new place or device. Click Verify Login in Discord's email, then log in again; the form keeps what you typed. `credentials/browser.json` makes later runs the same device. |
 | The captcha page does not open | No browser handles `xdg-open`. Open the address the login screen shows. |
 | Images are blocky | The terminal gets half blocks. Check [Images](images.md#how-amitty-picks-one), and set `image_protocol` if your terminal supports more than amitty detected. |
 | Sixel images leave traces | Report it, with the terminal and its version. `ctrl+z` then `fg` redraws everything. |
