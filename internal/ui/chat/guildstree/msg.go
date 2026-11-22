@@ -137,7 +137,7 @@ func (m Model) expandPrivateChannels(node *tree.Node) {
 	node.Expand()
 }
 
-// openLimit is the messages fetched when a channel is opened, as many as the web client asks for; older ones page by messages_limit.
+// openLimit is the messages fetched when a channel is opened, as many as the web client asks for; the messages list then fetches a page before them.
 const openLimit = 10
 
 func loadChannel(state *ningen.State, limit uint, channel discord.Channel) tui.Cmd {

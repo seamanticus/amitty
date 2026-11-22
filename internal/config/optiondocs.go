@@ -15,7 +15,7 @@ func optionDocs() map[string]string {
 		"proxy":                                           "The proxy every connection to Discord goes through, such as \"socks5h://127.0.0.1:9050\" or \"http://user:pass@host:3128\"; \"\" connects directly. Schemes: http, https, socks5, socks5h (both SOCKS5 schemes resolve names at the proxy). The environment is not read, and nothing bypasses a set proxy.",
 		"status":                                          "\"default\" (unknown), \"online\", \"dnd\", \"idle\", \"invisible\" or \"offline\".",
 		"hide_deleted_users":                              "Whether to leave DMs with deleted accounts out of the guilds tree's Direct Messages and the channels picker.",
-		"messages_limit":                                  "The number of older messages fetched per page when scrolling up through a channel, from 1 to 100. Opening a channel always fetches 10, as the web client does.",
+		"messages_limit":                                  "The number of older messages fetched per page when scrolling up through a channel, from 1 to 100. Opening a channel fetches 10 and then one page before them, as the web client does, which pages by 20.",
 		"markdown.enabled":                                "Whether to parse and render markdown in messages.",
 		"markdown.mask_spoilers":                          "Replace spoiler contents with a placeholder.",
 		"markdown.theme":                                  "Theme for fenced code blocks. Available themes: https://xyproto.github.io/splash/docs",

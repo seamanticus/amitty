@@ -271,7 +271,7 @@ type (
 		// Whether to leave DMs with deleted accounts out of the guilds tree's Direct Messages and the channels picker.
 		HideDeletedUsers bool `toml:"hide_deleted_users"`
 
-		// The number of older messages fetched per page when scrolling up through a channel, from 1 to 100. Opening a channel always fetches 10, as the web client does.
+		// The number of older messages fetched per page when scrolling up through a channel, from 1 to 100. Opening a channel fetches 10 and then one page before them, as the web client does, which pages by 20.
 		MessagesLimit uint8 `toml:"messages_limit"`
 
 		Markdown        MarkdownConfig  `toml:"markdown"`
@@ -323,7 +323,7 @@ func Default() Config {
 		HideBlockedUsers: true,
 		HideDeletedUsers: true,
 
-		MessagesLimit: 50,
+		MessagesLimit: 20,
 
 		Markdown:        MarkdownConfig{Enabled: true, Theme: "monokai"},
 		Help:            HelpConfig{Enabled: true, CompactModifiers: true, Padding: [2]int{1, 1}, Separator: " • "},

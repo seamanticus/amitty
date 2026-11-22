@@ -148,15 +148,15 @@ func (m *Model) setCursor(index int) {
 	m.cursor = max(index, -1)
 }
 
-// SetChannel shows messages of channel, newest first as Discord sends them, scrolled to the newest, and requests the members who wrote them.
+// SetChannel shows messages of channel, newest first as Discord sends them, scrolled to the newest, requests the members who wrote them, and fetches the page of older messages before them, as the web client does on opening a channel.
 func (m *Model) SetChannel(channel *discord.Channel, messages []discord.Message) tui.Cmd {
 	m.channel = channel
 	m.reset()
 	m.setMessages(messages)
 	if channel.GuildID.IsValid() {
-		return cmd.Batch{m.requestGuildMembers(channel.GuildID, messages), m.LoadImages()}
+		return cmd.Batch{m.requestGuildMembers(channel.GuildID, messages), m.LoadImages(), m.fetchOlderMessages()}
 	}
-	return m.LoadImages()
+	return cmd.Batch{m.LoadImages(), m.fetchOlderMessages()}
 }
 
 // ShowNewest clears the selection and scrolls to the newest message, which then stays in view as messages arrive until the user scrolls up.
@@ -496,6 +496,10 @@ func (m Model) selectedURLs() []string {
 func (m *Model) prependOlder(msg olderMessagesLoadedMsg) tui.Cmd {
 	selectedChannel := m.channel
 	if selectedChannel == nil || selectedChannel.ID != msg.channelID {
+		return nil
+	}
+	// A second fetch of the same page, as the prefetch on opening and a scroll to the top can make, is already shown.
+	if first := m.messageIndex(-1, 1); first >= 0 && len(msg.older) > 0 && msg.older[len(msg.older)-1].ID >= m.items[first].message.ID {
 		return nil
 	}
 

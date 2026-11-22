@@ -91,6 +91,13 @@ func TestModelBuildItem(t *testing.T) {
 			t.Fatal("prepend lost selection or cached view")
 		}
 	})
+	t.Run("a page already shown is not prepended again", func(t *testing.T) {
+		count := len(ml.items)
+		*ml, _ = ml.Update(olderMessagesLoadedMsg{channelID: 1, older: []discord.Message{{ID: 1}}})
+		if len(ml.items) != count {
+			t.Fatalf("items %d, want %d", len(ml.items), count)
+		}
+	})
 	t.Run("delete", func(t *testing.T) {
 		ml.deleteMessage(ml.messageIndex(-1, 1))
 		if !kept() {
