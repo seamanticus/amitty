@@ -3,13 +3,30 @@
 ## The log
 
 amitty logs to `~/.cache/amitty/logs.txt`, emptied at each start (see
-[Install and run](install.md)). Start it with `-log-level debug` to
-also log the type of every gateway event as it arrives.
+[Install and run](install.md)), one JSON object per line. Start it with
+`-log-level debug` to also log every gateway frame's op and type
+(`gateway recv`, `gateway send`) and every API request as it is sent
+(`api request`).
 
-`-log-level raw-debug` logs every API response and gateway event in
-full, for following what Discord sends when it changes. Tokens, login
-tickets and passwords in them are replaced by `<redacted>`, and the
-file is readable by you alone, but the log still holds private
+`-log-level raw-debug` logs what crosses the wire in full, for
+following what Discord sends when it changes:
+
+| `msg` | One record per |
+|-------|----------------|
+| `api exchange` | API request and its response: `method`, `url`, `status`, `ms`, then `request` and `response`, each with `headers` in the order sent and `body`; `error` instead of a response when none came |
+| `gateway send`, `gateway recv` | gateway frame: `op`, `t`, `s` and `body` |
+| `remote-auth send`, `remote-auth recv` | QR login frame, with `body` |
+
+A JSON body is logged as JSON, so `jq` reads the log:
+
+```sh
+jq 'select(.msg == "api exchange" and .status >= 400)' logs.txt
+jq 'select(.msg == "gateway send") | {op, body}' logs.txt
+```
+
+Tokens, login tickets, passwords, captcha answers, cookies and the QR
+login's keys are replaced by `<redacted>`, an uploaded file by its size,
+and the file is readable by you alone, but the log still holds private
 messages: never share it, and delete it when done.
 
 Below `raw-debug`, the log can hold channel and user IDs, but never

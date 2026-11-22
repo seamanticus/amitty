@@ -31,7 +31,7 @@ const decryptTimeout = 2 * time.Minute
 func Run() error {
 	configPath := flag.String("config-path", config.DefaultPath(), "path of the configuration file")
 	logPath := flag.String("log-path", logger.DefaultPath(), "path of the log file")
-	logLevel := flag.String("log-level", "info", "log level: raw-debug, debug, info, warn or error; raw-debug logs every API response and gateway event in full, tokens included")
+	logLevel := flag.String("log-level", "info", "log level: raw-debug, debug, info, warn or error; raw-debug logs every API request and response and every gateway frame in full, credentials blanked")
 	showVersion := flag.Bool("version", false, "print version and exit")
 	flag.Parse()
 
