@@ -325,7 +325,7 @@ Global shortcuts. A keybind is a key such as "ctrl+k", or a list of keys.
 |--------|---------|---------|
 | `toggle_guilds_tree` | `"alt+g"` | Hide/show the guilds tree. |
 | `toggle_members_tree` | `"alt+y"` | Hide/show the members tree. |
-| `toggle_channels_picker` | `"ctrl+k"` |  |
+| `toggle_channels_picker` | `["ctrl+/", "ctrl+_"]` | Open or close the picker that jumps to any channel by name. Most terminals send ctrl+/ as ctrl+_. |
 | `toggle_help` | `"alt+."` | Hide/show keybind help. |
 | `toggle_full_help` | `"ctrl+."` | Switch between compact and full keybind help. |
 | `suspend` | `"ctrl+z"` |  |
@@ -337,7 +337,7 @@ Global shortcuts. A keybind is a key such as "ctrl+k", or a list of keys.
 | `focus_next` | `["ctrl+l", "ctrl+down"]` |  |
 | `logout` | `"ctrl+d"` | Log out and delete the stored token. Requires re-login upon restart. |
 | `quit` | `"ctrl+c"` |  |
-| `settings` | `["ctrl+/", "ctrl+_"]` | Open or close the settings panel, which edits this file. Most terminals send ctrl+/ as ctrl+_. |
+| `settings` | `"ctrl+k"` | Open or close the settings panel, which edits this file. |
 
 ## `[keybinds.picker]`
 

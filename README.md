@@ -35,7 +35,7 @@ Requires [Go 1.27](https://go.dev/dl), `gpg` and `xdg-open`.
 ## Essentials
 
 - Log in from the **Password**, **QR** or **Token** tab.
-- `ctrl+k` jumps to a channel, `ctrl+.` shows every key, `ctrl+c`
+- `ctrl+/` jumps to a channel, `ctrl+.` shows every key, `ctrl+c`
   quits.
 - The config is written to `~/.config/amitty/config.toml` on first run,
   every option commented out.

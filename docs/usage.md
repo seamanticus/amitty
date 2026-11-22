@@ -26,9 +26,9 @@ of the pane that has focus.
 | `ctrl+i` | Composer |
 | `ctrl+y` | Members tree |
 | `ctrl+h`, `ctrl+l`, `ctrl+up`, `ctrl+down` | The previous or next pane |
-| `ctrl+k` | A picker to jump to any channel by name |
+| `ctrl+/` | A picker to jump to any channel by name; most terminals send it as `ctrl+_`, which opens it too |
 
-Selecting a channel focuses the composer, unless `auto_focus = false`.
+Selecting a channel keeps the focus in the guilds tree; `auto_focus = true` moves it to the composer.
 
 `ctrl+i` reaches amitty only in terminals with an enhanced keyboard
 protocol (kitty, ghostty, foot, WezTerm): elsewhere it sends the same
@@ -165,7 +165,7 @@ or off independently, so `popup = false` leaves the chime alone.
 
 ## Settings
 
-`ctrl+/` opens the settings panel; `ctrl+/` or `esc` closes it. It lists
+`ctrl+k` opens the settings panel; `ctrl+k` or `esc` closes it. It lists
 every option of the [configuration](config.md) by its path, with the
 selected one's description below. Type to filter, such as `avatar`.
 
@@ -184,8 +184,6 @@ selected one's description below. Type to filter, such as `avatar`.
   proxy, the token commands, the mouse, focus reports and the image
   protocol, which amitty uses only at startup.
 - Tables of your own entries, such as `openers`, are edited in the file.
-
-In most terminals `ctrl+/` arrives as `ctrl+_`, which opens it too.
 
 ## Leaving
 

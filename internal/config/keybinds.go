@@ -245,7 +245,8 @@ type Keybinds struct {
 	// Hide/show the guilds tree.
 	ToggleGuildsTree Keybind `toml:"toggle_guilds_tree"`
 	// Hide/show the members tree.
-	ToggleMembersTree    Keybind `toml:"toggle_members_tree"`
+	ToggleMembersTree Keybind `toml:"toggle_members_tree"`
+	// Open or close the picker that jumps to any channel by name. Most terminals send ctrl+/ as ctrl+_.
 	ToggleChannelsPicker Keybind `toml:"toggle_channels_picker"`
 	// Hide/show keybind help.
 	ToggleHelp Keybind `toml:"toggle_help"`
@@ -284,7 +285,7 @@ type Keybinds struct {
 	// Requires re-login upon restart.
 	Logout Keybind `toml:"logout"`
 	Quit   Keybind `toml:"quit"`
-	// Open or close the settings panel, which edits this file. Most terminals send ctrl+/ as ctrl+_.
+	// Open or close the settings panel, which edits this file.
 	Settings Keybind `toml:"settings"`
 }
 
@@ -324,7 +325,7 @@ func defaultKeybinds() Keybinds {
 	return Keybinds{
 		ToggleGuildsTree:     key("toggle guilds", "alt+g"),
 		ToggleMembersTree:    key("toggle members", "alt+y"),
-		ToggleChannelsPicker: key("channels picker", "ctrl+k"),
+		ToggleChannelsPicker: key("channels picker", "ctrl+/", "ctrl+_"),
 		ToggleHelp:           key("toggle help", "alt+."),
 		ToggleFullHelp:       key("full help", "ctrl+."),
 		Suspend:              key("suspend", "ctrl+z"),
@@ -423,7 +424,7 @@ func defaultKeybinds() Keybinds {
 		Autocomplete: AutocompleteKeybinds{SelectionKeybinds: emacs},
 
 		Logout:   key("logout", "ctrl+d"),
-		Settings: key("settings", "ctrl+/", "ctrl+_"),
+		Settings: key("settings", "ctrl+k"),
 		Quit:     key("quit", "ctrl+c"),
 	}
 }

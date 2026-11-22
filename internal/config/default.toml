@@ -414,7 +414,8 @@
 # Hide/show the members tree.
 # toggle_members_tree = "alt+y"
 
-# toggle_channels_picker = "ctrl+k"
+# Open or close the picker that jumps to any channel by name. Most terminals send ctrl+/ as ctrl+_.
+# toggle_channels_picker = ["ctrl+/", "ctrl+_"]
 
 # Hide/show keybind help.
 # toggle_help = "alt+."
@@ -443,8 +444,8 @@
 
 # quit = "ctrl+c"
 
-# Open or close the settings panel, which edits this file. Most terminals send ctrl+/ as ctrl+_.
-# settings = ["ctrl+/", "ctrl+_"]
+# Open or close the settings panel, which edits this file.
+# settings = "ctrl+k"
 
 [keybinds.picker]
 
