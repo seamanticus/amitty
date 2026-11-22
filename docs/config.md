@@ -95,6 +95,7 @@ A sound played with each notification.
 |--------|---------|---------|
 | `send` | `true` | Whether to send typing status. |
 | `receive` | `true` | Whether to receive typing status. |
+| `animation` | `"dots"` | How the line saying who is typing moves while someone is: "off", "dots", "spinner" or "pulsing". It redraws only while someone types. |
 
 ## `[sidebar]`
 

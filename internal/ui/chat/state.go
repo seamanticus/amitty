@@ -114,7 +114,7 @@ func (m Model) refreshMemberNames(event *gateway.GuildMembersChunkEvent) tui.Cmd
 	return m.composer.CacheMemberSearch(event)
 }
 
-func (m Model) showTypingIndicator(event *gateway.TypingStartEvent) tui.Cmd {
+func (m *Model) showTypingIndicator(event *gateway.TypingStartEvent) tui.Cmd {
 	if channel := m.selectedChannel; channel == nil || channel.ID != event.ChannelID || ui.IsMe(m.state, event.UserID) {
 		return nil
 	}

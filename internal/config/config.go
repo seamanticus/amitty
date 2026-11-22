@@ -145,6 +145,8 @@ type (
 		Send bool `toml:"send"`
 		// Whether to receive typing status.
 		Receive bool `toml:"receive"`
+		// How the line saying who is typing moves while someone is: "off", "dots", "spinner" or "pulsing". It redraws only while someone types.
+		Animation TypingAnimation `toml:"animation"`
 	}
 
 	Icons struct {
@@ -330,7 +332,7 @@ func Default() Config {
 		Timestamps:      Timestamps{Enabled: true, Format: "3:04PM"},
 		DateSeparator:   DateSeparator{Enabled: true, Format: "January 2, 2006", Character: "─"},
 		Notifications:   Notifications{Popup: true, WhenUnfocused: true, Sound: NotificationSound{Enabled: true, Name: SoundName(sound.Default)}},
-		TypingIndicator: TypingIndicator{Send: true, Receive: true},
+		TypingIndicator: TypingIndicator{Send: true, Receive: true, Animation: TypingAnimationDots},
 		Sidebar: SidebarConfig{
 			PaneConfig: pane,
 			Markers:    SidebarMarkersConfig{Expanded: "▾ ", Collapsed: "▸ "},

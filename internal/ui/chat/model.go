@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/seamanticus/amitty/internal/tui/layout"
 	"log/slog"
+	"maps"
 	"slices"
 	"time"
 
@@ -93,6 +94,10 @@ type Model struct {
 
 	// typers maps the users typing in the selected channel to when their typing indicator expires.
 	typers map[discord.UserID]time.Time
+	// typingAnimating reports a running typing animation, at typingFrame; typingGeneration tells its ticks from those of one that ended.
+	typingAnimating  bool
+	typingFrame      int
+	typingGeneration int
 	// outreach are when this session started new DMs or joined guilds, for their shared limit.
 	outreach outreach
 
@@ -274,7 +279,11 @@ func (m *Model) syncPanes() {
 	m.messagesList.SetFocused(m.paneFocused(paneMessagesList))
 	m.composer.SetFocused(m.paneFocused(paneComposer))
 	m.membersTree.SetFocused(m.paneFocused(paneMembersTree))
-	m.messagesList.SetFooter(m.typingFooter())
+	footer := m.cfg.Theme.Footer.NormalStyle.Style
+	if m.paneFocused(paneMessagesList) {
+		footer = m.cfg.Theme.Footer.ActiveStyle.Style
+	}
+	m.messagesList.SetFooter(typingLabel(m.typingFooter(), m.cfg.TypingIndicator.Animation, m.typingFrame, footer))
 	m.messagesList.SetAvatarWidth(int(squareCols(uint(m.cfg.UI.MessagesList.Avatars.Height), m.imageCell())))
 }
 
@@ -364,6 +373,8 @@ func (m Model) update(msg tui.Msg) (Model, tui.Cmd) {
 			delete(m.typers, msg.userID)
 		}
 		return m, nil
+	case typingTickMsg:
+		return m, m.advanceTyping(msg)
 	case channelspicker.SelectedMsg:
 		return m, m.navigateToChannel(msg.ChannelID)
 	case channelspicker.CancelMsg:
@@ -640,7 +651,7 @@ func (m Model) canFocus(target pane) bool {
 	panic("invariant: unknown pane")
 }
 
-// typingFooter returns who is typing in the selected channel, or "" if nobody is.
+// typingFooter returns who is typing in the selected channel, in the order of their IDs and without trailing dots, which the animation draws; or "" if nobody is.
 func (m Model) typingFooter() string {
 	channel := m.selectedChannel
 	if channel == nil || len(m.typers) == 0 {
@@ -648,7 +659,7 @@ func (m Model) typingFooter() string {
 	}
 
 	var names []string
-	for userID := range m.typers {
+	for _, userID := range slices.Sorted(maps.Keys(m.typers)) {
 		if name := m.typerName(*channel, userID); name != "" {
 			names = append(names, name)
 		}
@@ -658,13 +669,13 @@ func (m Model) typingFooter() string {
 	case 0:
 		return ""
 	case 1:
-		return names[0] + " is typing..."
+		return names[0] + " is typing"
 	case 2:
-		return fmt.Sprintf("%s and %s are typing...", names[0], names[1])
+		return fmt.Sprintf("%s and %s are typing", names[0], names[1])
 	case 3:
-		return fmt.Sprintf("%s, %s, and %s are typing...", names[0], names[1], names[2])
+		return fmt.Sprintf("%s, %s, and %s are typing", names[0], names[1], names[2])
 	default:
-		return "Several people are typing..."
+		return "Several people are typing"
 	}
 }
 

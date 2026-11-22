@@ -63,7 +63,7 @@ type Model struct {
 	images map[discord.URL]tuiimage.Widget
 	// focused, footer and avatarWidth, in cells, are set by the chat model, which keeps what they follow from.
 	focused     bool
-	footer      string
+	footer      tui.Widget
 	avatarWidth int
 }
 
@@ -86,8 +86,8 @@ func (m *Model) SetFocused(focused bool) {
 	m.focused = focused
 }
 
-// SetFooter sets what is shown under the messages, such as who is typing.
-func (m *Model) SetFooter(footer string) {
+// SetFooter sets what is drawn in the bottom border, such as who is typing, or nil for nothing.
+func (m *Model) SetFooter(footer tui.Widget) {
 	m.footer = footer
 }
 
@@ -684,5 +684,5 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 func (m Model) View() tui.Widget {
 	return ui.Box(m.listView(), m.cfg, m.focused).
 		Title(ui.Label(m.title(), m.cfg.Theme.Title, m.focused)).
-		Footer(ui.Label(m.footer, m.cfg.Theme.Footer, m.focused))
+		Footer(m.footer)
 }

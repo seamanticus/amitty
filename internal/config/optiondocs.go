@@ -37,6 +37,7 @@ func optionDocs() map[string]string {
 		"downloads.picker":                                "The program that asks where to save in place of amitty's path prompt, such as \"yazi --cwd-file={file}\", run in dir while amitty is suspended. It writes the chosen path to stdout, or to the file named where `{file}` is written; a directory chosen gets the file's own name.",
 		"typing_indicator.send":                           "Whether to send typing status.",
 		"typing_indicator.receive":                        "Whether to receive typing status.",
+		"typing_indicator.animation":                      "How the line saying who is typing moves while someone is: \"off\", \"dots\", \"spinner\" or \"pulsing\". It redraws only while someone types.",
 		"sidebar.visible":                                 "Whether the pane is visible at start-up. It can still be toggled at runtime with its toggle keybind.",
 		"sidebar.width_percent":                           "Percentage (%) of the available width used by the pane. Valid values are 1-99. Invalid values fall back to 20.",
 		"sidebar.on_resize.width_percent":                 "Percentage (%) of the available width the sidebar takes while resized, in place of width_percent, with or without the members tree folded in. Valid values are 1-99. Invalid values fall back to 30.",

@@ -179,13 +179,17 @@ type typingExpiredMsg struct {
 	userID discord.UserID
 }
 
-// addTyper shows userID as typing and returns a command that ends it after the typing duration.
-func (m Model) addTyper(userID discord.UserID) tui.Cmd {
+// addTyper shows userID as typing, starts the animation, and returns commands that end it after the typing duration and move it.
+func (m *Model) addTyper(userID discord.UserID) tui.Cmd {
 	m.typers[userID] = time.Now().Add(composer.TypingDuration)
-	return cmd.Task(func() tui.Msg {
+	expire := cmd.Task(func() tui.Msg {
 		time.Sleep(composer.TypingDuration)
 		return typingExpiredMsg{userID}
 	})
+	if animate := m.startTyping(); animate != nil {
+		return cmd.Batch{expire, animate}
+	}
+	return expire
 }
 
 // react reacts as msg asks. The reaction is shown once the gateway reports it.
