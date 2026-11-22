@@ -1,9 +1,12 @@
 package logger
 
 import (
+	"encoding/json/jsontext"
+	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -36,6 +39,8 @@ func TestRedact(t *testing.T) {
 		{`{"ticket": "x\"y", "mfa":true}`, `{"ticket": "<redacted>", "mfa":true}`},
 		{`{"analytics_token":"t","auth_token":"u"}`, `{"analytics_token":"<redacted>","auth_token":"<redacted>"}`},
 		{`{"password":"p"}`, `{"password":"<redacted>"}`},
+		{`{"captcha_key":"k","captcha_rqtoken":"r","captcha_sitekey":"s"}`, `{"captcha_key":"<redacted>","captcha_rqtoken":"<redacted>","captcha_sitekey":"s"}`},
+		{`{"op":"nonce_proof","encrypted_nonce":"n","proof":"p","fingerprint":"f","encoded_public_key":"k"}`, `{"op":"nonce_proof","encrypted_nonce":"<redacted>","proof":"<redacted>","fingerprint":"<redacted>","encoded_public_key":"<redacted>"}`},
 		{`{"token":null,"tokens":"kept","name":"token"}`, `{"token":null,"tokens":"kept","name":"token"}`},
 		{``, ``},
 	} {
@@ -80,14 +85,51 @@ func TestRaw(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		Raw(t.Context(), "api response", []byte(`{"id":"1"}`), "status", 200)
+		Raw(t.Context(), "api exchange", []byte(`{"id":"1","token":"t"}`), "status", 200)
 		if err := file.Close(); err != nil {
 			t.Fatal(err)
 		}
 		data, _ := os.ReadFile(path)
-		logged := strings.Contains(string(data), `level=RAW msg="api response" status=200 body="{\"id\":\"1\"}"`)
+		logged := strings.Contains(string(data), `"level":"RAW","msg":"api exchange","status":200,"body":{"id":"1","token":"<redacted>"}}`)
 		if logged != test.want {
 			t.Errorf("at %v the log is %q", test.level, data)
 		}
+	}
+}
+
+func TestBody(t *testing.T) {
+	// evidence: witnesses
+	for _, test := range []struct {
+		body []byte
+		want any
+	}{
+		{nil, ""},
+		{[]byte(`{"password":"p"}`), jsontext.Value(`{"password":"<redacted>"}`)},
+		{[]byte(`not json "ticket":"x"`), `not json "ticket":"<redacted>"`},
+		{[]byte{0xff, 0xfe, 0}, "<3 bytes>"},
+	} {
+		got := Body(test.body).Any()
+		if fmt.Sprint(got) != fmt.Sprint(test.want) || fmt.Sprintf("%T", got) != fmt.Sprintf("%T", test.want) {
+			t.Errorf("Body(%q) = %T %v, want %T %v", test.body, got, got, test.want, test.want)
+		}
+	}
+}
+
+func TestHeaders(t *testing.T) {
+	header := map[string][]string{
+		"Header-Order:":      {"x"},
+		"Content-Type":       {"application/json"},
+		"Authorization":      {"secret"},
+		"X-Super-Properties": {"e30="},
+		"Accept":             {"*/*"},
+		"Cookie":             {""},
+	}
+	var got []string
+	for _, attr := range Headers(header, []string{"authorization", "x-super-properties", "absent"}).Group() {
+		got = append(got, attr.Key+"="+attr.Value.String())
+	}
+	want := []string{"authorization=<redacted>", "x-super-properties=e30=", "accept=*/*", "content-type=application/json", "cookie="}
+	if !slices.Equal(got, want) {
+		t.Errorf("Headers = %q, want %q", got, want)
 	}
 }
