@@ -11,14 +11,13 @@ import (
 	"github.com/seamanticus/amitty/pkg/tzlocal"
 )
 
-// apiHeaderOrder returns the order Chromium sends a fetch to Discord's API in, from NetLogs of the web client in Brave 157 (Chromium 157), Brave's sec-gpc left out; the x-captcha-* places are from a captcha retry. x-fingerprint's place is a guess. Headers not listed go last, sorted.
+// apiHeaderOrder returns the order Chromium sends a fetch to Discord's API in, from NetLogs of the web client in Brave 157 (Chromium 157), Brave's sec-gpc left out; the x-captcha-* places are from a captcha retry. Headers not listed go last, sorted.
 func apiHeaderOrder() []string {
 	return []string{
 		"content-length", "x-captcha-rqtoken",
 		"sec-ch-ua-platform", "authorization", "x-installation-id", "x-debug-options",
 		"sec-ch-ua", "sec-ch-ua-mobile", "x-discord-timezone", "x-captcha-key", "x-context-properties", "x-super-properties", "x-captcha-session-id", "x-discord-locale",
-		"x-fingerprint",
-		"user-agent", "content-type", "accept", "origin",
+		"user-agent", "content-type", "x-fingerprint", "accept", "origin",
 		"sec-fetch-site", "sec-fetch-mode", "sec-fetch-dest", "referer",
 		"accept-encoding", "accept-language", "cookie", "priority",
 	}
