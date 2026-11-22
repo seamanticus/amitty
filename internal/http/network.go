@@ -76,7 +76,7 @@ func NewMedia(network Network) Media {
 	return Media{client: network.TLSClient()}
 }
 
-// Get requests url, an attachment or an image, as the web client's page loads an image from the CDN.
+// Get requests url, an attachment or an image, as the web client's page loads an image from the CDN; raw-debug logs it without the file's bytes.
 func (m Media) Get(ctx context.Context, url string) (*fhttp.Response, error) {
 	if m.client == nil {
 		return nil, errors.New("media client not set up")
@@ -89,7 +89,7 @@ func (m Media) Get(ctx context.Context, url string) (*fhttp.Response, error) {
 		req.Header.Set(name, value)
 	}
 	orderHeaders(req.Header, imageHeaderOrder())
-	return m.client.Do(req)
+	return do(m.client, req, false, false)
 }
 
 // Put uploads size bytes from body to url, an upload URL Discord gave, as the web client does: a CORS preflight, then a bare PUT with no Discord headers or cookies.
@@ -126,7 +126,7 @@ func (m Media) Put(ctx context.Context, url string, body io.Reader, size int64) 
 
 // done sends req, logged at raw-debug without its body, which is a file's bytes, and fails unless it answers 2xx.
 func (m Media) done(req *fhttp.Request) error {
-	resp, err := do(m.client, req, false)
+	resp, err := do(m.client, req, false, true)
 	if err != nil {
 		return err
 	}

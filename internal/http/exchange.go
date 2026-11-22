@@ -16,8 +16,8 @@ import (
 	"github.com/seamanticus/amitty/internal/logger"
 )
 
-// do sends req through client, logging it at debug level when sent. When the log takes LevelRaw, it also logs the request and its response as one record once the response body is closed, or the request fails; keepBody false logs the request body's size alone.
-func do(client tls_client.HttpClient, req *fhttp.Request, keepBody bool) (*fhttp.Response, error) {
+// do sends req through client, logging it at debug level when sent. When the log takes LevelRaw, it also logs the request and its response as one record once the response body is closed, or the request fails; keepSent and keepReceived false log the size alone of the request and response body.
+func do(client tls_client.HttpClient, req *fhttp.Request, keepSent, keepReceived bool) (*fhttp.Response, error) {
 	ctx := req.Context()
 	slog.DebugContext(ctx, "api request", "method", req.Method, "url", logURL(req.URL))
 	if !slog.Default().Enabled(ctx, logger.LevelRaw) {
@@ -28,7 +28,7 @@ func do(client tls_client.HttpClient, req *fhttp.Request, keepBody bool) (*fhttp
 	req = req.WithContext(httptrace.WithClientTrace(ctx, &httptrace.ClientTrace{WroteHeaderField: ex.wrote}))
 	ex.req = req
 	if req.Body != nil && req.Body != fhttp.NoBody {
-		ex.sent = &capture{ReadCloser: req.Body, keep: keepBody}
+		ex.sent = &capture{ReadCloser: req.Body, keep: keepSent}
 		req.Body = ex.sent
 	}
 	resp, err := client.Do(req)
@@ -36,7 +36,7 @@ func do(client tls_client.HttpClient, req *fhttp.Request, keepBody bool) (*fhttp
 		ex.log(nil, nil, err)
 		return nil, err
 	}
-	resp.Body = &responseBody{ReadCloser: resp.Body, keep: true, ex: ex, resp: resp}
+	resp.Body = &responseBody{ReadCloser: resp.Body, keep: keepReceived, ex: ex, resp: resp}
 	return resp, nil
 }
 

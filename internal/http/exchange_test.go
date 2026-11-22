@@ -74,7 +74,7 @@ func TestExchangeLog(t *testing.T) {
 	}))
 	t.Cleanup(server.Close)
 	client := Network{}.TLSClient()
-	send := func(keepBody bool) {
+	send := func(keep bool) {
 		req, err := fhttp.NewRequestWithContext(t.Context(), fhttp.MethodPost, server.URL+"/api/v9/auth/login", strings.NewReader(`{"login":"a","password":"p"}`))
 		if err != nil {
 			t.Fatal(err)
@@ -82,7 +82,7 @@ func TestExchangeLog(t *testing.T) {
 		req.Header.Set("Authorization", "secret")
 		req.Header.Set("Content-Type", "application/json")
 		orderHeaders(req.Header, []string{"content-type", "authorization"})
-		resp, err := do(client, req, keepBody)
+		resp, err := do(client, req, keep, keep)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -98,7 +98,7 @@ func TestExchangeLog(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := do(client, req, true); err == nil {
+	if _, err := do(client, req, true, true); err == nil {
 		t.Fatal("a request to a closed port passed")
 	}
 	got := records()
@@ -121,7 +121,7 @@ func TestExchangeLog(t *testing.T) {
 			[]string{`{"body":{"login":"a","password":"<redacted>"},`, `"authorization":"<redacted>"`, `"content-length":"28"`},
 			`{"body":{"captcha_key":["captcha-required"],"captcha_rqtoken":"r"},`,
 		},
-		{[]string{`{"body":"<28 bytes>",`}, `"set-cookie":"__dcfduid=x"`},
+		{[]string{`{"body":"<28 bytes>",`}, `{"body":"<58 bytes>",`},
 	} {
 		record := got[i]
 		if record["status"] != 400.0 || record["method"] != "POST" {

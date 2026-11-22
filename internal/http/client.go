@@ -37,7 +37,7 @@ func (c *client) Do(req httpdriver.Request) (httpdriver.Response, error) {
 	if r.Method == fhttp.MethodGet || r.Method == fhttp.MethodHead {
 		r.Header.Del("Origin")
 	}
-	resp, err := do(c.HttpClient, r, true)
+	resp, err := do(c.HttpClient, r, true, true)
 	if err != nil {
 		return nil, err
 	}
