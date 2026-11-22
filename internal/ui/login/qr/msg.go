@@ -13,6 +13,7 @@ import (
 	"image"
 	"log/slog"
 	"net"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -23,6 +24,7 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil"
 	"github.com/seamanticus/amitty/internal/gateway"
 	"github.com/seamanticus/amitty/internal/http"
+	"github.com/seamanticus/amitty/internal/logger"
 	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/skip2/go-qrcode"
@@ -40,12 +42,33 @@ type gatewayConn struct {
 
 // writeJSON writes v, doing nothing once closeConn closed the connection, as a heartbeat may still be in flight.
 func (c *gatewayConn) writeJSON(v any) error {
-	c.writeMu.Lock()
-	defer c.writeMu.Unlock()
-	if err := c.ws.WriteJSON(v); err != nil && !errors.Is(err, net.ErrClosed) {
+	data, err := json.Marshal(v)
+	if err != nil {
 		return err
 	}
+	c.writeMu.Lock()
+	defer c.writeMu.Unlock()
+	if err := c.ws.WriteMessage(websocket.TextMessage, data); err != nil {
+		if errors.Is(err, net.ErrClosed) {
+			return nil
+		}
+		return err
+	}
+	logFrame("remote-auth send", data)
 	return nil
+}
+
+// nonceField matches the decrypted nonce a nonce_proof sends, which the log's redaction keeps elsewhere for message nonces.
+var nonceField = regexp.MustCompile(`"nonce"(\s*:\s*)"(?:[^"\\]|\\.)*"`)
+
+// logFrame logs a Remote Auth Gateway frame at raw-debug, with its keys and nonce blanked.
+func logFrame(msg string, data []byte) {
+	logger.Raw(context.Background(), msg, redactNonce(data))
+}
+
+// redactNonce blanks the nonce in data.
+func redactNonce(data []byte) []byte {
+	return nonceField.ReplaceAll(data, []byte(`"nonce"$1"<redacted>"`))
 }
 
 type connCreateMsg struct {
@@ -129,6 +152,7 @@ func listen(conn *gatewayConn) tui.Cmd {
 			return err
 		}
 
+		logFrame("remote-auth recv", data)
 		return decodeMessage(data)
 	})
 }
