@@ -5,15 +5,15 @@ package ws
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"sync"
 
 	"golang.org/x/time/rate"
 )
 
 var (
-	// WSError is the default error handler
-	WSError = func(err error) { log.Println("Gateway error:", err) }
+	// WSError is the default error handler. The errors it gets, such as writing the close frame of a socket the server already closed, are also returned where they matter, so they are debug detail.
+	WSError = func(err error) { slog.Debug("websocket error", "err", err) }
 	// WSDebug is used for extra debug logging. This is expected to behave
 	// similarly to log.Println().
 	WSDebug = func(v ...any) {}
