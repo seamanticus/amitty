@@ -18,6 +18,7 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/utils/handler"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/sendpart"
 	"github.com/seamanticus/amitty/internal/ningen"
+	"github.com/seamanticus/amitty/internal/ui"
 )
 
 // puts records what was put where, failing with err.
@@ -80,4 +81,17 @@ func TestSendWithFiles(t *testing.T) {
 			t.Fatalf("sent %q", sent)
 		}
 	})
+}
+
+func TestSendMessageRefused(t *testing.T) {
+	// evidence: witnesses
+	client := discordtest.Client(t, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusForbidden)
+		_, _ = io.WriteString(w, `{"message":"Cannot send messages to this user due to having no mutual guilds","code":50278}`)
+	}))
+	m := Model{state: ningen.FromState(state.NewFromSession(session.NewCustom(gateway.DefaultIdentifier(""), client, handler.New()), defaultstore.New()))}
+	dialog, ok := m.sendMessage(1, api.SendMessageData{Content: "x"}).(ui.DialogMsg)
+	if !ok || !strings.Contains(dialog.Text, "no mutual guilds") {
+		t.Fatalf("got %#v, want a dialog naming the refusal", dialog)
+	}
 }
