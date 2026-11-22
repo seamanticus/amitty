@@ -13,7 +13,6 @@ import (
 	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/consts"
-	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
 	"github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/instance"
 	"github.com/seamanticus/amitty/internal/logger"
@@ -45,7 +44,6 @@ func Run() error {
 	if err != nil {
 		return err
 	}
-	ws.EnableRawEvents = level <= slog.LevelDebug
 
 	// Before the log, which a second instance would empty. The lock is in the default config dir whatever -config-path says, as every instance shares the token and cache.
 	lock, err := instance.Acquire(filepath.Join(filepath.Dir(config.DefaultPath()), instance.FileName))

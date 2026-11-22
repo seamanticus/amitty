@@ -5,32 +5,40 @@ import (
 	"testing"
 )
 
-func TestDecodeIntoKeepsRawEvents(t *testing.T) {
-	previous := EnableRawEvents
-	EnableRawEvents = true
-	t.Cleanup(func() { EnableRawEvents = previous })
-
+func TestCodecLogsFrames(t *testing.T) {
+	var frames []Frame
 	codec := NewCodec(NewOpUnmarshalers())
+	codec.Log = func(f Frame) {
+		// Data is only valid during the call.
+		f.Data = []byte(string(f.Data))
+		frames = append(frames, f)
+	}
 	buf := NewDecodeBuffer(1 << 10)
 	out := make(chan Op, 4)
 	for _, payload := range []string{
-		`{"op":0,"t":"FIRST","d":{"long":"aaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}`,
-		`{"op":0,"t":"SECOND","d":{"b":1}}`,
+		`{"op":0,"t":"FIRST","s":3,"d":{"long":"aaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}`,
+		`{"op":11}`,
 	} {
 		if err := codec.DecodeInto(t.Context(), strings.NewReader(payload), &buf, out); err != nil {
 			t.Fatal(err)
 		}
 	}
-	close(out)
+	codec.logSent(false, []byte(`{"op":1,"d":3}`))
+	codec.logSent(true, []byte{37, 'x'})
 
-	var raws []string
-	for op := range out {
-		if raw, ok := op.Data.(*RawEvent); ok {
-			raws = append(raws, string(raw.Raw))
-		}
+	want := []Frame{
+		{Code: 0, Type: "FIRST", Sequence: 3, Data: []byte(`{"long":"aaaaaaaaaaaaaaaaaaaaaaaaaaaa"}`)},
+		{Code: 11, Data: []byte(``)},
+		{Sent: true, Code: 1, Data: []byte(`3`)},
+		{Sent: true, Code: 37, Data: []byte(`x`)},
 	}
-	want := []string{`{"long":"aaaaaaaaaaaaaaaaaaaaaaaaaaaa"}`, `{"b":1}`}
-	if len(raws) != len(want) || raws[0] != want[0] || raws[1] != want[1] {
-		t.Errorf("raw events = %q, want %q", raws, want)
+	if len(frames) != len(want) {
+		t.Fatalf("frames = %+v, want %+v", frames, want)
+	}
+	for i := range want {
+		got, w := frames[i], want[i]
+		if got.Sent != w.Sent || got.Code != w.Code || got.Type != w.Type || got.Sequence != w.Sequence || string(got.Data) != string(w.Data) {
+			t.Errorf("frame %d = %+v %s, want %+v %s", i, got, got.Data, w, w.Data)
+		}
 	}
 }

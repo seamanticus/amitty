@@ -204,7 +204,11 @@ func (c *Conn) send(ctx context.Context, messageType int, b []byte) error {
 			}
 		}
 
-		return conn.WriteMessage(messageType, b)
+		if err := conn.WriteMessage(messageType, b); err != nil {
+			return err
+		}
+		c.codec.logSent(messageType == websocket.BinaryMessage, b)
+		return nil
 	case <-ctx.Done():
 		return ctx.Err()
 	}

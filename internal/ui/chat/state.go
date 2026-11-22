@@ -1,7 +1,6 @@
 package chat
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 
@@ -9,8 +8,6 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/gateway"
 	"github.com/seamanticus/amitty/internal/dmwire/state"
 	"github.com/seamanticus/amitty/internal/dmwire/utils/httputil/httpdriver"
-	"github.com/seamanticus/amitty/internal/dmwire/utils/ws"
-	"github.com/seamanticus/amitty/internal/logger"
 	"github.com/seamanticus/amitty/internal/ningen/states/read"
 	"github.com/seamanticus/amitty/internal/tui"
 	"github.com/seamanticus/amitty/internal/tui/cmd"
@@ -127,10 +124,6 @@ func (m Model) showTypingIndicator(event *gateway.TypingStartEvent) tui.Cmd {
 // applyEvent updates the model with a gateway event and returns what the event needs done.
 func (m *Model) applyEvent(event gateway.Event) tui.Cmd {
 	switch event := event.(type) {
-	case *ws.RawEvent:
-		slog.Debug("new raw event", "code", event.OriginalCode, "type", event.OriginalType)
-		logger.Raw(context.Background(), "gateway event", event.Raw, "code", event.OriginalCode, "type", event.OriginalType)
-
 	case *gateway.ReadyEvent:
 		return cmd.Batch{m.loadGuildsTree(event), m.updatePane(paneMembersTree, event), m.refreshToken(event.AuthToken)}
 
