@@ -32,7 +32,12 @@ func (c *client) NewRequest(ctx context.Context, method, url string) (httpdriver
 }
 
 func (c *client) Do(req httpdriver.Request) (httpdriver.Response, error) {
-	resp, err := do(c.HttpClient, (*fhttp.Request)(req.(*request)), true)
+	r := (*fhttp.Request)(req.(*request))
+	// Fetch sends no Origin on a same-origin GET or HEAD.
+	if r.Method == fhttp.MethodGet || r.Method == fhttp.MethodHead {
+		r.Header.Del("Origin")
+	}
+	resp, err := do(c.HttpClient, r, true)
 	if err != nil {
 		return nil, err
 	}
