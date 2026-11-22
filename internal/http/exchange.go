@@ -15,13 +15,13 @@ import (
 	"github.com/seamanticus/amitty/internal/logger"
 )
 
-// do sends req through client. When the log takes LevelRaw, it logs the request and its response as one record once the response body is closed, or the request fails; keepBody false logs the request body's size alone.
+// do sends req through client, logging it at debug level when sent. When the log takes LevelRaw, it also logs the request and its response as one record once the response body is closed, or the request fails; keepBody false logs the request body's size alone.
 func do(client tls_client.HttpClient, req *fhttp.Request, keepBody bool) (*fhttp.Response, error) {
 	ctx := req.Context()
+	slog.DebugContext(ctx, "api request", "method", req.Method, "url", logURL(req.URL))
 	if !slog.Default().Enabled(ctx, logger.LevelRaw) {
 		return client.Do(req)
 	}
-	slog.Debug("api request", "method", req.Method, "url", logURL(req.URL))
 	ex := &exchange{ctx: ctx, req: req, start: time.Now()}
 	if req.Body != nil && req.Body != fhttp.NoBody {
 		ex.sent = &capture{ReadCloser: req.Body, keep: keepBody}
