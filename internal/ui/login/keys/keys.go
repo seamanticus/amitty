@@ -19,3 +19,6 @@ func Back(desc string) keybind.Keybind { return keybind.NewSingleKeybind("esc", 
 
 // Renew starts a new QR login once the last one ended.
 func Renew() keybind.Keybind { return keybind.NewSingleKeybind("r", "new code") }
+
+// Submit moves from an input to the next, and logs in on the button; the inputs and button handle it, so it is for help alone.
+func Submit() keybind.Keybind { return keybind.NewSingleKeybind("enter", "next, log in") }

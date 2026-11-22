@@ -17,8 +17,11 @@ func (m Model) FullHelp() [][]keybind.Keybind {
 	return append(m.activeKeyMap().FullHelp(), m.globalKeybinds())
 }
 
-// globalKeybinds apply on every screen.
+// globalKeybinds apply on every screen; while the settings panel is open only the key that closes it does.
 func (m Model) globalKeybinds() []keybind.Keybind {
+	if m.settings != nil {
+		return []keybind.Keybind{m.cfg.Keybinds.Settings.Keybind}
+	}
 	return []keybind.Keybind{
 		m.cfg.Keybinds.Settings.Keybind,
 		m.cfg.Keybinds.ToggleHelp.Keybind,

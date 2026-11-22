@@ -57,6 +57,8 @@ func (m Model) FullHelp() [][]keybind.Keybind {
 	return [][]keybind.Keybind{
 		compose,
 		openEditor,
+		{cfg.CursorLeft.Keybind, cfg.CursorRight.Keybind, cfg.CursorUp.Keybind, cfg.CursorDown.Keybind, cfg.LineStart.Keybind, cfg.LineEnd.Keybind, cfg.WordLeft.Keybind, cfg.WordRight.Keybind},
+		{cfg.DeleteBackward.Keybind, cfg.DeleteForward.Keybind, cfg.DeleteWordBackward.Keybind, cfg.DeleteWordForward.Keybind, cfg.DeleteToSpaceBackward.Keybind, cfg.DeleteToLineStart.Keybind, cfg.DeleteToLineEnd.Keybind},
 	}
 }
 

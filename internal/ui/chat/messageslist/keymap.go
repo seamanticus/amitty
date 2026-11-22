@@ -4,7 +4,6 @@ import (
 	"github.com/seamanticus/amitty/internal/dmwire/discord"
 	"github.com/seamanticus/amitty/internal/tui/help"
 	"github.com/seamanticus/amitty/internal/tui/keybind"
-	"github.com/seamanticus/amitty/internal/ui"
 )
 
 var _ help.KeyMap = Model{}
@@ -17,10 +16,7 @@ func (m Model) ShortHelp() []keybind.Keybind {
 	}
 
 	if selectedMessage, ok := m.selectedMessage(); ok {
-		help = append(help, keybinds.Cancel.Keybind)
-		if !ui.IsMe(m.state, selectedMessage.Author.ID) {
-			help = append(help, keybinds.Reply.Keybind)
-		}
+		help = append(help, keybinds.Cancel.Keybind, keybinds.Reply.Keybind)
 		if m.channel != nil && m.isEditable(messageItem{message: *selectedMessage}, m.channel.ID) {
 			help = append(help, keybinds.Edit.Keybind)
 		}
@@ -54,10 +50,7 @@ func (m Model) FullHelp() [][]keybind.Keybind {
 // messageHelp returns the keybinds that act on message: replying to it, managing it and opening what it has.
 func (m Model) messageHelp(message discord.Message) (actions, manage, attachments []keybind.Keybind) {
 	keybinds := m.cfg.Keybinds.MessagesList
-	mine := ui.IsMe(m.state, message.Author.ID)
-	if !mine {
-		actions = append(actions, keybinds.Reply.Keybind, keybinds.ReplyMention.Keybind)
-	}
+	actions = append(actions, keybinds.Reply.Keybind, keybinds.ReplyMention.Keybind)
 
 	if message.ReferencedMessage != nil {
 		actions = append(actions, keybinds.SelectReply.Keybind)

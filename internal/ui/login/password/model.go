@@ -87,7 +87,7 @@ func (m Model) ShortHelp() []keybind.Keybind {
 	if m.captcha.Waiting() {
 		return []keybind.Keybind{keys.Back("cancel captcha")}
 	}
-	return []keybind.Keybind{keys.FocusNext(), keys.FocusPrevious()}
+	return []keybind.Keybind{keys.Submit(), keys.FocusNext(), keys.FocusPrevious()}
 }
 
 func (m Model) FullHelp() [][]keybind.Keybind { return [][]keybind.Keybind{m.ShortHelp()} }

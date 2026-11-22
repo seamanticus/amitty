@@ -30,7 +30,7 @@ var _ tui.Model[Model] = Model{}
 var _ help.KeyMap = Model{}
 
 func (Model) ShortHelp() []keybind.Keybind {
-	return []keybind.Keybind{keys.FocusNext(), keys.FocusPrevious()}
+	return []keybind.Keybind{keys.Submit(), keys.FocusNext(), keys.FocusPrevious()}
 }
 
 func (m Model) FullHelp() [][]keybind.Keybind { return [][]keybind.Keybind{m.ShortHelp()} }
