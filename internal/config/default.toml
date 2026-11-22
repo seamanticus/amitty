@@ -534,6 +534,9 @@
 
 # select_next_unread = "J"
 
+# Expand the highlighted node and everything under it, or collapse it all when it is all expanded.
+# toggle_expand_all = "tab"
+
 # Accept or reject the highlighted message request, a DM from someone you are not friends with; each asks first.
 # accept_request = "a"
 
@@ -634,6 +637,9 @@
 
 # Download one of the selected message's attachments.
 # download = "D"
+
+# Show the profile of the selected message's author.
+# view_profile = "v"
 
 # Yank (copy) the selected message's content/url/id.
 # yank_content = "y"

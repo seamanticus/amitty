@@ -18,9 +18,11 @@ import (
 	"github.com/seamanticus/amitty/internal/markdown"
 	"github.com/seamanticus/amitty/internal/ningen"
 	"github.com/seamanticus/amitty/internal/tui"
+	"github.com/seamanticus/amitty/internal/tui/cmd"
 	tuiimage "github.com/seamanticus/amitty/internal/tui/image"
 	"github.com/seamanticus/amitty/internal/tui/layout"
 	"github.com/seamanticus/amitty/internal/tui/tint"
+	"github.com/seamanticus/amitty/internal/ui/chat/profile"
 	"github.com/seamanticus/amitty/internal/ui/emojis"
 )
 
@@ -42,6 +44,34 @@ func newTestModel(t *testing.T, cfg *config.Config) *Model {
 	}
 	ml.channel = &discord.Channel{ID: 1}
 	return &ml
+}
+
+// evidence: witnesses
+func TestModelViewAuthorProfile(t *testing.T) {
+	ml := newTestModel(t, testConfig(t))
+	if ml.viewAuthorProfile() != nil {
+		t.Fatal("a profile without a selected message")
+	}
+	ml.setMessages([]discord.Message{{ID: 2, Author: discord.User{ID: 7, Username: "a"}}})
+	ml.selectBottom()
+	task, ok := ml.viewAuthorProfile().(cmd.Task)
+	if !ok {
+		t.Fatal("no profile for the selected message")
+	}
+	show, ok := task().(profile.ShowMsg)
+	if !ok || show.Member.User.ID != 7 || show.GuildID.IsValid() {
+		t.Fatalf("got %#v, want author 7 of a DM", show)
+	}
+
+	// In a server, the author's member is shown when the state has it.
+	ml.channel = &discord.Channel{ID: 1, GuildID: 5}
+	if err := ml.state.MemberSet(5, &discord.Member{User: discord.User{ID: 7}, Nick: "n"}, false); err != nil {
+		t.Fatal(err)
+	}
+	task, _ = ml.viewAuthorProfile().(cmd.Task)
+	if show, _ := task().(profile.ShowMsg); show.GuildID != 5 || show.Member.Nick != "n" {
+		t.Fatalf("got %#v, want the member of guild 5", show)
+	}
 }
 
 func TestModelBuildItem(t *testing.T) {

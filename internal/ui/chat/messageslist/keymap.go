@@ -65,6 +65,7 @@ func (m Model) messageHelp(message discord.Message) (actions, manage, attachment
 	if m.canReact() {
 		actions = append(actions, keybinds.React.Keybind)
 	}
+	actions = append(actions, keybinds.ViewProfile.Keybind)
 
 	if m.channel != nil && m.isEditable(messageItem{message: message}, m.channel.ID) {
 		manage = append(manage, keybinds.Edit.Keybind)

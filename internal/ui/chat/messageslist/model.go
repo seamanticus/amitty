@@ -655,6 +655,8 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 			return m, m.reply(true)
 		case keybind.Matches(msg, keybinds.Edit.Keybind):
 			return m, m.editSelectedMessage()
+		case keybind.Matches(msg, keybinds.ViewProfile.Keybind):
+			return m, m.viewAuthorProfile()
 		case keybind.Matches(msg, keybinds.Delete.Keybind):
 			return m, m.deleteSelectedMessage()
 		case keybind.Matches(msg, keybinds.DeleteConfirm.Keybind):

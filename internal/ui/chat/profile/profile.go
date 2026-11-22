@@ -86,7 +86,7 @@ func (m Model) View() tui.Widget {
 			header = row.New(avatar, header).Spacing(1).Height(layout.Shrink)
 		}
 	}
-	body := column.New(header, text.New(""), text.Rich(m.details()...).Wrapping(text.WrappingWordOrGlyph))
+	body := column.New(text.New(""), header, text.New(""), text.Rich(m.details()...).Wrapping(text.WrappingWordOrGlyph))
 	return ui.Box(body, m.cfg, true).Title(ui.Label("Profile", m.cfg.Theme.Title, true))
 }
 

@@ -64,6 +64,7 @@ func (m Model) FullHelp() [][]keybind.Keybind {
 	if m.current != nil && len(m.root.PathTo(m.current)) >= 3 {
 		selectGroup = append(selectGroup, cfg.MoveToParentNode.Keybind)
 	}
+	selectGroup = append(selectGroup, cfg.ToggleExpandAll.WithHelp(cfg.ToggleExpandAll.Help().Key, m.toggleFullyDesc()))
 	selectGroup = append(selectGroup, m.collapseKeybinds()...)
 
 	full := [][]keybind.Keybind{
@@ -89,6 +90,14 @@ func (m Model) collapseKeybinds() []keybind.Keybind {
 		keybinds = append(keybinds, cfg.CollapseAll.Keybind)
 	}
 	return keybinds
+}
+
+// toggleFullyDesc says what the full toggle does to the highlighted node.
+func (m Model) toggleFullyDesc() string {
+	if m.current != nil && m.fullyExpanded(m.current) {
+		return "collapse all under"
+	}
+	return "expand all under"
 }
 
 func (m Model) canCollapseParent(node *tree.Node) bool {

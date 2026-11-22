@@ -144,6 +144,8 @@ type GuildsTreeKeybinds struct {
 	// Highlight the previous or next unread guild or channel, wrapping around.
 	SelectPreviousUnread Keybind `toml:"select_previous_unread"`
 	SelectNextUnread     Keybind `toml:"select_next_unread"`
+	// Expand the highlighted node and everything under it, or collapse it all when it is all expanded.
+	ToggleExpandAll Keybind `toml:"toggle_expand_all"`
 	// Accept or reject the highlighted message request, a DM from someone you are not friends with; each asks first.
 	AcceptRequest Keybind `toml:"accept_request"`
 	RejectRequest Keybind `toml:"reject_request"`
@@ -187,6 +189,8 @@ type MessagesListKeybinds struct {
 	React Keybind `toml:"react"`
 	// Download one of the selected message's attachments.
 	Download Keybind `toml:"download"`
+	// Show the profile of the selected message's author.
+	ViewProfile Keybind `toml:"view_profile"`
 
 	// Yank (copy) the selected message's content/url/id.
 	YankContent Keybind `toml:"yank_content"`
@@ -363,6 +367,7 @@ func defaultKeybinds() Keybinds {
 			TreeKeybinds:         tree,
 			SelectPreviousUnread: key("prev unread", "K"),
 			SelectNextUnread:     key("next unread", "J"),
+			ToggleExpandAll:      key("expand all", "tab"),
 			AcceptRequest:        key("accept", "a"),
 			RejectRequest:        key("reject", "r"),
 			JoinGuild:            key("join", "+"),
@@ -387,6 +392,7 @@ func defaultKeybinds() Keybinds {
 			OpenInBrowser: key("open browser", "O"),
 			React:         key("react", "a"),
 			Download:      key("download", "D"),
+			ViewProfile:   key("profile", "v"),
 
 			YankContent: key("copy text", "y"),
 			YankURL:     key("copy url", "u"),

@@ -11,6 +11,7 @@ import (
 	"github.com/seamanticus/amitty/internal/tui/cmd"
 	"github.com/seamanticus/amitty/internal/tui/viewport"
 	"github.com/seamanticus/amitty/internal/ui"
+	"github.com/seamanticus/amitty/internal/ui/chat/profile"
 )
 
 // Msg is implemented by the messages the list sends itself, which must reach it whatever has the focus.
@@ -102,6 +103,22 @@ func (m Model) fetchOlderMessages() tui.Cmd {
 		slices.Reverse(older)
 		return olderMessagesLoadedMsg{channelID: channelID, older: older}
 	})
+}
+
+// viewAuthorProfile shows the profile of the selected message's author: their member of the server when it is known, the message's author alone otherwise.
+func (m Model) viewAuthorProfile() tui.Cmd {
+	message, ok := m.selectedMessage()
+	if !ok || m.channel == nil {
+		return nil
+	}
+	show := profile.ShowMsg{GuildID: discord.NoGuild(), Member: discord.Member{User: message.Author}}
+	if guildID := m.channel.GuildID; guildID.IsValid() {
+		show.GuildID = guildID
+		if member, err := m.state.Cabinet.Member(guildID, message.Author.ID); err == nil {
+			show.Member = *member
+		}
+	}
+	return cmd.Task(func() tui.Msg { return show })
 }
 
 func (m Model) yankMessageID() tui.Cmd {

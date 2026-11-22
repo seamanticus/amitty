@@ -403,6 +403,7 @@ Only while focusing on the guilds tree.
 | `move_to_parent_node` | `"p"` |  |
 | `select_previous_unread` | `"K"` | Highlight the previous or next unread guild or channel, wrapping around. |
 | `select_next_unread` | `"J"` |  |
+| `toggle_expand_all` | `"tab"` | Expand the highlighted node and everything under it, or collapse it all when it is all expanded. |
 | `accept_request` | `"a"` | Accept or reject the highlighted message request, a DM from someone you are not friends with; each asks first. |
 | `reject_request` | `"r"` |  |
 | `join_guild` | `"+"` | Join a server by invite link or code; asks first, and counts toward the 3 new DMs or joins an hour. |
@@ -456,6 +457,7 @@ Only while focusing on sent messages.
 | `open_in_browser` | `"O"` | Open attachments or hyperlinks in the browser. |
 | `react` | `"a"` | React to the selected message with an emoji picked from a list. |
 | `download` | `"D"` | Download one of the selected message's attachments. |
+| `view_profile` | `"v"` | Show the profile of the selected message's author. |
 | `yank_content` | `"y"` | Yank (copy) the selected message's content/url/id. |
 | `yank_url` | `"u"` |  |
 | `yank_id` | `"i"` |  |
