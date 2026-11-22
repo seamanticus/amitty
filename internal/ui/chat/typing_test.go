@@ -31,6 +31,7 @@ func TestTypingLabel(t *testing.T) {
 			t.Fatalf("animation %d has no expected frames", animation)
 		}
 		for frame, line := range frames {
+			line = " " + line + " "
 			if got := strings.TrimSuffix(discordtest.Draw(t, typingLabel("a is typing", animation, frame, tui.Style{}), len([]rune(line)), 1), "\n"); got != line {
 				t.Errorf("animation %d frame %d = %q, want %q", animation, frame, got, line)
 			}
@@ -41,13 +42,14 @@ func TestTypingLabel(t *testing.T) {
 	}
 	// Pulsing changes the style alone: dim, normal, bold, normal.
 	for frame, want := range []struct{ dim, bold bool }{{true, false}, {}, {false, true}, {}} {
-		screen := vt.NewMockTerm(vt.MockOptSize{X: 1, Y: 1})
+		screen := vt.NewMockTerm(vt.MockOptSize{X: 3, Y: 1})
 		term, err := tcell.NewTerminfoScreenFromTty(screen)
 		if err != nil || term.Init() != nil {
 			t.Fatal(err)
 		}
-		typingLabel("a", config.TypingAnimationPulsing, frame, tui.Style{}).Draw(term, tui.Rectangle{Width: 1, Height: 1})
-		_, style, _ := term.Get(0, 0)
+		typingLabel("a", config.TypingAnimationPulsing, frame, tui.Style{}).Draw(term, tui.Rectangle{Width: 3, Height: 1})
+		// Cell 1 is the "a", after the padding.
+		_, style, _ := term.Get(1, 0)
 		term.Fini()
 		if dim, bold := style.HasDim(), style.HasBold(); dim != want.dim || bold != want.bold {
 			t.Errorf("pulsing frame %d: dim %v bold %v, want %v %v", frame, dim, bold, want.dim, want.bold)

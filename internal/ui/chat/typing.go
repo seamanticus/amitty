@@ -89,5 +89,6 @@ func typingLabel(line string, animation config.TypingAnimation, frame int, style
 	default:
 		panic("invariant: unknown typing animation")
 	}
-	return text.New(line).Style(style).Wrapping(text.WrappingNone)
+	// A space on each side keeps it clear of the border it is drawn in.
+	return text.New(" " + line + " ").Style(style).Wrapping(text.WrappingNone)
 }
