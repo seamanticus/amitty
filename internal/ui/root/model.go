@@ -35,6 +35,8 @@ type Model struct {
 	// dialog is the dialog shown, or nil when none is open, and dialogFocus its focused button.
 	dialog      *ui.DialogMsg
 	dialogFocus int
+	// loggingOut reports a logout waiting for Discord, shown as a dialog without buttons that nothing closes but its end.
+	loggingOut bool
 	// resize is the last size of the window, or nil before the first, kept for the models shown later.
 	resize tui.ResizeMsg
 
@@ -169,7 +171,15 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 
 	case chat.StateClosedMsg:
 		return m, cmd.Quit{}
+	case chat.LoggingOutMsg:
+		// Quitting now would leave the session open at Discord, so nothing is taken until it answers.
+		m.loggingOut = true
+		m.dialog, m.dialogFocus = &ui.DialogMsg{Text: "Logging out of Discord..."}, 0
+		m.settings = nil
+		return m, m.updateScreen(msg)
 	case chat.LogoutMsg:
+		m.loggingOut = false
+		m.dialog = nil
 		// Both a logout and a rejected token (4004) end the token for good.
 		command := cmd.Batch{m.showLogin(), deleteToken(m.store)}
 		// Shown after the login, as showing it closes any dialog.
@@ -187,6 +197,9 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 		m.dialogFocus = int(msg)
 		return m, nil
 	case dialogDoneMsg:
+		if m.loggingOut {
+			return m, nil
+		}
 		return m, m.finishDialog(int(msg))
 
 	case settings.Msg:

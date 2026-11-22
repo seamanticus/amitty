@@ -53,8 +53,7 @@ func openState(state *ningen.State) tui.Cmd {
 
 		// A rejected token never works again, so say so over the login.
 		if isAuthenticationFailed(err) {
-			slog.Error("failed to open chat state", "err", err)
-			return LogoutMsg{What: "open chat state", Err: err}
+			return LogoutMsg{What: "open the chat", Err: rejectedTokenError{err}}
 		}
 
 		// The deadline closes the session, so the chat would otherwise sit empty with no reason given.
@@ -66,6 +65,24 @@ func isAuthenticationFailed(err error) bool {
 	event, ok := errors.AsType[*ws.CloseEvent](err)
 	return ok && event.Code == closeCodeAuthenticationFailed
 }
+
+// rejectedTokenError is a stored token the gateway refused (4004): its session was logged out or ended elsewhere.
+type rejectedTokenError struct{ err error }
+
+func (e rejectedTokenError) Error() string {
+	return "Discord no longer accepts the stored token: its session was logged out or ended, or the password changed. Log in again."
+}
+
+func (e rejectedTokenError) Unwrap() error { return e.err }
+
+// unconfirmedLogoutError is a logout Discord did not confirm, whose session may still be open.
+type unconfirmedLogoutError struct{ err error }
+
+func (e unconfirmedLogoutError) Error() string {
+	return e.err.Error() + ". The session may still be open: end it in the web client, under User Settings, Devices."
+}
+
+func (e unconfirmedLogoutError) Unwrap() error { return e.err }
 
 // closeState stops the events, then closes the session, if any, before sending next, so that next comes after the session is gone.
 func closeState(state *ningen.State, stopEvents func(), next tui.Msg) tui.Cmd {
@@ -97,11 +114,14 @@ func logOut(state *ningen.State, stopEvents func(), client *api.Client) tui.Cmd 
 		ctx, cancel := context.WithTimeout(context.Background(), logoutTimeout)
 		defer cancel()
 		if err := client.WithContext(ctx).Logout(); err != nil {
-			return LogoutMsg{What: "log out at Discord", Err: err}
+			return LogoutMsg{What: "log out at Discord", Err: unconfirmedLogoutError{err}}
 		}
 		return LogoutMsg{}
 	})
 }
+
+// LoggingOutMsg starts a logout; until its LogoutMsg comes, the screen says so and takes no input, so quitting cannot leave the session open.
+type LoggingOutMsg struct{}
 
 // listen waits for the next event, or for ctx to end, which sends nothing.
 func listen(ctx context.Context, events *handler.Queue) tui.Cmd {

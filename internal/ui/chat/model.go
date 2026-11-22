@@ -459,6 +459,8 @@ func (m Model) update(msg tui.Msg) (Model, tui.Cmd) {
 		return m, nil
 	case QuitMsg:
 		return m, closeState(m.state, m.stopEvents, StateClosedMsg{})
+	case LoggingOutMsg:
+		return m, logOut(m.state, m.stopEvents, m.state.Client)
 	case tui.KeyMsg:
 		keybinds := m.cfg.Keybinds
 		switch {
@@ -495,7 +497,7 @@ func (m Model) update(msg tui.Msg) (Model, tui.Cmd) {
 			return m, ui.ShowDialog(
 				"Are you sure you want to log out?",
 				ui.DialogButton{Label: "No"},
-				ui.DialogButton{Label: "Yes", Cmd: logOut(m.state, m.stopEvents, m.state.Client)},
+				ui.DialogButton{Label: "Yes", Cmd: cmd.Task(func() tui.Msg { return LoggingOutMsg{} })},
 			)
 		}
 	case composer.RefreshAutocompleteMsg, autocomplete.Msg:

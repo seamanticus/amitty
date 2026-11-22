@@ -46,7 +46,8 @@ enter, even if you cannot see what you type.
 | Symptom | Cause and fix |
 |---------|---------------|
 | amitty stops at start, naming `token.gpg` | The token does not decrypt: gpg's key or passphrase is missing. Fix gpg, or delete the file to log in again (see [Token storage](token.md)). |
-| The login screen comes back on its own | Discord rejected the token (gateway close 4004), which deletes it. Log in again. |
+| "Discord no longer accepts the stored token" | Discord rejected the token (gateway close 4004): its session was logged out, ended in the web client's Devices, or the password changed. amitty deletes it; log in again. |
+| Logging out shows "Logging out of Discord..." | amitty waits up to 10 seconds for Discord to end the session and takes no keys meanwhile, so quitting cannot leave it open. If Discord does not answer, end the session in the web client under User Settings, Devices. |
 | "did not accept the captcha after 3 tries" | Discord kept rejecting the answers. Wait, then try again or use the QR login (see [Login](login.md#the-captcha-page)). |
 | "Discord does not know this location yet and emailed you a link" | A login from a new place or device. Click Verify Login in Discord's email, then log in again; the form keeps what you typed. `credentials/browser.json` makes later runs the same device. |
 | The captcha page does not open | No browser handles `xdg-open`. Open the address the login screen shows. |

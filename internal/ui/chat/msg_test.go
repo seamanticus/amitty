@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/seamanticus/amitty/internal/discordtest"
@@ -94,6 +95,10 @@ func TestLogOut(t *testing.T) {
 			msg, ok := task().(LogoutMsg)
 			if !ok || !stopped || (msg.Err != nil) != tt.wantErr || tt.wantErr && msg.What == "" {
 				t.Fatalf("got %#v, stopped = %v", msg, stopped)
+			}
+			// A logout Discord did not confirm says how to end the session by hand.
+			if tt.wantErr && !strings.Contains(msg.Err.Error(), "Devices") {
+				t.Errorf("error %q does not say where to end the session", msg.Err)
 			}
 			// The body the web client's logout sends, 38 bytes in a NetLog.
 			if want := `POST /api/v9/auth/logout {"provider":null,"voip_provider":null}`; sent != want {

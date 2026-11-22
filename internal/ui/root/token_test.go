@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gdamore/tcell/v3"
 	"github.com/seamanticus/amitty/internal/config"
 	"github.com/seamanticus/amitty/internal/http"
 	"github.com/seamanticus/amitty/internal/tokenstore"
@@ -186,6 +187,27 @@ func TestModelTokens(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("a logout waiting for Discord takes no quit", func(t *testing.T) {
+		store := testStore(t)
+		run(t, storeToken(store, "t"))
+		m, _ := newModel(t, store, "t").Update(chat.LoggingOutMsg{})
+		if m.dialog == nil || len(m.dialog.Buttons) != 0 {
+			t.Fatalf("dialog = %+v, want one without buttons", m.dialog)
+		}
+		quit := tui.KeyMsg(tcell.NewEventKey(tcell.KeyCtrlC, "", tcell.ModCtrl))
+		for _, msg := range []tui.Msg{quit, dialogDoneMsg(-1), dialogDoneMsg(0)} {
+			var command tui.Cmd
+			if m, command = m.Update(msg); command != nil || m.dialog == nil {
+				t.Fatalf("%#v gave %#v, dialog %+v; want nothing while logging out", msg, command, m.dialog)
+			}
+		}
+		m, command := m.Update(chat.LogoutMsg{})
+		runAll(command)
+		if m.loggingOut || m.dialog != nil || m.screen.isChat() {
+			t.Fatalf("after the logout: logging out %v, dialog %+v, chat %v", m.loggingOut, m.dialog, m.screen.isChat())
+		}
+	})
 
 	t.Run("a closed session quits", func(t *testing.T) {
 		if _, command := newModel(t, testStore(t), "").Update(chat.StateClosedMsg{}); command != (cmd.Quit{}) {
