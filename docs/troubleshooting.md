@@ -24,10 +24,12 @@ jq 'select(.msg == "api exchange" and .status >= 400)' logs.txt
 jq 'select(.msg == "gateway send") | {op, body}' logs.txt
 ```
 
-Tokens, login tickets, passwords, captcha answers, cookies and the QR
-login's keys are replaced by `<redacted>`, an uploaded file by its size,
-and the file is readable by you alone, but the log still holds private
-messages: never share it, and delete it when done.
+**`raw-debug` is a developer tool and its log is explicit.** Only the
+`authorization` header, tokens, login tickets and passwords are replaced
+by `<redacted>`, and an uploaded file by its size. Everything else is
+logged as sent: your email, cookies, captcha answers, QR login keys,
+upload URLs, message text and IDs. The file is readable by you alone;
+treat it as a secret, never share it, and delete it when done.
 
 Below `raw-debug`, the log can hold channel and user IDs, but never
 your token or password; still, read it before sharing it.

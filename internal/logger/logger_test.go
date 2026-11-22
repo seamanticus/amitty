@@ -39,8 +39,9 @@ func TestRedact(t *testing.T) {
 		{`{"ticket": "x\"y", "mfa":true}`, `{"ticket": "<redacted>", "mfa":true}`},
 		{`{"analytics_token":"t","auth_token":"u"}`, `{"analytics_token":"<redacted>","auth_token":"<redacted>"}`},
 		{`{"password":"p"}`, `{"password":"<redacted>"}`},
-		{`{"captcha_key":"k","captcha_rqtoken":"r","captcha_sitekey":"s"}`, `{"captcha_key":"<redacted>","captcha_rqtoken":"<redacted>","captcha_sitekey":"s"}`},
-		{`{"op":"nonce_proof","encrypted_nonce":"n","proof":"p","fingerprint":"f","encoded_public_key":"k"}`, `{"op":"nonce_proof","encrypted_nonce":"<redacted>","proof":"<redacted>","fingerprint":"<redacted>","encoded_public_key":"<redacted>"}`},
+		{`{"login":"a@b.c","captcha_key":"k","captcha_rqtoken":"r","captcha_session_id":"s"}`, `{"login":"a@b.c","captcha_key":"k","captcha_rqtoken":"r","captcha_session_id":"s"}`},
+		{`{"op":"nonce_proof","encrypted_nonce":"n","proof":"p","fingerprint":"f"}`, `{"op":"nonce_proof","encrypted_nonce":"n","proof":"p","fingerprint":"f"}`},
+		{`{"op":"pending_login","ticket":"t"}`, `{"op":"pending_login","ticket":"<redacted>"}`},
 		{`{"token":null,"tokens":"kept","name":"token"}`, `{"token":null,"tokens":"kept","name":"token"}`},
 		{``, ``},
 	} {
@@ -123,13 +124,13 @@ func TestHeaders(t *testing.T) {
 		"Authorization":      {"secret"},
 		"X-Super-Properties": {"e30="},
 		"Accept":             {"*/*"},
-		"Cookie":             {""},
+		"Cookie":             {"__dcfduid=x"},
 	}
 	var got []string
 	for _, attr := range Headers(header, []string{":method", "authorization", "x-super-properties", "absent"}).Group() {
 		got = append(got, attr.Key+"="+attr.Value.String())
 	}
-	want := []string{":method=POST", "authorization=<redacted>", "x-super-properties=e30=", "accept=*/*", "content-type=application/json", "cookie="}
+	want := []string{":method=POST", "authorization=<redacted>", "x-super-properties=e30=", "accept=*/*", "content-type=application/json", "cookie=__dcfduid=x"}
 	if !slices.Equal(got, want) {
 		t.Errorf("Headers = %q, want %q", got, want)
 	}

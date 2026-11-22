@@ -155,16 +155,3 @@ func TestCloseConn(t *testing.T) {
 		}
 	})
 }
-
-func TestRedactNonce(t *testing.T) {
-	// evidence: witnesses
-	for _, test := range []struct{ data, want string }{
-		{`{"op":"nonce_proof","nonce":"abc"}`, `{"op":"nonce_proof","nonce":"<redacted>"}`},
-		{`{"op":"heartbeat"}`, `{"op":"heartbeat"}`},
-		{``, ``},
-	} {
-		if got := string(redactNonce([]byte(test.data))); got != test.want {
-			t.Errorf("redactNonce(%s) = %s, want %s", test.data, got, test.want)
-		}
-	}
-}

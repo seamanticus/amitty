@@ -13,7 +13,6 @@ import (
 	"image"
 	"log/slog"
 	"net"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -58,17 +57,9 @@ func (c *gatewayConn) writeJSON(v any) error {
 	return nil
 }
 
-// nonceField matches the decrypted nonce a nonce_proof sends, which the log's redaction keeps elsewhere for message nonces.
-var nonceField = regexp.MustCompile(`"nonce"(\s*:\s*)"(?:[^"\\]|\\.)*"`)
-
-// logFrame logs a Remote Auth Gateway frame at raw-debug, with its keys and nonce blanked.
+// logFrame logs a Remote Auth Gateway frame at raw-debug.
 func logFrame(msg string, data []byte) {
-	logger.Raw(context.Background(), msg, redactNonce(data))
-}
-
-// redactNonce blanks the nonce in data.
-func redactNonce(data []byte) []byte {
-	return nonceField.ReplaceAll(data, []byte(`"nonce"$1"<redacted>"`))
+	logger.Raw(context.Background(), msg, data)
 }
 
 type connCreateMsg struct {

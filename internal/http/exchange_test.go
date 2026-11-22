@@ -51,7 +51,8 @@ func TestLogURL(t *testing.T) {
 	for _, test := range []struct{ in, want string }{
 		{"https://discord.com/api/v9/users/@me/channels", "https://discord.com/api/v9/users/@me/channels"},
 		{"https://discord.com/api/v9/channels/1/messages?limit=50&before=2", "https://discord.com/api/v9/channels/1/messages?limit=50&before=2"},
-		{"https://up.example/u/a.png?upload_id=secret&X-Goog-Signature=s", "https://up.example/u/a.png?X-Goog-Signature=%3Credacted%3E&upload_id=%3Credacted%3E"},
+		{"https://up.example/u/a.png?upload_id=u&X-Goog-Signature=s", "https://up.example/u/a.png?upload_id=u&X-Goog-Signature=s"},
+		{"https://h/x?token=t&a=1", "https://h/x?a=1&token=%3Credacted%3E"},
 		{"http://user:pass@h/", "http://user:xxxxx@h/"},
 	} {
 		u, err := url.Parse(test.in)
@@ -118,9 +119,9 @@ func TestExchangeLog(t *testing.T) {
 	}{
 		{
 			[]string{`{"body":{"login":"a","password":"<redacted>"},`, `"authorization":"<redacted>"`, `"content-length":"28"`},
-			`{"body":{"captcha_key":["captcha-required"],"captcha_rqtoken":"<redacted>"},`,
+			`{"body":{"captcha_key":["captcha-required"],"captcha_rqtoken":"r"},`,
 		},
-		{[]string{`{"body":"<28 bytes>",`}, `"set-cookie":"<redacted>"`},
+		{[]string{`{"body":"<28 bytes>",`}, `"set-cookie":"__dcfduid=x"`},
 	} {
 		record := got[i]
 		if record["status"] != 400.0 || record["method"] != "POST" {

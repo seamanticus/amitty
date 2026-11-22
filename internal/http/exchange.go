@@ -7,7 +7,6 @@ import (
 	"io"
 	"log/slog"
 	"net/url"
-	"strings"
 	"sync"
 	"time"
 
@@ -41,20 +40,13 @@ func do(client tls_client.HttpClient, req *fhttp.Request, keepBody bool) (*fhttp
 	return resp, nil
 }
 
-// logURL is u as the log shows it: userinfo and the values of signing query parameters, such as an upload URL's, blanked.
+// logURL is u as the log shows it: userinfo and a token query parameter blanked.
 func logURL(u *url.URL) string {
 	query := u.Query()
-	signed := false
-	for key := range query {
-		switch lower := strings.ToLower(key); {
-		case lower == "upload_id", lower == "token", strings.HasPrefix(lower, "x-goog-"):
-			query.Set(key, "<redacted>")
-			signed = true
-		}
-	}
-	if !signed {
+	if !query.Has("token") {
 		return u.Redacted()
 	}
+	query.Set("token", "<redacted>")
 	copied := *u
 	copied.RawQuery = query.Encode()
 	return copied.Redacted()

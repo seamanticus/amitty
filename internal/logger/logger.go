@@ -34,8 +34,8 @@ func ParseLevel(name string) (slog.Level, error) {
 	return level, nil
 }
 
-// secretField matches a JSON string field that holds a credential or a one-time login value: a token of any kind, a login ticket, a password, a captcha answer, or a QR login's keys and fingerprint.
-var secretField = regexp.MustCompile(`"(token|[a-z_]*_token|ticket|password|captcha_key|captcha_rqtoken|captcha_rqdata|fingerprint|encrypted_[a-z_]*|proof|encoded_public_key)"(\s*:\s*)"(?:[^"\\]|\\.)*"`)
+// secretField matches a JSON string field that holds a credential: a token of any kind, a login ticket, which a token is redeemed for, or a password.
+var secretField = regexp.MustCompile(`"(token|[a-z_]*_token|ticket|password)"(\s*:\s*)"(?:[^"\\]|\\.)*"`)
 
 const redacted = "<redacted>"
 
@@ -67,11 +67,7 @@ func Body(body []byte) slog.Value {
 
 // secretHeader reports whether the header named name, in lower case, holds a credential.
 func secretHeader(name string) bool {
-	switch name {
-	case "authorization", "cookie", "set-cookie", "x-captcha-key", "x-captcha-rqtoken", "x-fingerprint":
-		return true
-	}
-	return false
+	return name == "authorization"
 }
 
 // Headers returns header as a log group with names in lower case: those in order first, in that order, then the rest sorted. Credentials are blanked, their names kept.
