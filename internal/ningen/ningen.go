@@ -533,13 +533,16 @@ type UnreadOpts struct {
 // messages.
 func (r *State) ChannelIsUnread(chID discord.ChannelID, opts UnreadOpts) UnreadIndication {
 	state := r.ReadState.ReadState(chID)
-	if state == nil || !state.LastMessageID.IsValid() {
+	if state == nil {
 		return ChannelRead
 	}
 
-	// Mentions override mutes.
+	// Mentions override mutes, and count in a channel never read.
 	if state.MentionCount > 0 {
 		return ChannelMentioned
+	}
+	if !state.LastMessageID.IsValid() {
+		return ChannelRead
 	}
 
 	if r.ChannelIsMuted(chID, opts) {

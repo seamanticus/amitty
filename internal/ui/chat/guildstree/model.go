@@ -43,6 +43,8 @@ type Model struct {
 	guildNodes   map[discord.GuildID]*tree.Node
 	channelNodes map[discord.ChannelID]*tree.Node
 	dmRootNode   *tree.Node
+	// folders holds each folder node's folder, so its unread state can be taken from its guilds.
+	folders map[*tree.Node]gateway.GuildFolder
 
 	// focused reports whether the tree takes keys.
 	focused bool
@@ -55,6 +57,7 @@ func NewModel(cfg *config.Config, state *ningen.State) Model {
 		state:        state,
 		guildNodes:   make(map[discord.GuildID]*tree.Node),
 		channelNodes: make(map[discord.ChannelID]*tree.Node),
+		folders:      make(map[*tree.Node]gateway.GuildFolder),
 	}
 }
 
@@ -72,10 +75,12 @@ func (m *Model) reset() *tree.Node {
 	// Keep allocated map capacity; READY can rebuild often during reconnects.
 	clear(m.guildNodes)
 	clear(m.channelNodes)
+	clear(m.folders)
 	m.dmRootNode = tree.NewNode(m.dmNodeText()).
 		SetReference(dmNode{}).
 		SetExpandable(true).
 		SetExpanded(false)
+	setNodeNameStyle(m.dmRootNode, m.dmNodeStyle())
 	return m.root.ClearChildren().AddChild(m.dmRootNode)
 }
 
@@ -126,7 +131,7 @@ func (m Model) refreshReadState(event *read.UpdateEvent) {
 	if event.GuildID.IsValid() {
 		m.refreshGuildNode(event.GuildID)
 	} else if m.dmRootNode != nil {
-		setNodeText(m.dmRootNode, m.dmNodeText())
+		m.refreshDMRoot()
 	}
 
 	node := m.findNodeByRef(event.ChannelID)
@@ -155,6 +160,39 @@ func (m Model) refreshGuildNode(guildID discord.GuildID) {
 	}
 
 	setNodeNameStyle(node, m.guildNodeStyle(guildID))
+
+	for folderNode, folder := range m.folders {
+		if slices.Contains(folder.GuildIDs, guildID) {
+			m.refreshFolderNode(folderNode, folder)
+		}
+	}
+}
+
+// refreshDMRoot sets the DM root's counter and unread style from the DMs shown.
+func (m Model) refreshDMRoot() {
+	setNodeText(m.dmRootNode, m.dmNodeText())
+	setNodeNameStyle(m.dmRootNode, m.dmNodeStyle())
+}
+
+// refreshFolderNode sets a folder's counter and unread style from its guilds, keeping its color.
+func (m Model) refreshFolderNode(node *tree.Node, folder gateway.GuildFolder) {
+	name := "Folder"
+	if folder.Name != "" {
+		name = folder.Name
+	}
+	var mentions int
+	indication := ningen.ChannelRead
+	for _, guildID := range folder.GuildIDs {
+		channels, _ := m.state.Cabinet.Channels(guildID)
+		mentions += m.mentions(channels...)
+		indication = max(indication, m.state.GuildIsUnread(guildID, ningen.GuildUnreadOpts{IncludeMutedCategories: true}))
+	}
+	style := unreadStyle(indication)
+	if folder.Color != 0 {
+		style = style.Foreground(tcell.NewHexColor(int32(folder.Color)))
+	}
+	setNodeText(node, name+mentionsLabel(mentions))
+	setNodeNameStyle(node, style)
 }
 
 func (m Model) updateDMNodeStyle(userID discord.UserID) {
@@ -184,16 +222,9 @@ func (m Model) moveDMToFront(channelID discord.ChannelID) {
 }
 
 func (m Model) createFolderNode(folder gateway.GuildFolder, guildsByID map[discord.GuildID]*gateway.GuildCreateEvent) {
-	name := "Folder"
-	if folder.Name != "" {
-		name = folder.Name
-	}
-
-	folderNode := tree.NewNode(name).SetExpanded(m.cfg.UI.GuildsTree.AutoExpandFolders)
-	if folder.Color != 0 {
-		folderStyle := tcell.StyleDefault.Foreground(tcell.NewHexColor(int32(folder.Color)))
-		setNodeNameStyle(folderNode, folderStyle)
-	}
+	folderNode := tree.NewNode("").SetExpanded(m.cfg.UI.GuildsTree.AutoExpandFolders)
+	m.folders[folderNode] = folder
+	m.refreshFolderNode(folderNode, folder)
 	m.root.AddChild(folderNode)
 
 	for _, guildID := range folder.GuildIDs {
@@ -277,6 +308,54 @@ func expandable(node *tree.Node) bool {
 	return len(node.Children()) > 0
 }
 
+// toggleFully expands node and everything under it, loading the channels of servers and the DMs not listed yet, or collapses it all when it is all expanded.
+func (m Model) toggleFully(node *tree.Node) {
+	if node == nil {
+		return
+	}
+	if m.fullyExpanded(node) {
+		node.CollapseAll()
+		return
+	}
+	var expand func(*tree.Node)
+	expand = func(n *tree.Node) {
+		if len(n.Children()) == 0 {
+			switch ref := n.Reference().(type) {
+			case discord.GuildID:
+				m.expandGuild(n, ref)
+			case dmNode:
+				m.expandPrivateChannels(n)
+			}
+		}
+		if len(n.Children()) == 0 {
+			return
+		}
+		n.Expand()
+		for _, child := range n.Children() {
+			expand(child)
+		}
+	}
+	expand(node)
+}
+
+// fullyExpanded reports whether node and every node under it with children are expanded, and no server or DM list under it is still unloaded.
+func (m Model) fullyExpanded(node *tree.Node) bool {
+	all := true
+	node.Walk(func(n, _ *tree.Node) bool {
+		switch n.Reference().(type) {
+		case discord.GuildID, dmNode:
+			if len(n.Children()) == 0 {
+				all = false
+			}
+		}
+		if len(n.Children()) > 0 && !n.Expanded() {
+			all = false
+		}
+		return all
+	})
+	return all
+}
+
 // setNodeNameStyle styles the name of node, which is the first span of its text.
 func setNodeNameStyle(node *tree.Node, style tui.Style) {
 	spans := node.Spans()
@@ -310,6 +389,16 @@ func (m Model) guildText(guild discord.Guild) string {
 func (m Model) dmNodeText() string {
 	channels, _ := ui.VisiblePrivateChannels(m.state, m.cfg.HideDeletedUsers)
 	return dmNodeName + mentionsLabel(m.mentions(channels...))
+}
+
+// dmNodeStyle returns the unread style of the DM root: that of its most unread DM shown.
+func (m Model) dmNodeStyle() tui.Style {
+	channels, _ := ui.VisiblePrivateChannels(m.state, m.cfg.HideDeletedUsers)
+	indication := ningen.ChannelRead
+	for _, channel := range channels {
+		indication = max(indication, m.state.ChannelIsUnread(channel.ID, ningen.UnreadOpts{IncludeMutedCategories: true}))
+	}
+	return unreadStyle(indication)
 }
 
 // mentions returns the number of unread mentions in channels.
@@ -562,6 +651,9 @@ func (m Model) Update(msg tui.Msg) (Model, tui.Cmd) {
 	case tui.KeyMsg:
 		keybinds := m.cfg.Keybinds.GuildsTree
 		switch {
+		case keybind.Matches(msg, keybinds.ToggleExpandAll.Keybind):
+			m.toggleFully(m.current)
+			return m, nil
 		case keybind.Matches(msg, keybinds.CollapseAll.Keybind):
 			for _, node := range m.root.Children() {
 				node.CollapseAll()

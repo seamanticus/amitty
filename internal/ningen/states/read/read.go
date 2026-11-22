@@ -97,6 +97,10 @@ func (r *State) onMessageCreate(c *gateway.MessageCreateEvent) {
 			mentions++
 		}
 	}
+	// Discord counts each message of someone else in a DM or group DM as a mention, which is the badge the web client shows on a DM, though the message lists none.
+	if ch != nil && (ch.Type == discord.DirectMessage || ch.Type == discord.GroupDM) {
+		mentions = 1
+	}
 
 	r.MarkUnread(c.ChannelID, c.ID, mentions)
 }
@@ -139,12 +143,12 @@ func (r *State) SelfID() discord.UserID {
 	return r.selfID
 }
 
-// ReadState gets the read state for a channel.
+// ReadState gets the read state for a channel: one read up to a message, or one with mentions, as a channel never read has once a message mentions the user.
 func (r *State) ReadState(channelID discord.ChannelID) *gateway.ReadState {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	if s, ok := r.states[channelID]; ok && s.LastMessageID.IsValid() {
+	if s, ok := r.states[channelID]; ok && (s.LastMessageID.IsValid() || s.MentionCount > 0) {
 		return s
 	}
 	return nil

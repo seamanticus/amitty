@@ -193,3 +193,38 @@ func TestStateReadState(t *testing.T) {
 		})
 	}
 }
+
+// evidence: witnesses
+func TestMessageMentions(t *testing.T) {
+	for _, tt := range []struct {
+		name    string
+		channel discord.Channel
+		author  discord.UserID
+		mention bool
+		want    int
+	}{
+		{"a DM message", discord.Channel{ID: 2, Type: discord.DirectMessage, DMRecipients: []discord.User{{ID: 9}}}, 9, false, 1},
+		{"a group DM message", discord.Channel{ID: 2, Type: discord.GroupDM}, 9, false, 1},
+		{"one's own DM message", discord.Channel{ID: 2, Type: discord.DirectMessage, DMRecipients: []discord.User{{ID: 9}}}, 4, false, 0},
+		{"a guild message", discord.Channel{ID: 2, GuildID: 1, Type: discord.GuildText}, 9, false, 0},
+		{"a guild message mentioning one", discord.Channel{ID: 2, GuildID: 1, Type: discord.GuildText}, 9, true, 1},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			cabinet := defaultstore.New()
+			if err := cabinet.ChannelSet(&tt.channel, false); err != nil {
+				t.Fatal(err)
+			}
+			h := handler.New()
+			s := NewState(&state.State{Cabinet: cabinet, Handler: handler.New()}, h)
+			h.Call(&gateway.ReadyEvent{User: discord.User{ID: 4}})
+			message := &gateway.MessageCreateEvent{ID: 10, ChannelID: 2, Author: discord.User{ID: tt.author}}
+			if tt.mention {
+				message.Mentions = []discord.GuildUser{{ID: 4}}
+			}
+			h.Call(message)
+			if rs := s.ReadState(2); tt.want > 0 && (rs == nil || rs.MentionCount != tt.want) || tt.want == 0 && rs != nil && rs.MentionCount != 0 {
+				t.Fatalf("read state = %+v, want %d mentions", rs, tt.want)
+			}
+		})
+	}
+}
