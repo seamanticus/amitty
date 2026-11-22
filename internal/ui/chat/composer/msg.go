@@ -2,6 +2,7 @@ package composer
 
 import (
 	"context"
+	"errors"
 	"io"
 	"log/slog"
 	"os"
@@ -111,7 +112,8 @@ func closeFile(file sendpart.File) {
 		return
 	}
 
-	if err := closer.Close(); err != nil {
+	// The upload transport closes a file once it has sent it.
+	if err := closer.Close(); err != nil && !errors.Is(err, os.ErrClosed) {
 		slog.Error("failed to close file", "err", err)
 	}
 }
