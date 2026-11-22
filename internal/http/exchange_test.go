@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -42,6 +43,24 @@ func rawLog(t *testing.T) func() []map[string]any {
 			}
 		}
 		return records
+	}
+}
+
+func TestLogURL(t *testing.T) {
+	// evidence: witnesses
+	for _, test := range []struct{ in, want string }{
+		{"https://discord.com/api/v9/users/@me/channels", "https://discord.com/api/v9/users/@me/channels"},
+		{"https://discord.com/api/v9/channels/1/messages?limit=50&before=2", "https://discord.com/api/v9/channels/1/messages?limit=50&before=2"},
+		{"https://up.example/u/a.png?upload_id=secret&X-Goog-Signature=s", "https://up.example/u/a.png?X-Goog-Signature=%3Credacted%3E&upload_id=%3Credacted%3E"},
+		{"http://user:pass@h/", "http://user:xxxxx@h/"},
+	} {
+		u, err := url.Parse(test.in)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := logURL(u); got != test.want {
+			t.Errorf("logURL(%s) = %s, want %s", test.in, got, test.want)
+		}
 	}
 }
 

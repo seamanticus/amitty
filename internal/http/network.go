@@ -124,9 +124,9 @@ func (m Media) Put(ctx context.Context, url string, body io.Reader, size int64) 
 	return nil
 }
 
-// done sends req and fails unless it answers 2xx.
+// done sends req, logged at raw-debug without its body, which is a file's bytes, and fails unless it answers 2xx.
 func (m Media) done(req *fhttp.Request) error {
-	resp, err := m.client.Do(req)
+	resp, err := do(m.client, req, false)
 	if err != nil {
 		return err
 	}

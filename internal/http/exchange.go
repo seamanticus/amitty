@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net/url"
+	"strings"
 	"time"
 
 	fhttp "github.com/bogdanfinn/fhttp"
@@ -19,7 +21,7 @@ func do(client tls_client.HttpClient, req *fhttp.Request, keepBody bool) (*fhttp
 	if !slog.Default().Enabled(ctx, logger.LevelRaw) {
 		return client.Do(req)
 	}
-	slog.Debug("api request", "method", req.Method, "url", req.URL.Redacted())
+	slog.Debug("api request", "method", req.Method, "url", logURL(req.URL))
 	ex := &exchange{ctx: ctx, req: req, start: time.Now()}
 	if req.Body != nil && req.Body != fhttp.NoBody {
 		ex.sent = &capture{ReadCloser: req.Body, keep: keepBody}
@@ -34,6 +36,25 @@ func do(client tls_client.HttpClient, req *fhttp.Request, keepBody bool) (*fhttp
 	return resp, nil
 }
 
+// logURL is u as the log shows it: userinfo and the values of signing query parameters, such as an upload URL's, blanked.
+func logURL(u *url.URL) string {
+	query := u.Query()
+	signed := false
+	for key := range query {
+		switch lower := strings.ToLower(key); {
+		case lower == "upload_id", lower == "token", strings.HasPrefix(lower, "x-goog-"):
+			query.Set(key, "<redacted>")
+			signed = true
+		}
+	}
+	if !signed {
+		return u.Redacted()
+	}
+	copied := *u
+	copied.RawQuery = query.Encode()
+	return copied.Redacted()
+}
+
 // exchange is a request being logged.
 type exchange struct {
 	ctx   context.Context
@@ -46,7 +67,7 @@ type exchange struct {
 func (ex *exchange) log(resp *fhttp.Response, received *capture, err error) {
 	attrs := []slog.Attr{
 		slog.String("method", ex.req.Method),
-		slog.String("url", ex.req.URL.Redacted()),
+		slog.String("url", logURL(ex.req.URL)),
 	}
 	if resp != nil {
 		attrs = append(attrs, slog.Int("status", resp.StatusCode))
